@@ -7,11 +7,13 @@
   --canvas:#F5F6F8; --surface:#FFFFFF; --surface2:#FCFCFD;
   --bord:#E4E7EC; --bord-fort:#D0D5DD;
   --t1:#101828; --t2:#475467; --t3:#98A2B3;
-  --prim:#4338CA; --prim-vif:#4F46E5; --prim-tint:#EEF0FF; --prim-bord:#C7CDFF;
+  --prim:#B84800; --prim-vif:#9A3B00; --prim-tint:#FFF2E8; --prim-bord:#FFC08A;
+  --marque:#FF7200;
+  --bleu:#175CD3; --bleu-tint:#EFF4FF; --bleu-bord:#B2CCFF;
   --vert:#067647; --vert-tint:#ECFDF3; --vert-bord:#ABEFC6;
-  --ambre:#B54708; --ambre-tint:#FFFAEB; --ambre-bord:#FEDF89;
+  --ambre:#93700A; --ambre-tint:#FEFBEA; --ambre-bord:#F7DF8C;
   --rouge:#B42318; --rouge-tint:#FEF3F2; --rouge-bord:#FECDCA;
-  --ardoise:#1D2939;
+  --ardoise:#1C1613;
   --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
   --ombre:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.10);
@@ -31,7 +33,8 @@ button{cursor:pointer;border:none;background:none}
 .eyebrow{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--t3)}
 
 .auth{min-height:100dvh;display:grid;grid-template-columns:1fr 1fr}
-.auth-recit{background:var(--ardoise);display:grid;place-items:center;padding:40px}
+.auth-recit{background:var(--ardoise);display:grid;place-items:center;padding:40px;position:relative}
+.auth-recit::after{content:"";position:absolute;inset:auto 0 0 0;height:5px;background:var(--marque)}
 .auth-recit .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
 .auth-recit .logo i{width:30px;height:30px;border-radius:8px;background:var(--prim-vif);display:grid;place-items:center;font-style:normal;font-size:15px}
 .auth-recit h2{font-size:29px;line-height:1.25;letter-spacing:-.02em;font-weight:700;max-width:15ch;margin-bottom:14px}
@@ -59,6 +62,7 @@ button{cursor:pointer;border:none;background:none}
 
 .app{display:grid;grid-template-columns:246px minmax(0,1fr);height:100dvh}
 .rail{background:var(--surface);border-right:1px solid var(--bord);display:flex;flex-direction:column;overflow-y:auto}
+.rail{border-top:3px solid var(--marque)}
 .rail .marque{padding:15px 16px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--bord)}
 .rail .marque img{max-width:132px;height:auto;display:block}
 .rail .marque i{width:30px;height:30px;border-radius:8px;background:var(--prim);color:#fff;display:grid;place-items:center;font-style:normal;font-size:14px;flex:none}
@@ -67,7 +71,7 @@ button{cursor:pointer;border:none;background:none}
 .rail .titre-grp{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:13px 8px 5px}
 .rail nav button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border-radius:8px;color:var(--t2);font-size:13.5px;font-weight:500;text-align:left;margin-bottom:1px}
 .rail nav button:hover{background:var(--canvas);color:var(--t1)}
-.rail nav button[aria-current=page]{background:var(--prim-tint);color:var(--prim);font-weight:600}
+.rail nav button[aria-current=page]{background:var(--prim-tint);color:var(--prim);font-weight:600;box-shadow:inset 3px 0 0 var(--marque)}
 .rail nav button[disabled]{opacity:.4;cursor:not-allowed}
 .rail nav button[disabled]:hover{background:none;color:var(--t2)}
 .rail nav .ic{width:17px;text-align:center;flex:none;font-size:13px}
@@ -76,13 +80,13 @@ button{cursor:pointer;border:none;background:none}
 .rail .pied{border-top:1px solid var(--bord);padding:11px}
 .compte-mini{display:flex;align-items:center;gap:9px;padding:7px;border-radius:8px}
 .compte-mini:hover{background:var(--canvas)}
-.avatar{width:33px;height:33px;border-radius:50%;background:var(--prim-tint);color:var(--prim);display:grid;place-items:center;font-weight:700;font-size:12.5px;flex:none}
+.avatar{width:33px;height:33px;border-radius:50%;background:var(--prim);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12.5px;flex:none}
 .compte-mini .id{min-width:0;flex:1}
 .compte-mini .id b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .compte-mini .id span{display:block;font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .zone{display:flex;flex-direction:column;min-width:0;overflow:hidden}
-.topbar{background:var(--surface);border-bottom:1px solid var(--bord);padding:0 20px;height:60px;display:flex;align-items:center;gap:13px;flex:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--bord);box-shadow:inset 0 3px 0 var(--marque);padding:0 20px;height:60px;display:flex;align-items:center;gap:13px;flex:none}
 .topbar h1{font-size:17px;font-weight:600;letter-spacing:-.01em}
 .topbar .dates{margin-left:auto;display:flex;align-items:center;gap:6px}
 .topbar input[type=date]{background:var(--surface);border:1px solid var(--bord-fort);border-radius:8px;padding:7px 10px;font-size:13px;font-family:var(--mono)}
@@ -116,6 +120,7 @@ textarea{resize:vertical;min-height:80px;text-align:left}
 
 .btn{background:var(--prim);color:#fff;border-radius:8px;padding:9px 15px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
 .btn:hover{background:var(--prim-vif)}
+.btn:active{background:#8A3400}
 .btn:disabled{background:var(--bord-fort);color:#fff;cursor:not-allowed;box-shadow:none}
 .btn.neutre{background:var(--surface);color:var(--t1);border:1px solid var(--bord-fort)}
 .btn.neutre:hover{background:var(--canvas)}
@@ -130,7 +135,7 @@ textarea{resize:vertical;min-height:80px;text-align:left}
 .pil.att{background:var(--ambre-tint);color:var(--ambre);border-color:var(--ambre-bord)}
 .pil.ko{background:var(--rouge-tint);color:var(--rouge);border-color:var(--rouge-bord)}
 .pil.neu{background:var(--canvas);color:var(--t2);border-color:var(--bord)}
-.pil.prim{background:var(--prim-tint);color:var(--prim);border-color:var(--prim-bord)}
+.pil.prim{background:var(--bleu-tint);color:var(--bleu);border-color:var(--bleu-bord)}
 .pil i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;margin-bottom:16px}
@@ -139,6 +144,7 @@ textarea{resize:vertical;min-height:80px;text-align:left}
 .stat .v{font-size:25px;font-weight:700;letter-spacing:-.02em;margin-top:5px;font-variant-numeric:tabular-nums}
 .stat .s{font-size:11.5px;color:var(--t3);margin-top:3px}
 .stat.ko .v{color:var(--rouge)} .stat.att .v{color:var(--ambre)} .stat.ok .v{color:var(--vert)} .stat.prim .v{color:var(--prim)}
+.stat.bleu .v{color:var(--bleu)}
 
 .banniere{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:12px 14px;margin-bottom:11px;border:1px solid}
 .banniere b{display:block;font-size:13.5px;margin-bottom:2px}
@@ -146,7 +152,7 @@ textarea{resize:vertical;min-height:80px;text-align:left}
 .banniere.ko{background:var(--rouge-tint);border-color:var(--rouge-bord)} .banniere.ko b{color:var(--rouge)} .banniere.ko p{color:#912018}
 .banniere.att{background:var(--ambre-tint);border-color:var(--ambre-bord)} .banniere.att b{color:var(--ambre)} .banniere.att p{color:#93370D}
 .banniere.ok{background:var(--vert-tint);border-color:var(--vert-bord)} .banniere.ok b{color:var(--vert)} .banniere.ok p{color:#05603A}
-.banniere.info{background:var(--prim-tint);border-color:var(--prim-bord)} .banniere.info b{color:var(--prim)} .banniere.info p{color:#3730A3}
+.banniere.info{background:var(--bleu-tint);border-color:var(--bleu-bord)} .banniere.info b{color:var(--bleu)} .banniere.info p{color:#1A3E8C}
 .banniere .sym{font-weight:700;flex:none;font-size:14px;line-height:1.4}
 
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -212,6 +218,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lignes-tit{background:var(--canvas);border:1px solid var(--bord);border-radius:9px;padding:10px 12px;font-size:13px}
 .lignes-tit .lg{display:flex;justify-content:space-between;padding:3px 0;font-variant-numeric:tabular-nums}
 .lignes-tit .lg b{font-weight:600}
+.code-a-copier{font-family:var(--mono);font-size:12px;background:var(--ardoise);color:#EAECF0;padding:10px 12px;border-radius:8px;margin-top:9px;overflow-x:auto;white-space:nowrap;user-select:all}
 .sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid;margin-left:auto}
 .sync i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
 .sync.ok{background:var(--vert-tint);color:var(--vert);border-color:var(--vert-bord)}
@@ -229,8 +236,8 @@ table.journal .fige{position:sticky;left:0;z-index:2;background:var(--surface);t
 table.journal thead .fige{z-index:4;background:var(--canvas)}
 table.journal tr.grp td{font-weight:700;background:#F7F8FB}
 table.journal tr.grp .fige{background:#F1F3F8}
-table.journal tr.sep td{background:var(--ardoise);color:#fff;font-weight:700;font-size:10.5px;letter-spacing:.06em;padding:6px 8px}
-table.journal tr.sep .fige{background:var(--ardoise);color:#fff}
+table.journal tr.sep td{background:var(--prim);color:#fff;font-weight:700;font-size:10.5px;letter-spacing:.06em;padding:6px 8px}
+table.journal tr.sep .fige{background:var(--prim);color:#fff}
 table.journal tr.ecart td{background:#FFFCF5}
 table.journal tr.ecart .fige{background:#FFF8EA}
 table.journal tbody tr:hover td{background:var(--prim-tint)}
@@ -468,7 +475,8 @@ async function pousser(cle,val){
     } else if(cle===CLES.p){
       const r=await appelServeur({action:"ecrire",nom:"params",valeur:val}); syncVersion=r.version;
     } else if(cle.indexOf("caisse:doc:")===0){
-      const r=await appelServeur({action:"photo",id:cle.slice(11),donnee:val.dataUrl}); syncVersion=r.version;
+      const r=await appelServeur({action:"photo",id:cle.slice(11),donnee:val.dataUrl,meta:val.meta||{}});
+      syncVersion=r.version; if(r.lien) dernierLien=r.lien;
     }
     syncEtat="ok"; syncErreur="";
   }catch(e){ syncEtat="erreur"; syncErreur=e.message; }
@@ -483,7 +491,7 @@ async function verifierMaj(){
     else { syncEtat="ok"; syncErreur=""; }
   }catch(e){ syncEtat="erreur"; syncErreur=e.message; }
 }
-setInterval(verifierMaj,30000);
+setInterval(verifierMaj,15000);
 
 const aStockage = typeof window.storage==="object" && window.storage && typeof window.storage.get==="function";
 let persistanceOK=aStockage;
@@ -529,9 +537,11 @@ let SESSION=null, dernierGeste=Date.now();
 let vue="tableau", jour=isoAujourdhui();
 let brouillon=null, brouillonFerm=null, brouillonRemise=null;
 let cibleDepot=null, modale=null;
-let ecranAuth="connexion", authErr="", authOk="", authPre={};
+let ecranAuth="connexion", authErr="", authOk="", authPre={}, modeLocalAccepte=false;
 let filtreValid="saisi", indexValid=0, zoomValid=1, rotValid=0, pieceActive="";
 let filtreDu="", filtreAu="";
+let lienDrive={classeur:"",dossier:""};
+let dernierLien="";
 
 function isoAujourdhui(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
 function decale(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
@@ -635,15 +645,19 @@ async function preparerFichier(f){
   let g=dessine(1700,.74);
   if(g.length>LIMITE_DOC) g=dessine(1250,.62);
   if(g.length>LIMITE_DOC) g=dessine(950,.5);
-  return {dataUrl:g, type:"image/jpeg", vignette:dessine(160,.5), taille:g.length};
+  return {dataUrl:g, type:"image/jpeg", vignette:dessine(110,.45), taille:g.length};
 }
 async function rangerDoc(f,cible,libelle){
   const p=await preparerFichier(f), id=uid();
-  const ok=await ecrire("caisse:doc:"+id,{dataUrl:p.dataUrl});
+  const meta={id, nom:f.name||"photo.jpg", type:p.type, taille:p.taille, vignette:p.vignette,
+    empreinte:sha256(p.dataUrl).slice(0,16), cible, libelle:libelle||cible, jour,
+    par:SESSION?SESSION.nom:"—", at:maintenant()};
+  dernierLien="";
+  const ok=await ecrire("caisse:doc:"+id,{dataUrl:p.dataUrl, meta});
   if(!ok&&aStockage) throw new Error("Enregistrement refusé : document trop volumineux.");
-  return {id, nom:f.name||"photo.jpg", type:p.type, taille:p.taille, vignette:p.vignette,
-    empreinte:sha256(p.dataUrl).slice(0,16), cible, libelle:libelle||cible,
-    par:SESSION?SESSION.nom:"—", at:maintenant(), _brut:aStockage?null:p.dataUrl};
+  meta.lien=dernierLien||"";
+  meta._brut=(aStockage||syncActif)?null:p.dataUrl;
+  return meta;
 }
 async function ouvrirDoc(id,meta){
   if(meta&&meta._brut) return meta._brut;
@@ -653,7 +667,10 @@ async function ouvrirDoc(id,meta){
     if(j.donnee){ await ecrireLocal("caisse:doc:"+id,{dataUrl:j.donnee}); return j.donnee; } }catch(e){} }
   return null;
 }
-async function jeterDoc(id){ await effacerCle("caisse:doc:"+id); }
+async function jeterDoc(id){
+  await effacerCle("caisse:doc:"+id);
+  if(syncActif){ try{ const r=await appelServeur({action:"photoSupprimer",id}); syncVersion=r.version; }catch(e){} }
+}
 function docsDe(liste,cible){ return (liste||[]).filter(d=>d.cible===cible); }
 function trouverMeta(id){
   let m=null;
@@ -817,10 +834,20 @@ function alertesRemises(){
 function panneauRecit(){
   return '<div class="auth-recit"><img src="'+LOGO+'" alt="" class="marque-logo"></div>';
 }
+function formBase(){
+  return '<h1>Connexion à la base</h1><p class="sous">Adresse du script Google et clé partagée.</p>'+
+  '<div class="champs">'+
+    '<label class="champ"><span>Adresse du script</span><input type="text" id="bs-url" value="'+ech(cfgServeur.url)+'" placeholder="https://script.google.com/macros/s/AKfycbyOrY9DR1VYgGwfsktpO6ydC3mtomLBWOBJk1dM-x4Cfky6nJoKYurQ-AiKwat69TU/exec"></label>'+
+    '<label class="champ"><span>Clé partagée</span><input type="text" id="bs-cle" value="'+ech(cfgServeur.cle)+'"></label>'+
+    '<button class="btn large" id="b-base">Connecter</button>'+
+  '</div>'+
+  '<div class="auth-liens"><a id="a-local">Continuer sans base, sur cet appareil seulement</a></div>';
+}
 function vueAuth(){
   const e=ecranAuth;
   let corps="";
-  if(e==="installation") corps=formInstallation();
+  if(e==="base") corps=formBase();
+  else if(e==="installation") corps=formInstallation();
   else if(e==="inscription") corps=formInscription();
   else if(e==="oubli") corps=formOubli();
   else corps=formConnexion();
@@ -842,6 +869,7 @@ function formInstallation(){
   '</div>';
 }
 function formConnexion(){
+  if(!COMPTES.length&&!syncActif&&!modeLocalAccepte){ ecranAuth="base"; return formBase(); }
   if(!COMPTES.length){
     return '<h1>Première installation</h1><p class="sous"></p>'+
     '<div class="carte"><div class="corps">'+
@@ -900,6 +928,19 @@ function jauge(id,val){
 function brancherAuth(){
   const go=(e,pre)=>{ ecranAuth=e; authErr=""; authOk=""; authPre=pre||{}; peindre(); };
   const li=(id,fn)=>{ const el=document.getElementById(id); if(el) el.onclick=fn; };
+  li("a-local",()=>{ modeLocalAccepte=true; go("connexion"); });
+  li("b-base",async()=>{
+    const url=v("bs-url").trim(), cle=v("bs-cle").trim();
+    if(!url) return err("Collez l'adresse du script Google.");
+    const anc=Object.assign({},cfgServeur);
+    cfgServeur={url,cle};
+    const b=document.getElementById("b-base"); if(b){ b.disabled=true; b.textContent="Connexion…"; }
+    try{
+      await tirerTout(); syncActif=true;
+      await ecrireLocal("caisse:serveur",cfgServeur);
+      ecranAuth="connexion"; authErr=""; authOk=""; peindre();
+    }catch(ex){ cfgServeur=anc; syncActif=false; err("Connexion impossible : "+ex.message); }
+  });
   li("a-inscription",()=>go("inscription"));
   li("a-installer",()=>go("installation"));
   li("a-oubli",()=>go("oubli",{mail:(document.getElementById("l-mail")||{}).value||""}));
@@ -1023,12 +1064,13 @@ function peindre(){
     '<div class="id"><b>'+ech(SESSION.nom)+'</b><span>'+ech(SESSION.role)+'</span></div>'+
     '<button class="btn neutre mini" id="deco">Sortir</button></div></div></div>'+
     '<div class="zone"><div class="topbar"><h1>'+ech(TITRES[vue]||"")+'</h1>'+
-      '<span class="sync '+(syncActif?(syncEtat==="ok"?"ok":"ko"):"off")+'" title="'+ech(syncErreur||"")+'">'+
-      '<i></i>'+(syncActif?(syncEtat==="ok"?"Synchronisé":"Hors ligne"):"Local")+'</span>'+
+      '<span class="sync '+(syncActif?(syncEtat==="ok"?"ok":"ko"):(persistanceOK?"off":"ko"))+'" title="'+ech(syncErreur||"")+'">'+
+      '<i></i>'+(syncActif?(syncEtat==="ok"?"Synchronisé":"Hors ligne"):(persistanceOK?"Local":"Non enregistré"))+'</span>'+
       '<div class="dates"><button class="btn neutre mini" id="j-prec">‹</button>'+
       '<input type="date" id="j-date" value="'+jour+'">'+
       '<button class="btn neutre mini" id="j-suiv">›</button></div></div>'+
       '<div class="contenu'+(plein?" plein":"")+'" id="vue" tabindex="-1"></div></div></div>';
+  const av=bandeauPersistance();
 
   const o=ONGLETS.find(x=>x.id===vue);
   const m=document.getElementById("vue");
@@ -1036,6 +1078,7 @@ function peindre(){
     tableau:vueTableau, comptage:vueComptage, fermeture:vueFermeture, validation:vueValidation,
     messages:vueMessages, remises:vueRemises, stock:vueStock, journal:vueJournal, analyse:vueAnalyse,
     audit:vueAudit, utilisateurs:vueUtilisateurs, reglages:vueReglages})[vue]();
+  if(av&&!plein) m.insertAdjacentHTML("afterbegin",av);
   if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
   brancher();
 }
@@ -1051,8 +1094,9 @@ function toast(msg,estKo){
 }
 function aller(v){ vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true}); }
 function bandeauPersistance(){
-  return persistanceOK?"":'<div class="ruban"><b>Les données ne sont pas enregistrées.</b> Ce fichier tourne hors de son environnement de sauvegarde. '+
-    'Exportez la journée avant de fermer l\'onglet — les photos ne survivront pas non plus.</div>';
+  if(syncActif||persistanceOK) return "";
+  return '<div class="ruban"><b>Aucun enregistrement.</b> Les données de cet appareil disparaîtront à la fermeture. '+
+    (estAdmin()?'Connectez le stockage partagé dans Paramètres.':'Prévenez un administrateur.')+'</div>';
 }
 function selNoms(id,val,seulementResp){
   const l=seulementResp?managersNoms():nomsEquipe();
@@ -1068,7 +1112,7 @@ function pil(etat){
 function vueTableau(){
   const d=journee(jour), b=bilan(jour), al=alertes(jour), veille=fermetureVeille(jour), cc=controleComplet(jour);
   const mesMsg=messagesPour(SESSION.nom).filter(m=>!m.resolu);
-  let h=bandeauPersistance();
+  let h='';
 
   if(mesMsg.length) h+='<div class="banniere ko"><span class="sym">✉</span><div><b>'+mesMsg.length+' retour'+(mesMsg.length>1?"s":"")+' vous concerne'+(mesMsg.length>1?"nt":"")+'</b>'+
     '<p>'+ech(mesMsg[0].texte.slice(0,140))+(mesMsg[0].texte.length>140?"…":"")+'</p>'+
@@ -1077,7 +1121,7 @@ function vueTableau(){
   h+='<div class="stats">'+
     stat("Chiffre d'affaires",eur(b.caReel),jolieDate(jour),b.caReel?"prim":"")+
     stat("Manquant réel",eur(b.anormal),"Hors excédent de non-rendu",b.anormal>P.seuilJour?"ko":(b.anormal>0?"att":"ok"))+
-    stat("Excédent non-rendu",eur(b.boni),"Titres papier, produit acquis","")+
+    stat("Excédent non-rendu",eur(b.boni),"",b.boni>0?"bleu":"")+
     stat("Pièces validées",cc.ok+" / "+cc.total,cc.total&&cc.ok===cc.total?"Dossier complet":"Contrôle en cours",cc.total&&cc.ok===cc.total?"ok":"att")+
     stat("Titres TR / CV",b.nTR+" / "+b.nCV,"Comptés à l'unité","")+
   '</div>';
@@ -1133,7 +1177,7 @@ function vueTableau(){
     '<th class="n">Nb CV</th><th class="n">CV papier</th><th class="n">Écart CV</th></tr></thead><tbody>'+
     Object.entries(parC).map(([k,x])=>{
       const eT=arrondi(x.papTR+x.demTR-x.zTR), eV=arrondi(x.papCV-x.zCV);
-      const col=e=>e<-0.004?"var(--rouge)":(e>0.004?"var(--prim)":"var(--t2)");
+      const col=e=>e<-0.004?"var(--rouge)":(e>0.004?"var(--bleu)":"var(--t2)");
       return '<tr><td><b>'+ech(k)+'</b></td><td class="aide">'+ech(x.serv.join(", "))+'</td>'+
         '<td class="n" style="font-weight:700;font-size:15px">'+x.nbTR+'</td>'+
         '<td class="n">'+eur(x.papTR)+'</td><td class="n">'+eur(x.demTR)+'</td><td class="n">'+eur(x.zTR)+'</td>'+
@@ -1336,8 +1380,7 @@ function vueComptage(){
   if(!brouillon) brouillon=neufComptage();
   const c=brouillon, t=detailTR(c), v=detailCV(c), e=ecartComptage(c), pbs=problemesComptage(c);
 
-  return bandeauPersistance()+
-  '<div class="carte"><header><h2>Votre rapport Z</h2></header><div class="corps">'+
+  return '<div class="carte"><header><h2>Votre rapport Z</h2></header><div class="corps">'+
   '<div class="grille g4">'+
     '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?" selected":"")+'>'+ech(x)+'</option>').join("")+'</select></label>'+
     '<label class="champ"><span>Service</span><select id="c-service">'+P.services.map(x=>'<option'+(c.service===x?" selected":"")+'>'+ech(x)+'</option>').join("")+'</select></label>'+
@@ -1384,7 +1427,7 @@ function blocTitres(pfx,titre,kNb,kMt,kZ,c,calc){
   '<div class="stats" style="margin-top:14px;margin-bottom:0">'+
     stat("Titres comptés",calc.nb,"unités","")+
     stat("Valeur moyenne",calc.nb?eur(calc.moyenne):"—","",calc.moyenne>P.plafondTR?"att":"")+
-    stat("Écart",signe(calc.ecart)+" €","",calc.ecart<-0.004?"ko":(calc.ecart>0.004?"prim":"ok"))+
+    stat("Écart",signe(calc.ecart)+" €","",calc.ecart<-0.004?"ko":(calc.ecart>0.004?"bleu":"ok"))+
   '</div>'+interp+'</div></div>';
 }
 function problemesComptage(c){
@@ -1409,7 +1452,8 @@ function vignette(d,sup){
   const f=d.type==="application/pdf"?'<div class="vign" data-doc="'+d.id+'">PDF</div>'
     :'<div class="vign" data-doc="'+d.id+'" style="background-image:url('+d.vignette+')"></div>';
   return '<div class="preuve">'+f+(sup?'<button class="sup" data-jeter="'+d.id+'" aria-label="Supprimer">×</button>':"")+
-    '<div class="mt"><b>'+ech(d.libelle)+'</b><span>'+ko(d.taille)+'</span></div></div>';
+    '<div class="mt"><b>'+ech(d.libelle)+'</b><span>'+ko(d.taille)+
+    (d.lien?' · <a href="'+ech(d.lien)+'" target="_blank" rel="noopener">Drive</a>':"")+'</span></div></div>';
 }
 
 function vueFermeture(){
@@ -1430,8 +1474,7 @@ function vueFermeture(){
   const ecTPE=arrondi(tpe-b.cb);
   const cc=controleComplet(jour), pbs=problemesFermeture(f,montant);
 
-  return bandeauPersistance()+
-  '<div class="carte"><header><h2>Monnayeur à la fermeture</h2></header><div class="corps">'+
+  return '<div class="carte"><header><h2>Monnayeur à la fermeture</h2></header><div class="corps">'+
   '<div class="grille g3">'+
     '<label class="champ"><span>Total du monnayeur</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00" style="font-size:19px;padding:13px"></label>'+
     stat("Ouverture du jour",eur(d.ouverture.montant),"Verrouillé","")+
@@ -1545,8 +1588,8 @@ function vueStock(){
 
   '<div class="carte"><header><h2>Stock actuel en coffre</h2></header><div class="corps">'+
   '<div class="stats" style="margin-bottom:0">'+
-    stat("Titres-restaurant en stock",st.TRn+" titres",eur(st.TRm),st.TRn<0?"ko":"prim")+
-    stat("Chèques-vacances en stock",st.CVn+" titres",eur(st.CVm),st.CVn<0?"ko":"prim")+
+    stat("Titres-restaurant en stock",st.TRn+" titres",eur(st.TRm),st.TRn<0?"ko":"bleu")+
+    stat("Chèques-vacances en stock",st.CVn+" titres",eur(st.CVm),st.CVn<0?"ko":"bleu")+
     stat("Valeur totale en coffre",eur(arrondi(st.TRm+st.CVm)),"À remettre aux émetteurs","")+
   '</div>'+
   (st.TRn<0||st.CVn<0?'<div class="banniere ko" style="margin-top:13px"><span class="sym">✕</span><div><b>Stock négatif</b>'+
@@ -1587,7 +1630,7 @@ function vueRemises(){
   let h='<div class="stats">'+
     stat("TR papier encaissés",eur(encTR),mois,"")+
     stat("TR envoyés en remise",eur(envTR),"",Math.abs(encTR-envTR)>1?"att":"ok")+
-    stat("TR non encore remis",eur(arrondi(encTR-envTR)),"Titres encore en coffre",arrondi(encTR-envTR)<-1?"ko":"prim")+
+    stat("TR non encore remis",eur(arrondi(encTR-envTR)),"Titres encore en coffre",arrondi(encTR-envTR)<-1?"ko":"bleu")+
     stat("En attente de remboursement",eur(attente),"",attente?"att":"ok")+'</div>';
   if(Math.abs(encCV-envCV)>1) h+='<div class="banniere att"><span class="sym">!</span><div><b>Chèques-vacances : '+eur(arrondi(encCV-envCV))+' d\'écart</b>'+
     '<p>'+eur(encCV)+' encaissés, '+eur(envCV)+' envoyés à l\'ANCV. Un titre non remis est un titre non remboursé.</p></div></div>';
@@ -1628,7 +1671,7 @@ function vueJournal(){
   const mont=(v,zero)=>v||zero?eur(v):"—";
   const ecartCel=e=>{
     if(Math.abs(e)<0.004) return '<td class="n" style="color:var(--t3)">—</td>';
-    return '<td class="n" style="font-weight:700;color:'+(e<0?"var(--rouge)":"var(--prim)")+'">'+signe(e)+'</td>';
+    return '<td class="n" style="font-weight:700;color:'+(e<0?"var(--rouge)":"var(--bleu)")+'">'+signe(e)+'</td>';
   };
   const enTete='<tr><th class="fige">Rubrique</th>'+jours.map(k=>{
     const ex=journeeExiste(k), d=journee(k);
@@ -1691,8 +1734,8 @@ function vueJournal(){
   corps+='<tr class="ecart"><td class="fige">  EXCÉDENT NON-RENDU</td>'+jours.map(k=>{
     if(!journeeExiste(k)) return '<td class="n pale">—</td>';
     const b=bilan(k).boni;
-    return '<td class="n" style="color:'+(b>0.004?"var(--prim)":"var(--t3)")+'">'+(b>0.004?eur(b):"—")+'</td>';
-  }).join("")+'<td class="n" style="font-weight:700;color:var(--prim)">'+eur(actifs.reduce((s,k)=>s+bilan(k).boni,0))+'</td></tr>';
+    return '<td class="n" style="color:'+(b>0.004?"var(--bleu)":"var(--t3)")+'">'+(b>0.004?eur(b):"—")+'</td>';
+  }).join("")+'<td class="n" style="font-weight:700;color:var(--bleu)">'+eur(actifs.reduce((s,k)=>s+bilan(k).boni,0))+'</td></tr>';
   corps+='<tr><td class="fige">  Nb titres TR / CV</td>'+jours.map(k=>{
     if(!journeeExiste(k)) return '<td class="n pale">—</td>';
     const b=bilan(k); return '<td class="n">'+(b.nTR||b.nCV?b.nTR+" / "+b.nCV:"—")+'</td>';
@@ -1724,7 +1767,7 @@ function vueJournal(){
       return '<tr><td><b>'+courteDate(k)+'</b><div class="aide">'+jolieDate(k).split(" ")[0]+'</div></td>'+
         '<td class="n">'+d.comptages.length+'</td><td class="n">'+eur(b.caReel)+'</td>'+
         '<td class="n" style="font-weight:600;color:'+(b.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(b.anormal)+'</td>'+
-        '<td class="n" style="color:var(--prim)">'+eur(b.boni)+'</td>'+
+        '<td class="n" style="color:var(--bleu)">'+eur(b.boni)+'</td>'+
         '<td class="n">'+cc.ok+"/"+cc.total+'</td><td>'+et+'</td>'+
         '<td class="n"><button class="btn neutre mini" data-act="voir-jour" data-jour="'+k+'">Ouvrir</button></td></tr>';
     }).join("")+'</tbody></table></div></div>':"")+'</div>';
@@ -1750,7 +1793,7 @@ function vueAnalyse(){
   const maxP=Math.max(0.01,...pers.map(x=>x[1].anormal));
   let h='<div class="stats">'+stat("CA du mois",eur(ca),mois,"prim")+
     stat("Manquant cumulé",eur(anormal),"",anormal>P.seuilJour*3?"ko":(anormal>0?"att":"ok"))+
-    stat("Excédent non-rendu",eur(boni),"","")+stat("Titres TR / CV",nTR+" / "+nCV,"","")+
+    stat("Excédent non-rendu",eur(boni),"",boni>0?"bleu":"")+stat("Titres TR / CV",nTR+" / "+nCV,"","")+
     stat("Journées clôturées",nClo+" / "+cles.length,"",nClo<cles.length?"att":"ok")+
     stat("Alertes ouvertes",nAl,"",nAl?"ko":"ok")+'</div>';
   h+='<div class="carte"><header><h2>Par personne</h2></header>'+
@@ -1760,7 +1803,7 @@ function vueAnalyse(){
       return '<tr><td><b>'+ech(n)+'</b></td><td><span class="pil neu">'+ech(cpt?cpt.role:"Équipier")+'</span></td>'+
       '<td class="n">'+x.n+'</td><td class="n">'+x.ctrl+'</td>'+
       '<td class="n" style="font-weight:600;color:'+(x.anormal>P.seuilJour?"var(--rouge)":"var(--t1)")+'">'+eur(x.anormal)+'</td>'+
-      '<td class="n" style="color:var(--prim)">'+eur(x.boni)+'</td>'+
+      '<td class="n" style="color:var(--bleu)">'+eur(x.boni)+'</td>'+
       '<td><span style="display:block;height:8px;background:var(--bord);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:'+((x.anormal/maxP)*100)+'%;background:'+(x.anormal>P.seuilJour?"var(--rouge)":"var(--prim)")+'"></i></span></td></tr>';
     }).join("")+'</tbody></table></div>':'<div class="vide">Aucun comptage nominatif.</div>')+
     '</div>';
@@ -1846,15 +1889,30 @@ function vueReglages(){
   '<div class="banniere '+(syncActif?(syncEtat==="ok"?"ok":"ko"):"info")+'"><span class="sym">'+(syncActif?(syncEtat==="ok"?"✓":"✕"):"i")+'</span><div>'+
   '<b>'+(syncActif?(syncEtat==="ok"?"Serveur connecté · version "+syncVersion:ech(syncErreur||"Connexion perdue")):"Mode local")+'</b></div></div>'+
   '<div class="grille g2" style="margin-top:13px">'+
-    '<label class="champ"><span>Adresse du script Google</span><input type="text" id="sv-url" value="'+ech(cfgServeur.url)+'" placeholder="https://script.google.com/macros/s/AKfycbyIvvmomd-JaftxC1Og_693bRUfb3ArQkBFuIdooMFZCyc6zYeaDlIZ5bioVqdmsurf/exec"></label>'+
+    '<label class="champ"><span>Adresse du script Google</span><input type="text" id="sv-url" value="'+ech(cfgServeur.url)+'" placeholder="https://script.google.com/macros/s/..../exec"></label>'+
     '<label class="champ"><span>Clé partagée</span><input type="text" id="sv-cle" value="'+ech(cfgServeur.cle)+'"></label>'+
   '</div>'+
   '<div class="actions" style="margin-top:13px">'+
     '<button class="btn" data-act="sv-tester">Tester et connecter</button>'+
-    (syncActif?'<button class="btn neutre" data-act="sv-envoyer">Envoyer mes données</button>'+
+    (syncActif?'<button class="btn neutre" data-act="sv-etat">État du serveur</button>'+
+      '<button class="btn neutre" data-act="sv-envoyer">Envoyer mes données</button>'+
       '<button class="btn neutre" data-act="sv-miroir">Mettre à jour le classeur Drive</button>'+
+      '<button class="btn neutre" data-act="sv-fichier">Télécharger le fichier configuré</button>'+
       '<button class="btn neutre" data-act="sv-couper">Se déconnecter</button>':"")+
-  '</div></div></div>'+
+  '</div>'+
+  (syncActif
+    ? '<div class="banniere att" style="margin-top:13px"><span class="sym">!</span><div>'+
+      '<b>Adresse à figer dans le fichier</b>'+
+      '<p>Cet appareil oubliera l\'adresse à la fermeture. Remplacez la ligne <code>const SERVEUR</code> en tête du fichier par celle-ci, puis distribuez-le à l\'équipe.</p>'+
+      '<div class="code-a-copier" id="ligne-serveur">const SERVEUR={ url:"'+ech(cfgServeur.url)+'", cle:"'+ech(cfgServeur.cle)+'" };</div>'+
+      '<button class="btn neutre mini" data-act="sv-copier" style="margin-top:9px">Copier</button>'+
+      '</div></div>' : "")+
+  (lienDrive.classeur||lienDrive.dossier
+    ? '<div class="actions" style="margin-top:11px">'+
+      (lienDrive.classeur?'<a class="btn neutre mini" href="'+ech(lienDrive.classeur)+'" target="_blank" rel="noopener">Ouvrir le classeur</a>':"")+
+      (lienDrive.dossier?'<a class="btn neutre mini" href="'+ech(lienDrive.dossier)+'" target="_blank" rel="noopener">Ouvrir le dossier Drive</a>':"")+
+      '</div>' : "")+
+  '</div></div>'+
 
   '<div class="carte"><header><h2>Zone sensible</h2></header><div class="corps">'+
   '<button class="btn rouge" data-act="tout-effacer">Effacer toutes les données</button></div></div>';
@@ -1865,7 +1923,7 @@ async function visionner(id){
   const v=document.createElement("div"); v.className="voile";
   v.innerHTML='<div class="voile-tete"><b>'+ech(meta?meta.libelle:"Justificatif")+'</b>'+
     '<span class="emp">empreinte '+ech(meta?meta.empreinte:"—")+' · '+(meta?ko(meta.taille):"—")+' · '+ech(meta?meta.par:"—")+' · '+(meta?heureCourte(meta.at):"—")+'</span>'+
-    '<span class="sp"><button class="btn neutre mini" id="v-dl">Télécharger</button><button class="btn mini" id="v-fermer">Fermer</button></span></div>'+
+    '<span class="sp">'+(meta&&meta.lien?'<a class="btn neutre mini" href="'+ech(meta.lien)+'" target="_blank" rel="noopener">Drive</a>':"")+'<button class="btn neutre mini" id="v-dl">Télécharger</button><button class="btn mini" id="v-fermer">Fermer</button></span></div>'+
     '<div class="voile-corps"><span style="color:#98A2B3">Chargement…</span></div>';
   document.body.appendChild(v);
   v.querySelector("#v-fermer").onclick=()=>v.remove();
@@ -2334,10 +2392,46 @@ async function agir(a,ds){
     }catch(e){ return toast("Envoi impossible : "+e.message,true); }
   }
   if(a==="sv-miroir"){
-    try{ const r=await appelServeur({action:"miroir"});
-      toast("Classeur Drive mis à jour : "+(r.lignes||0)+" lignes."); }
-    catch(e){ toast("Mise à jour impossible : "+e.message,true); }
+    try{
+      const r=await appelServeur({action:"miroir"});
+      lienDrive={classeur:r.url||"",dossier:r.dossier||""};
+      toast("Classeur mis à jour : "+(r.lignes||0)+" lignes.");
+      return peindre();
+    }catch(e){ return toast("Mise à jour impossible : "+e.message,true); }
+  }
+  if(a==="sv-fichier"){
+    try{
+      const rep=await fetch(location.href);
+      let src=await rep.text();
+      if(src.indexOf("const SERVEUR=")<0) throw new Error("source introuvable");
+      src=src.replace(/const SERVEUR=\{[^}]*\};/,
+        'const SERVEUR={ url:"'+cfgServeur.url+'", cle:"'+cfgServeur.cle+'" };');
+      telecharger("Controle-Caisse-"+(P.site||"BSM")+".html",src,"text/html");
+      tracer("Fichier configuré exporté",cfgServeur.url.slice(0,60));
+      toast("Fichier prêt : distribuez-le, il se connectera seul.");
+    }catch(e){
+      toast("Copie impossible depuis ce contexte. Utilisez la ligne à copier ci-dessous.",true);
+    }
     return;
+  }
+  if(a==="sv-copier"){
+    const t=document.getElementById("ligne-serveur");
+    if(!t) return;
+    try{ await navigator.clipboard.writeText(t.textContent); toast("Ligne copiée."); }
+    catch(e){
+      const r=document.createRange(); r.selectNodeContents(t);
+      const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast("Sélectionnée : copiez-la avec Ctrl+C.");
+    }
+    return;
+  }
+  if(a==="sv-etat"){
+    try{
+      const r=await appelServeur({action:"etat"});
+      lienDrive={classeur:r.classeur||"",dossier:r.dossier||""};
+      toast(r.journees+" journée(s), "+r.comptes+" compte(s), "+r.remises+" remise(s) sur le serveur.");
+      return peindre();
+    }catch(e){ return toast("Serveur injoignable : "+e.message,true); }
   }
   if(a==="sv-couper"){
     if(!confirm("Repasser en mode local sur cet appareil ?")) return;
@@ -2428,9 +2522,12 @@ document.getElementById("entree-restaure").addEventListener("change",e=>{
   if(loc&&loc.url) cfgServeur=loc;
   if(cfgServeur.url){
     try{ await tirerTout(); syncActif=true; }
-    catch(e){ syncActif=false; syncEtat="erreur"; syncErreur=e.message; }
+    catch(e){ syncActif=false; syncEtat="erreur"; syncErreur=e.message; ecranAuth="base"; authErr="Base injoignable : "+e.message; }
+  } else {
+    ecranAuth="base";
   }
   if(!syncActif) await chargerLocal();
+  if(syncActif||modeLocalAccepte||COMPTES.length) ecranAuth="connexion";
   peindre();
 })();
 
