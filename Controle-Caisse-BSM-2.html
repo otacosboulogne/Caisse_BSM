@@ -1,0 +1,2213 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contrôle de caisse — BSM</title>
+
+<style>
+:root{
+  --canvas:#F5F6F8; --surface:#FFFFFF; --surface2:#FCFCFD;
+  --bord:#E4E7EC; --bord-fort:#D0D5DD;
+  --t1:#101828; --t2:#475467; --t3:#98A2B3;
+  --prim:#4338CA; --prim-vif:#4F46E5; --prim-tint:#EEF0FF; --prim-bord:#C7CDFF;
+  --vert:#067647; --vert-tint:#ECFDF3; --vert-bord:#ABEFC6;
+  --ambre:#B54708; --ambre-tint:#FFFAEB; --ambre-bord:#FEDF89;
+  --rouge:#B42318; --rouge-tint:#FEF3F2; --rouge-bord:#FECDCA;
+  --ardoise:#1D2939;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  --ombre:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.10);
+  --ombre-md:0 4px 8px -2px rgba(16,24,40,.10),0 2px 4px -2px rgba(16,24,40,.06);
+  --ombre-xl:0 20px 24px -4px rgba(16,24,40,.10),0 8px 8px -4px rgba(16,24,40,.04);
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--canvas);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:3px solid var(--prim-bord);outline-offset:1px;border-radius:6px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--t3)}
+
+/* ---------- authentification ---------- */
+.auth{min-height:100dvh;display:grid;grid-template-columns:1fr 1fr}
+.auth-recit{background:var(--ardoise);color:#fff;padding:46px 44px;display:flex;flex-direction:column;justify-content:space-between}
+.auth-recit .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.auth-recit .logo i{width:30px;height:30px;border-radius:8px;background:var(--prim-vif);display:grid;place-items:center;font-style:normal;font-size:15px}
+.auth-recit h2{font-size:29px;line-height:1.25;letter-spacing:-.02em;font-weight:700;max-width:15ch;margin-bottom:14px}
+.auth-recit p{color:#98A2B3;font-size:14.5px;max-width:42ch;line-height:1.6}
+.auth-recit ul{list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:11px}
+.auth-recit li{display:flex;gap:10px;color:#D0D5DD;font-size:13.5px;align-items:flex-start}
+.auth-recit li b{color:#fff;font-weight:600}
+.auth-recit .puce{color:#7C7CF0;flex:none}
+.auth-recit .bas{font-size:11.5px;color:#667085;line-height:1.6}
+.auth-form{display:flex;align-items:center;justify-content:center;padding:40px 30px;overflow-y:auto}
+.auth-boite{width:100%;max-width:388px}
+.auth-boite h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:5px}
+.auth-boite .sous{color:var(--t2);font-size:14px;margin-bottom:26px}
+.auth-boite .champs{display:flex;flex-direction:column;gap:14px}
+.auth-boite .btn{width:100%;justify-content:center;padding:11px}
+.auth-liens{margin-top:19px;font-size:13.5px;color:var(--t2);display:flex;flex-direction:column;gap:7px}
+.auth-liens a{color:var(--prim);font-weight:600;cursor:pointer;text-decoration:none}
+.auth-liens a:hover{text-decoration:underline}
+.msg-err{background:var(--rouge-tint);border:1px solid var(--rouge-bord);color:var(--rouge);padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.msg-ok{background:var(--vert-tint);border:1px solid var(--vert-bord);color:var(--vert);padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.jauge{height:5px;border-radius:3px;background:var(--bord);overflow:hidden;margin-top:6px}
+.jauge i{display:block;height:100%;transition:width .2s}
+@media(max-width:900px){.auth{grid-template-columns:1fr}.auth-recit{display:none}}
+
+/* ---------- ossature ---------- */
+.app{display:grid;grid-template-columns:246px minmax(0,1fr);height:100dvh}
+.rail{background:var(--surface);border-right:1px solid var(--bord);display:flex;flex-direction:column;overflow-y:auto}
+.rail .marque{padding:16px 16px 13px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;border-bottom:1px solid var(--bord)}
+.rail .marque i{width:30px;height:30px;border-radius:8px;background:var(--prim);color:#fff;display:grid;place-items:center;font-style:normal;font-size:14px;flex:none}
+.rail .marque span{font-size:11px;color:var(--t3);font-weight:500;display:block;letter-spacing:.02em}
+.rail nav{padding:11px 9px;flex:1}
+.rail .titre-grp{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);padding:13px 8px 5px}
+.rail nav button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border-radius:8px;color:var(--t2);font-size:13.5px;font-weight:500;text-align:left;margin-bottom:1px}
+.rail nav button:hover{background:var(--canvas);color:var(--t1)}
+.rail nav button[aria-current=page]{background:var(--prim-tint);color:var(--prim);font-weight:600}
+.rail nav button[disabled]{opacity:.4;cursor:not-allowed}
+.rail nav button[disabled]:hover{background:none;color:var(--t2)}
+.rail nav .ic{width:17px;text-align:center;flex:none;font-size:13px}
+.rail nav .pip{margin-left:auto;background:var(--rouge);color:#fff;font-size:10.5px;font-weight:700;border-radius:10px;padding:1px 6px;min-width:19px;text-align:center}
+.rail nav .pip.calme{background:var(--bord);color:var(--t2)}
+.rail .pied{border-top:1px solid var(--bord);padding:11px}
+.compte-mini{display:flex;align-items:center;gap:9px;padding:7px;border-radius:8px}
+.compte-mini:hover{background:var(--canvas)}
+.avatar{width:33px;height:33px;border-radius:50%;background:var(--prim-tint);color:var(--prim);display:grid;place-items:center;font-weight:700;font-size:12.5px;flex:none}
+.compte-mini .id{min-width:0;flex:1}
+.compte-mini .id b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compte-mini .id span{display:block;font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.zone{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--bord);padding:0 20px;height:60px;display:flex;align-items:center;gap:13px;flex:none}
+.topbar h1{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.topbar .dates{margin-left:auto;display:flex;align-items:center;gap:6px}
+.topbar input[type=date]{background:var(--surface);border:1px solid var(--bord-fort);border-radius:8px;padding:7px 10px;font-size:13px;font-family:var(--mono)}
+.contenu{flex:1;overflow-y:auto;padding:20px}
+.contenu.plein{padding:0}
+
+/* ---------- éléments ---------- */
+.carte{background:var(--surface);border:1px solid var(--bord);border-radius:var(--r);box-shadow:var(--ombre);margin-bottom:16px;overflow:hidden}
+.carte>header{padding:14px 17px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:10px}
+.carte>header h2{font-size:14.5px;font-weight:600}
+.carte>header p{font-size:12.5px;color:var(--t2);margin-top:1px}
+.carte>header .droite{margin-left:auto;display:flex;gap:8px;align-items:center}
+.carte .corps{padding:17px}
+.carte .corps.serre{padding:0}
+
+.grille{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+label.champ{display:flex;flex-direction:column;gap:5px}
+label.champ>span{font-size:12.5px;font-weight:600;color:var(--t2)}
+label.champ small{font-weight:400;color:var(--t3);font-size:11.5px}
+input[type=text],input[type=email],input[type=number],input[type=time],input[type=date],input[type=password],select,textarea{
+  width:100%;background:var(--surface);border:1px solid var(--bord-fort);border-radius:8px;padding:9px 11px;font-size:14px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+input[type=number],input.eur{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+input:focus,select:focus,textarea:focus{border-color:var(--prim);box-shadow:0 0 0 3px var(--prim-tint);outline:none}
+input:disabled,select:disabled,textarea:disabled{background:var(--canvas);color:var(--t3);cursor:not-allowed}
+textarea{resize:vertical;min-height:80px;text-align:left}
+.invalide input,.invalide select,.invalide textarea{border-color:var(--rouge-bord)}
+.invalide input:focus{box-shadow:0 0 0 3px var(--rouge-tint)}
+
+.btn{background:var(--prim);color:#fff;border-radius:8px;padding:9px 15px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.btn:hover{background:var(--prim-vif)}
+.btn:disabled{background:var(--bord-fort);color:#fff;cursor:not-allowed;box-shadow:none}
+.btn.neutre{background:var(--surface);color:var(--t1);border:1px solid var(--bord-fort)}
+.btn.neutre:hover{background:var(--canvas)}
+.btn.vert{background:var(--vert)} .btn.vert:hover{background:#05603A}
+.btn.rouge{background:var(--rouge)} .btn.rouge:hover{background:#912018}
+.btn.mini{padding:6px 11px;font-size:12.5px}
+.btn.large{padding:11px 18px;font-size:15px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+
+.pil{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.pil.ok{background:var(--vert-tint);color:var(--vert);border-color:var(--vert-bord)}
+.pil.att{background:var(--ambre-tint);color:var(--ambre);border-color:var(--ambre-bord)}
+.pil.ko{background:var(--rouge-tint);color:var(--rouge);border-color:var(--rouge-bord)}
+.pil.neu{background:var(--canvas);color:var(--t2);border-color:var(--bord)}
+.pil.prim{background:var(--prim-tint);color:var(--prim);border-color:var(--prim-bord)}
+.pil i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--bord);border-radius:var(--r);padding:15px 16px;box-shadow:var(--ombre)}
+.stat .l{font-size:12.5px;color:var(--t2);font-weight:500}
+.stat .v{font-size:25px;font-weight:700;letter-spacing:-.02em;margin-top:5px;font-variant-numeric:tabular-nums}
+.stat .s{font-size:11.5px;color:var(--t3);margin-top:3px}
+.stat.ko .v{color:var(--rouge)} .stat.att .v{color:var(--ambre)} .stat.ok .v{color:var(--vert)} .stat.prim .v{color:var(--prim)}
+
+.banniere{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:12px 14px;margin-bottom:11px;border:1px solid}
+.banniere b{display:block;font-size:13.5px;margin-bottom:2px}
+.banniere p{font-size:12.5px;line-height:1.5}
+.banniere.ko{background:var(--rouge-tint);border-color:var(--rouge-bord)} .banniere.ko b{color:var(--rouge)} .banniere.ko p{color:#912018}
+.banniere.att{background:var(--ambre-tint);border-color:var(--ambre-bord)} .banniere.att b{color:var(--ambre)} .banniere.att p{color:#93370D}
+.banniere.ok{background:var(--vert-tint);border-color:var(--vert-bord)} .banniere.ok b{color:var(--vert)} .banniere.ok p{color:#05603A}
+.banniere.info{background:var(--prim-tint);border-color:var(--prim-bord)} .banniere.info b{color:var(--prim)} .banniere.info p{color:#3730A3}
+.banniere .sym{font-weight:700;flex:none;font-size:14px;line-height:1.4}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-size:11.5px;font-weight:600;color:var(--t2);text-align:left;padding:9px 14px;background:var(--canvas);border-bottom:1px solid var(--bord);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--bord);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vide{text-align:center;padding:44px 20px;color:var(--t2)}
+.vide b{display:block;color:var(--t1);font-size:15.5px;margin-bottom:5px}
+.aide{font-size:12px;color:var(--t3);line-height:1.5}
+
+/* ---------- coupures ---------- */
+.coupures{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px}
+.coup{border:1px solid var(--bord-fort);border-radius:10px;padding:8px 9px;background:var(--surface)}
+.coup .v{font-size:12.5px;font-weight:700;color:var(--t2)}
+.coup .rg{display:flex;align-items:center;gap:5px;margin-top:6px}
+.coup input{padding:5px;font-size:14px;text-align:center;border-radius:7px}
+.coup button{width:26px;height:29px;border:1px solid var(--bord-fort);border-radius:7px;font-weight:700;color:var(--t2);background:var(--surface);flex:none}
+.coup button:hover{border-color:var(--prim);color:var(--prim)}
+.coup .st{font-size:11.5px;color:var(--prim);text-align:right;margin-top:5px;font-weight:600;font-variant-numeric:tabular-nums}
+.coup.plein{border-color:var(--prim);background:var(--prim-tint)}
+.totaliseur{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-top:15px;padding-top:15px;border-top:1px solid var(--bord);flex-wrap:wrap}
+.totaliseur .gros{font-size:26px;font-weight:700;color:var(--prim);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ---------- justificatifs ---------- */
+.preuves{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px}
+.preuve{border:1px solid var(--bord-fort);border-radius:10px;background:var(--surface);width:112px;overflow:hidden;position:relative;box-shadow:var(--ombre)}
+.preuve .vign{height:70px;background:var(--canvas) center/cover no-repeat;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--t3);cursor:zoom-in}
+.preuve .mt{padding:6px 8px}
+.preuve .mt b{display:block;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preuve .mt span{font-size:9.5px;color:var(--t3);font-family:var(--mono)}
+.preuve .sup{position:absolute;top:5px;right:5px;background:rgba(16,24,40,.75);color:#fff;border-radius:6px;width:21px;height:21px;font-size:13px;display:grid;place-items:center}
+.depot{border:1.5px dashed var(--bord-fort);border-radius:10px;padding:14px;text-align:center;background:var(--surface2);margin-top:11px}
+.depot p{font-size:12px;color:var(--t2);margin-top:6px}
+.depot.manque{border-color:var(--rouge-bord);background:var(--rouge-tint)}
+
+/* ---------- écran de validation (double panneau) ---------- */
+.valid{display:grid;grid-template-columns:minmax(0,1fr) 428px;height:100%;background:var(--ardoise)}
+.valid-gauche{display:flex;flex-direction:column;min-width:0}
+.valid-outils{padding:9px 14px;display:flex;align-items:center;gap:8px;color:#EAECF0;border-bottom:1px solid #344054;flex:none;flex-wrap:wrap}
+.valid-outils .compteur{font-size:12.5px;color:#98A2B3;font-variant-numeric:tabular-nums}
+.valid-outils button{background:#344054;color:#EAECF0;border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:600}
+.valid-outils button:hover{background:#475467}
+.valid-outils button:disabled{opacity:.4;cursor:not-allowed}
+.valid-outils .esp{margin-left:auto}
+.valid-vue{flex:1;overflow:auto;display:grid;place-items:center;padding:18px;min-height:0}
+.valid-vue img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 8px 26px rgba(0,0,0,.4);transition:transform .18s}
+.valid-vue iframe{width:100%;height:100%;border:none;background:#fff;border-radius:6px}
+.valid-vue .rien{color:#98A2B3;text-align:center;max-width:34ch;font-size:13.5px}
+.valid-droite{background:var(--surface);border-left:1px solid var(--bord);display:flex;flex-direction:column;overflow:hidden}
+.valid-droite .tete{padding:15px 17px;border-bottom:1px solid var(--bord)}
+.valid-droite .tete h3{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.valid-droite .tete p{font-size:12.5px;color:var(--t2);margin-top:2px}
+.valid-droite .flux{flex:1;overflow-y:auto;padding:15px 17px}
+.valid-droite .pied{border-top:1px solid var(--bord);padding:13px 17px;display:flex;gap:9px;background:var(--surface2)}
+.valid-droite .pied .btn{flex:1;justify-content:center}
+.bloc{margin-bottom:17px}
+.bloc>h4{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.paire{display:flex;justify-content:space-between;gap:11px;padding:6px 0;border-bottom:1px solid var(--bord);font-size:13px}
+.paire:last-child{border-bottom:none}
+.paire span:first-child{color:var(--t2)}
+.paire span:last-child{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.paire.fort span:last-child{font-size:15px}
+.paire.ko span:last-child{color:var(--rouge)} .paire.ok span:last-child{color:var(--vert)} .paire.prim span:last-child{color:var(--prim)}
+.lignes-tit{background:var(--canvas);border:1px solid var(--bord);border-radius:9px;padding:10px 12px;font-size:13px}
+.lignes-tit .lg{display:flex;justify-content:space-between;padding:3px 0;font-variant-numeric:tabular-nums}
+.lignes-tit .lg b{font-weight:600}
+.piece-ligne{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bord)}
+.piece-ligne:last-child{border-bottom:none}
+.pl-vign{width:46px;height:46px;border-radius:8px;background:var(--canvas) center/cover no-repeat;border:1px solid var(--bord);flex:none;cursor:zoom-in;display:grid;place-items:center;font-size:9.5px;font-weight:700;color:var(--t3)}
+.pl-id{flex:1;min-width:0}
+.pl-id b{display:block;font-size:12.5px}
+.pl-id span{display:block;font-size:11px;color:var(--t2)}
+.pl-act{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.pl-btns{display:flex;gap:4px}
+.pl-btns .btn{padding:3px 9px;font-size:12px}
+.lignes-tit .tot{border-top:1px solid var(--bord-fort);margin-top:6px;padding-top:6px;font-weight:700}
+.fil{display:flex;flex-direction:column;gap:9px}
+.bulle{background:var(--canvas);border:1px solid var(--bord);border-radius:9px;padding:9px 11px;font-size:12.5px}
+.bulle .qui{display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
+.bulle .qui b{font-size:12.5px}
+.bulle .qui span{font-size:11px;color:var(--t3)}
+.bulle.refus{background:var(--rouge-tint);border-color:var(--rouge-bord)}
+.bulle.reponse{background:var(--prim-tint);border-color:var(--prim-bord);margin-left:14px}
+@media(max-width:1000px){.valid{grid-template-columns:1fr;grid-template-rows:minmax(240px,42vh) 1fr}.valid-droite{border-left:none;border-top:1px solid var(--bord)}}
+
+/* ---------- visionneuse plein écran ---------- */
+.voile{position:fixed;inset:0;background:rgba(16,24,40,.9);z-index:300;display:flex;flex-direction:column;padding:14px}
+.voile-tete{display:flex;align-items:center;gap:11px;color:#EAECF0;margin-bottom:11px;flex-wrap:wrap}
+.voile-tete .emp{font-family:var(--mono);font-size:11px;color:#98A2B3}
+.voile-tete .sp{margin-left:auto;display:flex;gap:8px}
+.voile-corps{flex:1;min-height:0;background:#0C111D;border-radius:10px;display:grid;place-items:center;overflow:auto}
+.voile-corps img{max-width:100%;max-height:100%;object-fit:contain}
+.voile-corps iframe{width:100%;height:100%;border:none;background:#fff;border-radius:10px}
+
+/* ---------- modale ---------- */
+.modale{position:fixed;inset:0;background:rgba(16,24,40,.55);z-index:320;display:grid;place-items:center;padding:18px}
+.modale .boite{background:var(--surface);border-radius:14px;box-shadow:var(--ombre-xl);width:100%;max-width:470px;overflow:hidden}
+.modale .boite header{padding:17px 19px 0}
+.modale .boite header h3{font-size:17px;font-weight:600}
+.modale .boite header p{font-size:13px;color:var(--t2);margin-top:4px}
+.modale .boite .corps{padding:17px 19px}
+.modale .boite footer{padding:13px 19px;background:var(--surface2);border-top:1px solid var(--bord);display:flex;gap:9px;justify-content:flex-end}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ardoise);color:#fff;padding:12px 19px;border-radius:9px;font-weight:500;font-size:13.5px;box-shadow:var(--ombre-xl);z-index:400;max-width:90vw;text-align:center}
+.toast.ko{background:var(--rouge)}
+.ruban{background:var(--ambre-tint);border:1px solid var(--ambre-bord);color:#93370D;padding:10px 13px;border-radius:9px;font-size:12.5px;margin-bottom:15px}
+.interdit{background:var(--surface);border:1px solid var(--bord);border-radius:var(--r);padding:44px 22px;text-align:center;box-shadow:var(--ombre)}
+.interdit .cad{font-size:30px;margin-bottom:10px}
+.interdit b{display:block;font-size:16.5px;margin-bottom:5px}
+.rangee{display:flex;gap:11px;align-items:flex-end;flex-wrap:wrap}
+
+@media(max-width:860px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;height:auto;min-height:100dvh}
+  .rail{order:9;border-right:none;border-top:1px solid var(--bord);position:sticky;bottom:0;z-index:50}
+  .rail .marque,.rail .titre-grp,.rail .pied{display:none}
+  .rail nav{display:flex;overflow-x:auto;padding:8px;gap:5px}
+  .rail nav button{flex:none;padding:8px 12px}
+  .topbar{height:auto;padding:11px 14px;flex-wrap:wrap}
+  .topbar .dates{margin-left:0;width:100%}
+  .contenu{padding:14px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .g2.serre,.g4.serre{grid-template-columns:repeat(2,1fr)}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="racine"></div>
+<input type="file" id="entree-fichier" accept="image/*,application/pdf" multiple class="sr">
+<input type="file" id="entree-restaure" accept=".json,application/json" class="sr">
+
+<script>
+"use strict";
+
+/* ============================================================
+   0. EMPREINTES
+   ============================================================ */
+function sha256(txt){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const rotr=(x,n)=>(x>>>n)|(x<<(32-n));
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  let b;
+  if(typeof TextEncoder!=="undefined"){ b=Array.from(new TextEncoder().encode(txt)); }
+  else { b=[]; const u=unescape(encodeURIComponent(txt)); for(let i=0;i<u.length;i++) b.push(u.charCodeAt(i)&255); }
+  const bits=b.length*8;
+  b.push(0x80); while(b.length%64!==56) b.push(0);
+  for(let i=7;i>=0;i--) b.push(Math.floor(bits/Math.pow(2,i*8))&255);
+  const W=new Array(64);
+  for(let i=0;i<b.length;i+=64){
+    for(let t=0;t<16;t++) W[t]=(b[i+4*t]<<24)|(b[i+4*t+1]<<16)|(b[i+4*t+2]<<8)|b[i+4*t+3];
+    for(let t=16;t<64;t++){
+      const s0=rotr(W[t-15],7)^rotr(W[t-15],18)^(W[t-15]>>>3);
+      const s1=rotr(W[t-2],17)^rotr(W[t-2],19)^(W[t-2]>>>10);
+      W[t]=(W[t-16]+s0+W[t-7]+s1)|0;
+    }
+    let a=H[0],c=H[1],d=H[2],e=H[3],f=H[4],g=H[5],h=H[6],k=H[7];
+    for(let t=0;t<64;t++){
+      const S1=rotr(f,6)^rotr(f,11)^rotr(f,25), ch=(f&g)^(~f&h);
+      const t1=(k+S1+ch+K[t]+W[t])|0;
+      const S0=rotr(a,2)^rotr(a,13)^rotr(a,22), mj=(a&c)^(a&d)^(c&d);
+      const t2=(S0+mj)|0;
+      k=h;h=g;g=f;f=(e+t1)|0;e=d;d=c;c=a;a=(t1+t2)|0;
+    }
+    H=[(H[0]+a)|0,(H[1]+c)|0,(H[2]+d)|0,(H[3]+e)|0,(H[4]+f)|0,(H[5]+g)|0,(H[6]+h)|0,(H[7]+k)|0];
+  }
+  return H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
+}
+const SEL="BSM-caisse-2026::";
+const H_MAITRE="3e9add8807354f5532bcad45d7a6871f337b18836491f739855c92e478fe1e0b";
+function codeMaitreOK(c){ return sha256(SEL+String(c||""))===H_MAITRE; }
+function selAleatoire(){
+  let s="";
+  if(window.crypto&&window.crypto.getRandomValues){
+    const a=new Uint8Array(16); window.crypto.getRandomValues(a);
+    a.forEach(x=>s+=x.toString(16).padStart(2,"0"));
+  } else { for(let i=0;i<32;i++) s+=Math.floor(Math.random()*16).toString(16); }
+  return s;
+}
+function deriver(mdp, sel){
+  let h=sel+"|"+SEL+"|"+mdp;
+  for(let i=0;i<2200;i++) h=sha256(h);
+  return h;
+}
+function forceMdp(m){
+  let s=0;
+  if(m.length>=10) s++; if(m.length>=14) s++;
+  if(/[a-z]/.test(m)&&/[A-Z]/.test(m)) s++;
+  if(/[0-9]/.test(m)) s++;
+  if(/[^A-Za-z0-9]/.test(m)) s++;
+  return Math.min(4,s);
+}
+
+/* ============================================================
+   1. PERSISTANCE
+   ============================================================ */
+const CLES={p:"caisse:params", c:"caisse:comptes", j:"caisse:journal", a:"caisse:audit", r:"caisse:remises", m:"caisse:messages"};
+const aStockage = typeof window.storage==="object" && window.storage && typeof window.storage.get==="function";
+let persistanceOK=aStockage;
+async function lire(cle,defaut){
+  if(!aStockage) return defaut;
+  try{ const r=await window.storage.get(cle,false); return r&&r.value?JSON.parse(r.value):defaut; }catch(e){ return defaut; }
+}
+async function ecrire(cle,val){
+  if(!aStockage){ persistanceOK=false; return false; }
+  try{ await window.storage.set(cle,JSON.stringify(val),false); persistanceOK=true; return true; }
+  catch(e){ persistanceOK=false; return false; }
+}
+async function effacerCle(cle){ if(!aStockage) return; try{ await window.storage.delete(cle,false); }catch(e){} }
+
+/* ============================================================
+   2. ÉTAT
+   ============================================================ */
+const PARAMS_DEFAUT={
+  site:"BSM", seuilCaisse:2, seuilJour:10, plafond:3000, fondCaisse:500,
+  services:["Matin","Midi","Après-midi","Soir"],
+  caisses:["Caisse 1","Caisse 2","Caisse 3"],
+  valeursTR:[5,6,7,8,9,10,11,12,13], valeursCV:[10,20,25,50],
+  plafondTR:25, emetteursTR:["Edenred","Pluxee (Sodexo)","Up Déjeuner","Bimpli / Apetiz","Swile"],
+  delaiRembours:21, anneeTR:2026, controleurManager:true, verrouMinutes:20,
+  inscriptionLibre:true,
+  preuvesObligatoires:{ticketZ:true, tr:true, cv:true, cb:true, especes:true, bordereau:true, canaux:true},
+  equipiers:["Audrey","Fanny","Mathéo","Mory","Pape","Saïd","Usmane"]
+};
+const RANG={"Équipier":0,"Manager":1,"Administrateur":2};
+const QUESTIONS=[
+  "Le prénom de votre premier manager de salle",
+  "Le nom de votre ville de naissance",
+  "Le prénom de votre meilleur ami d'enfance",
+  "Le modèle de votre première voiture",
+  "Le nom de votre premier animal"
+];
+
+let P=JSON.parse(JSON.stringify(PARAMS_DEFAUT));
+let COMPTES=[], J={}, AUDIT=[], REMISES=[], MESSAGES=[];
+let SESSION=null, dernierGeste=Date.now();
+let vue="tableau", jour=isoAujourdhui();
+let brouillon=null, brouillonFerm=null, brouillonRemise=null;
+let cibleDepot=null, modale=null;
+let ecranAuth="connexion", authErr="", authOk="", authPre={};
+let filtreValid="saisi", indexValid=0, zoomValid=1, rotValid=0, pieceActive="";
+
+/* ============================================================
+   3. OUTILS
+   ============================================================ */
+function isoAujourdhui(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function decale(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function jolieDate(iso){
+  if(!iso) return "—";
+  const d=new Date(iso+"T12:00:00");
+  const S=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+  const M=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  return S[d.getDay()]+" "+d.getDate()+" "+M[d.getMonth()]+" "+d.getFullYear();
+}
+function courteDate(iso){ if(!iso) return "—"; const p=String(iso).split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+function eur(n){ return (Number(n)||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €"; }
+function signe(n){ n=arrondi(n); return (n>0?"+":"")+n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function arrondi(n){ return Math.round((Number(n)||0)*100)/100; }
+function nb(v){ const x=parseFloat(String(v==null?"":v).replace(",",".")); return isNaN(x)?0:x; }
+function ent(v){ const x=parseInt(v,10); return isNaN(x)||x<0?0:x; }
+function ech(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function maintenant(){ return new Date().toISOString(); }
+function heureCourte(iso){ try{ return new Date(iso).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(e){ return "—"; } }
+function ko(o){ return (o/1024).toFixed(0)+" Ko"; }
+function joursDepuis(iso){ return Math.floor((Date.now()-new Date(iso+"T12:00:00").getTime())/86400000); }
+function initiales(n){ return String(n||"?").trim().split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase(); }
+function emailOK(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e||"").trim()); }
+
+function journeeVierge(iso){
+  return {date:iso, statut:"", ouverture:null, comptages:[], fermeture:null,
+    retrait:{montant:0,bordereau:"",par:"",controlePar:""}, apport:0, especesZ:0,
+    canaux:{cc:0,borne:0,uber:0,deliveroo:0}, motif:"", cloture:null, justificatifs:[], controles:{}};
+}
+function journee(iso){ const d=J[iso]||journeeVierge(iso); if(!d.controles) d.controles={}; if(!d.justificatifs) d.justificatifs=[]; return d; }
+function journeeEcr(iso){ if(!J[iso]) J[iso]=journeeVierge(iso); const d=J[iso]; if(!d.controles) d.controles={}; if(!d.justificatifs) d.justificatifs=[]; return d; }
+function journeeExiste(iso){ return Object.prototype.hasOwnProperty.call(J,iso); }
+function tracer(action,detail){
+  AUDIT.unshift({at:maintenant(), qui:SESSION?SESSION.nom:"—", role:SESSION?SESSION.role:"—", action, detail});
+  if(AUDIT.length>900) AUDIT.length=900;
+  ecrire(CLES.a,AUDIT);
+}
+async function sauver(){ await ecrire(CLES.j,J); }
+
+/* ============================================================
+   4. COMPTES ET SESSION
+   ============================================================ */
+function parEmail(e){ return COMPTES.find(c=>c.email.toLowerCase()===String(e||"").trim().toLowerCase())||null; }
+function parNom(n){ return COMPTES.find(c=>c.nom===n)||null; }
+function rang(){ return SESSION?(RANG[SESSION.role]||0):-1; }
+function estManager(){ return rang()>=1; }
+function estAdmin(){ return rang()>=2; }
+function nomsEquipe(){
+  const s=new Set(P.equipiers||[]);
+  COMPTES.filter(c=>c.actif!==false).forEach(c=>s.add(c.nom));
+  return Array.from(s).sort((a,b)=>a.localeCompare(b,"fr"));
+}
+function managersNoms(){
+  return COMPTES.filter(c=>c.actif!==false&&RANG[c.role]>=1).map(c=>c.nom).sort((a,b)=>a.localeCompare(b,"fr"));
+}
+function ouvrirSession(c){
+  SESSION={id:c.id, nom:c.nom, email:c.email, role:c.role, depuis:maintenant()};
+  c.dernierAcces=maintenant(); ecrire(CLES.c,COMPTES);
+  dernierGeste=Date.now(); ecranAuth="connexion"; authErr=""; authOk="";
+  vue = RANG[c.role]>=1 ? "validation" : "tableau";
+  filtreValid = RANG[c.role]>=2 ? "verifie" : "saisi";
+  indexValid=0; pieceActive="";
+  tracer("Connexion", c.nom+" · "+c.email+" · "+c.role);
+  peindre();
+}
+function fermerSession(auto){
+  if(SESSION) tracer("Déconnexion", SESSION.nom+(auto?" · verrouillage automatique":""));
+  SESSION=null; brouillon=null; brouillonFerm=null; brouillonRemise=null; modale=null;
+  ecranAuth="connexion"; authErr=auto?"Session fermée après inactivité. Reconnectez-vous.":""; authOk="";
+  peindre();
+}
+setInterval(()=>{ if(SESSION&&P.verrouMinutes>0&&Date.now()-dernierGeste>P.verrouMinutes*60000) fermerSession(true); },20000);
+["click","keydown","input","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{dernierGeste=Date.now();},{passive:true}));
+
+/* ============================================================
+   5. MESSAGES
+   ============================================================ */
+function messagesPour(nom){ return MESSAGES.filter(m=>m.pour===nom); }
+function nonLus(nom){ return MESSAGES.filter(m=>m.pour===nom&&!m.lu&&!m.resolu).length; }
+function messagesDe(pointId,jourIso){ return MESSAGES.filter(m=>m.pointId===pointId&&m.jour===jourIso).sort((a,b)=>a.at.localeCompare(b.at)); }
+async function envoyerMessage(o){
+  MESSAGES.unshift(Object.assign({id:uid(), at:maintenant(), de:SESSION.nom, lu:false, resolu:false, reponses:[]}, o));
+  if(MESSAGES.length>600) MESSAGES.length=600;
+  await ecrire(CLES.m,MESSAGES);
+}
+
+/* ============================================================
+   6. JUSTIFICATIFS
+   ============================================================ */
+const LIMITE_DOC=4200000;
+function lireFichier(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
+function chargerImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+async function preparerFichier(f){
+  const brut=await lireFichier(f);
+  if(f.type==="application/pdf"){
+    if(brut.length>LIMITE_DOC) throw new Error("PDF trop lourd ("+ko(f.size)+"). Réduisez la qualité du scan.");
+    return {dataUrl:brut, type:"application/pdf", vignette:"", taille:brut.length};
+  }
+  const img=await chargerImage(brut);
+  const dessine=(maxPx,q)=>{
+    const r=Math.min(1,maxPx/Math.max(img.width,img.height));
+    const c=document.createElement("canvas");
+    c.width=Math.round(img.width*r); c.height=Math.round(img.height*r);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    return c.toDataURL("image/jpeg",q);
+  };
+  let g=dessine(1700,.74);
+  if(g.length>LIMITE_DOC) g=dessine(1250,.62);
+  if(g.length>LIMITE_DOC) g=dessine(950,.5);
+  return {dataUrl:g, type:"image/jpeg", vignette:dessine(160,.5), taille:g.length};
+}
+async function rangerDoc(f,cible,libelle){
+  const p=await preparerFichier(f), id=uid();
+  const ok=await ecrire("caisse:doc:"+id,{dataUrl:p.dataUrl});
+  if(!ok&&aStockage) throw new Error("Enregistrement refusé : document trop volumineux.");
+  return {id, nom:f.name||"photo.jpg", type:p.type, taille:p.taille, vignette:p.vignette,
+    empreinte:sha256(p.dataUrl).slice(0,16), cible, libelle:libelle||cible,
+    par:SESSION?SESSION.nom:"—", at:maintenant(), _brut:aStockage?null:p.dataUrl};
+}
+async function ouvrirDoc(id,meta){ if(meta&&meta._brut) return meta._brut; const r=await lire("caisse:doc:"+id,null); return r?r.dataUrl:null; }
+async function jeterDoc(id){ await effacerCle("caisse:doc:"+id); }
+function docsDe(liste,cible){ return (liste||[]).filter(d=>d.cible===cible); }
+function trouverMeta(id){
+  let m=null;
+  const scan=l=>(l||[]).forEach(x=>{ if(x.id===id) m=x; });
+  Object.keys(J).forEach(k=>{ scan(J[k].justificatifs); J[k].comptages.forEach(c=>scan(c.justificatifs)); });
+  REMISES.forEach(r=>scan(r.justificatifs));
+  if(brouillon) scan(brouillon.justificatifs);
+  if(brouillonRemise) scan(brouillonRemise.justificatifs);
+  return m;
+}
+
+/* ============================================================
+   7. CALCULS
+   ============================================================ */
+function sommeTitres(det){ let s=0; for(const k in det) s+=parseFloat(k)*ent(det[k]); return arrondi(s); }
+function nbTitres(det){ let n=0; for(const k in det) n+=ent(det[k]); return n; }
+function detailTR(c){
+  const det=c.trTitres||{}, papier=sommeTitres(det), demat=nb(c.trDemat);
+  const physique=arrondi(papier+demat), z=nb(c.trZ), n=nbTitres(det);
+  return {det, papier, demat, physique, z, nb:n, anciens:ent(c.trAnciens), ecart:arrondi(physique-z), moyenne:n?arrondi(papier/n):0};
+}
+function detailCV(c){
+  const det=c.cvTitres||{}, papier=sommeTitres(det), demat=nb(c.cvDemat);
+  const physique=arrondi(papier+demat), z=nb(c.cvZ), n=nbTitres(det);
+  return {det, papier, demat, physique, z, nb:n, anciens:ent(c.cvAnciens), ecart:arrondi(physique-z), moyenne:n?arrondi(papier/n):0};
+}
+function ecartComptage(c){
+  const t=detailTR(c), v=detailCV(c), cb=arrondi(nb(c.cb)-nb(c.cbZ));
+  const anormal=arrondi((t.ecart<0?-t.ecart:0)+(v.ecart<0?-v.ecart:0)+Math.abs(cb));
+  const boni=arrondi((t.ecart>0?t.ecart:0)+(v.ecart>0?v.ecart:0));
+  return {tr:t.ecart, cv:v.ecart, cb, boni, anormal, net:arrondi(t.ecart+v.ecart+cb),
+    abs:arrondi(Math.abs(t.ecart)+Math.abs(v.ecart)+Math.abs(cb))};
+}
+function bilan(iso){
+  const d=journee(iso);
+  const ouv=d.ouverture?nb(d.ouverture.montant):0, fer=d.fermeture?nb(d.fermeture.montant):0;
+  const ret=nb(d.retrait.montant), app=nb(d.apport);
+  const especesReelles=d.fermeture?arrondi(fer-ouv-app+ret):0;
+  const ecartEspeces=d.fermeture?arrondi(especesReelles-nb(d.especesZ)):0;
+  let tr=0,cv=0,cb=0,trZ=0,cvZ=0,cbZ=0,abs=0,net=0,anormal=0,boni=0,nTR=0,nCV=0,ancTR=0,ancCV=0;
+  d.comptages.forEach(c=>{
+    const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
+    tr+=t.physique; cv+=v.physique; cb+=nb(c.cb); trZ+=t.z; cvZ+=v.z; cbZ+=nb(c.cbZ);
+    nTR+=t.nb; nCV+=v.nb; ancTR+=t.anciens; ancCV+=v.anciens;
+    abs+=e.abs; net+=e.net; anormal+=e.anormal; boni+=e.boni;
+  });
+  const cx=nb(d.canaux.cc)+nb(d.canaux.borne)+nb(d.canaux.uber)+nb(d.canaux.deliveroo);
+  return {ouv,fer,ret,app,especesReelles,ecartEspeces,
+    tr:arrondi(tr),cv:arrondi(cv),cb:arrondi(cb),trZ:arrondi(trZ),cvZ:arrondi(cvZ),cbZ:arrondi(cbZ),
+    nTR,nCV,ancTR,ancCV,canaux:arrondi(cx),
+    caReel:arrondi(tr+cv+cb+especesReelles+cx), caTheo:arrondi(trZ+cvZ+cbZ+nb(d.especesZ)+cx),
+    ecartCaisses:arrondi(abs), ecartNet:arrondi(net+ecartEspeces),
+    anormal:arrondi(anormal+Math.abs(ecartEspeces)), boni:arrondi(boni),
+    aJustifier:arrondi(Math.abs(ecartEspeces)+abs)};
+}
+function fermetureVeille(iso){ const v=J[decale(iso,-1)]; return v&&v.fermeture?nb(v.fermeture.montant):null; }
+
+/* ============================================================
+   8. POINTS DE CONTRÔLE
+   ============================================================ */
+function pointsControle(iso){
+  const d=journee(iso), pts=[], ob=P.preuvesObligatoires;
+  d.comptages.forEach(c=>{
+    const t=detailTR(c), v=detailCV(c), et=c.caisse+" · "+c.service;
+    pts.push({id:"z:"+c.id, type:"Z", zone:et, cId:c.id, libelle:"Ticket Z du service", montant:arrondi(t.z+v.z+nb(c.cbZ)),
+      cible:"z:"+c.id, oblige:ob.ticketZ, liste:c.justificatifs||[], aide:"La pièce qui fonde tout le théorique."});
+    if(t.physique>0) pts.push({id:"tr:"+c.id, type:"TR", zone:et, cId:c.id, libelle:"Titres-restaurant — "+t.nb+" titres", montant:t.physique,
+      cible:"tr:"+c.id, oblige:ob.tr, liste:c.justificatifs||[], aide:"Photo de la liasse étalée, valeurs faciales lisibles."});
+    if(v.physique>0) pts.push({id:"cv:"+c.id, type:"CV", zone:et, cId:c.id, libelle:"Chèques-vacances — "+v.nb+" titres", montant:v.physique,
+      cible:"cv:"+c.id, oblige:ob.cv, liste:c.justificatifs||[], aide:"Valeurs faciales et millésimes lisibles."});
+    if(nb(c.cb)>0) pts.push({id:"cb:"+c.id, type:"CB", zone:et, cId:c.id, libelle:"Relevé TPE", montant:nb(c.cb),
+      cible:"cb:"+c.id, oblige:ob.cb, liste:c.justificatifs||[], aide:"Ticket de totalisation du terminal."});
+  });
+  if(d.fermeture){
+    pts.push({id:"esp", type:"ESP", zone:"Fermeture", cId:null, libelle:"Ticket Z espèces", montant:nb(d.especesZ),
+      cible:"esp", oblige:ob.especes, liste:d.justificatifs, aide:"Total espèces déclaré par la caisse."});
+    pts.push({id:"monn", type:"ESP", zone:"Fermeture", cId:null, libelle:"Photo du monnayeur", montant:nb(d.fermeture.montant),
+      cible:"monn", oblige:false, liste:d.justificatifs, aide:"Facultatif mais utile en cas de contestation."});
+  }
+  if(nb(d.retrait.montant)>0) pts.push({id:"bord", type:"BORD", zone:"Banque", cId:null, libelle:"Bordereau de remise", montant:nb(d.retrait.montant),
+    cible:"bord", oblige:ob.bordereau, liste:d.justificatifs, aide:"Talon tamponné ou reçu du coffre."});
+  [["cc","Click & Collect"],["borne","Borne"],["uber","Uber Eats"],["deliveroo","Deliveroo"]].forEach(([k,l])=>{
+    if(nb(d.canaux[k])>0) pts.push({id:"can:"+k, type:"CANAL", zone:"Canaux", cId:null, libelle:"Rapport "+l, montant:nb(d.canaux[k]),
+      cible:"can:"+k, oblige:ob.canaux, liste:d.justificatifs, aide:"Capture du back-office de la plateforme."});
+  });
+  return pts.map(p=>{
+    const docs=docsDe(p.liste,p.cible), ctrl=d.controles[p.id]||null;
+    let etat="manquant";
+    if(docs.length) etat = ctrl ? (ctrl.etat==="conforme"?"conforme":"refuse") : "averifier";
+    return Object.assign(p,{docs, ctrl, etat, jour:iso});
+  });
+}
+function controleComplet(iso){
+  const pts=pointsControle(iso).filter(p=>p.oblige);
+  return {total:pts.length, ok:pts.filter(p=>p.etat==="conforme").length,
+    manquants:pts.filter(p=>p.etat==="manquant"), refuses:pts.filter(p=>p.etat==="refuse"),
+    attente:pts.filter(p=>p.etat==="averifier")};
+}
+function etapeComptage(c){
+  if(c.valid) return "valide";
+  if(c.renvoi) return "renvoye";
+  if(c.verif) return "verifie";
+  return "saisi";
+}
+const ETAPES={
+  saisi:{l:"À vérifier",p:"att"}, renvoye:{l:"Renvoyé",p:"ko"},
+  verifie:{l:"Vérifié — à valider",p:"prim"}, valide:{l:"Validé",p:"ok"}
+};
+function pilEtape(e){ return '<span class="pil '+ETAPES[e].p+'"><i></i>'+ETAPES[e].l+'</span>'; }
+function piecesComptage(iso,cid){ return pointsControle(iso).filter(p=>p.cId===cid); }
+function pretAVerifier(iso,c){
+  const ps=piecesComptage(iso,c.id).filter(p=>p.oblige);
+  return ps.length>0 && ps.every(p=>p.etat==="conforme");
+}
+function fileComptages(filtre){
+  const out=[];
+  Object.keys(J).sort().reverse().forEach(k=>{
+    (J[k].comptages||[]).forEach(c=>{
+      const e=etapeComptage(c);
+      if(filtre==="tous"||filtre===e) out.push({jour:k, c, etape:e});
+    });
+  });
+  return out;
+}
+function compteurEtape(e){ return fileComptages(e).length; }
+function toutValide(iso){
+  const cs=journee(iso).comptages||[];
+  return cs.length>0 && cs.every(c=>etapeComptage(c)==="valide");
+}
+
+function filePriseEnCharge(type){
+  const out=[];
+  Object.keys(J).sort().reverse().forEach(k=>{
+    pointsControle(k).forEach(p=>{
+      if(type!=="TOUS"&&p.type!==type) return;
+      if(!p.docs.length) return;
+      out.push(p);
+    });
+  });
+  return out;
+}
+function fileAValider(type){ return filePriseEnCharge(type).filter(p=>p.etat==="averifier"); }
+
+/* ============================================================
+   9. ALERTES
+   ============================================================ */
+function alertes(iso){
+  const d=journee(iso), b=bilan(iso), out=[];
+  if(!journeeExiste(iso)||(!d.ouverture&&!d.comptages.length&&!d.fermeture)) return out;
+  const veille=fermetureVeille(iso);
+  if(d.ouverture&&veille!==null&&Math.abs(nb(d.ouverture.montant)-veille)>0.005)
+    out.push({n:"ko",t:"Rupture de continuité du monnayeur",d:"Ouverture "+eur(d.ouverture.montant)+" contre fermeture de la veille "+eur(veille)+". Écart de "+eur(nb(d.ouverture.montant)-veille)+"."});
+  if(d.fermeture&&nb(d.fermeture.montant)>P.plafond)
+    out.push({n:"att",t:"Plafond d'espèces dépassé",d:eur(d.fermeture.montant)+" en caisse pour un plafond de "+eur(P.plafond)+"."});
+  if(nb(d.retrait.montant)>0){
+    if(!d.retrait.bordereau) out.push({n:"ko",t:"Remise sans n° de bordereau",d:eur(d.retrait.montant)+" retirés sans référence."});
+    if(!d.retrait.par||!d.retrait.controlePar) out.push({n:"ko",t:"Remise sans double signature",d:"Une seule personne sur le retrait."});
+    else if(d.retrait.par===d.retrait.controlePar) out.push({n:"ko",t:"Remise : même personne aux deux rôles",d:d.retrait.par+" est opérateur et contrôleur."});
+  }
+  if(b.anormal>P.seuilJour) out.push({n:"ko",t:"Manquant supérieur au seuil",d:eur(b.anormal)+" de manquant réel pour un seuil de "+eur(P.seuilJour)+"."});
+  d.comptages.forEach(c=>{
+    const e=ecartComptage(c), t=detailTR(c), v=detailCV(c);
+    if(e.abs>0&&!c.motif) out.push({n:"att",t:"Écart sans motif — "+c.caisse,d:eur(e.abs)+" d'écart sur le comptage de "+(c.operateur||"?")+"."});
+    if(t.ecart<-0.004) out.push({n:"ko",t:"Titres-restaurant manquants — "+c.caisse,d:"Z à "+eur(t.z)+", seulement "+eur(t.physique)+" présents. Manque "+eur(-t.ecart)+"."});
+    if(v.ecart<-0.004) out.push({n:"ko",t:"Chèques-vacances manquants — "+c.caisse,d:"Z à "+eur(v.z)+", seulement "+eur(v.physique)+" présents. Manque "+eur(-v.ecart)+"."});
+    if(t.moyenne>P.plafondTR) out.push({n:"att",t:"Valeur faciale moyenne élevée — "+c.caisse,d:"Moyenne "+eur(t.moyenne)+" au-dessus du plafond paramétré."});
+  });
+  const cc=controleComplet(iso);
+  if(cc.manquants.length) out.push({n:"ko",t:cc.manquants.length+" justificatif(s) manquant(s)",d:cc.manquants.map(p=>p.libelle).join(", ")+"."});
+  if(cc.refuses.length) out.push({n:"ko",t:cc.refuses.length+" pièce(s) refusée(s)",d:cc.refuses.map(p=>p.libelle).join(", ")+"."});
+  if(cc.attente.length) out.push({n:"att",t:cc.attente.length+" pièce(s) en attente de validation",d:"Un manager doit les contrôler avant clôture."});
+  if(b.ancTR>0) out.push({n:"info",t:b.ancTR+" titre(s) d'un millésime antérieur",d:"À échanger auprès de l'émetteur avant la date limite."});
+  if(d.fermeture&&!d.cloture) out.push({n:"att",t:"Journée non clôturée",d:"Un manager doit valider la clôture."});
+  return out;
+}
+function alertesRemises(){
+  const out=[];
+  REMISES.filter(r=>r.statut!=="remboursee").forEach(r=>{
+    const j=joursDepuis(r.dateEnvoi);
+    if(j>P.delaiRembours) out.push({n:"ko",t:"Remise "+r.type+" non remboursée depuis "+j+" jours",
+      d:r.emetteur+" · bordereau "+(r.bordereau||"—")+" · "+eur(r.montant)+"."});
+  });
+  REMISES.filter(r=>r.statut==="remboursee").forEach(r=>{
+    const a=arrondi(nb(r.montant)-nb(r.commission));
+    if(Math.abs(nb(r.montantRecu)-a)>0.02) out.push({n:"att",t:"Remboursement incomplet — "+r.emetteur,
+      d:"Attendu "+eur(a)+", reçu "+eur(r.montantRecu)+". Écart "+eur(nb(r.montantRecu)-a)+"."});
+  });
+  return out;
+}
+
+/* ============================================================
+   10. AUTHENTIFICATION — écrans
+   ============================================================ */
+function panneauRecit(){
+  return '<div class="auth-recit">'+
+    '<div class="logo"><i>◧</i> '+ech(P.site||"BSM")+' <span style="font-weight:400;color:#98A2B3">· Contrôle de caisse</span></div>'+
+    '<div><h2>Chaque euro déclaré a sa preuve.</h2>'+
+    '<p>La plateforme rapproche le ticket Z, les titres comptés à l\'unité et la photo du justificatif. Rien n\'est validé sans qu\'un manager ait vu la pièce.</p>'+
+    '<ul>'+
+      '<li><span class="puce">◆</span><span><b>Titres comptés à l\'unité.</b> Valeur faciale par valeur faciale, excédent et manquant séparés.</span></li>'+
+      '<li><span class="puce">◆</span><span><b>Validation pièce en main.</b> La photo à gauche, la saisie à droite, un bouton pour trancher.</span></li>'+
+      '<li><span class="puce">◆</span><span><b>Retour direct au manager.</b> Un refus part avec son commentaire à la personne concernée.</span></li>'+
+      '<li><span class="puce">◆</span><span><b>Traçabilité intégrale.</b> Qui a saisi, qui a validé, à quelle heure.</span></li>'+
+    '</ul></div>'+
+    '<p class="bas">Les mots de passe sont conservés sous forme d\'empreinte salée, jamais en clair. '+
+    'Cette application fonctionne sans connexion : aucune donnée ne quitte cet appareil.</p></div>';
+}
+function vueAuth(){
+  const e=ecranAuth;
+  let corps="";
+  if(e==="installation") corps=formInstallation();
+  else if(e==="inscription") corps=formInscription();
+  else if(e==="oubli") corps=formOubli();
+  else corps=formConnexion();
+  return '<div class="auth">'+panneauRecit()+'<div class="auth-form"><div class="auth-boite">'+
+    (authErr?'<div class="msg-err">'+ech(authErr)+'</div>':"")+
+    (authOk?'<div class="msg-ok">'+ech(authOk)+'</div>':"")+corps+'</div></div></div>';
+}
+function formInstallation(){
+  return '<h1>Première installation</h1><p class="sous">Créez le compte administrateur qui pilotera la plateforme. Le code maître de l\'entreprise est demandé.</p>'+
+  '<div class="champs">'+
+    '<label class="champ"><span>Nom et prénom</span><input type="text" id="i-nom" placeholder="Omar" autocomplete="name"></label>'+
+    '<label class="champ"><span>Adresse e-mail</span><input type="email" id="i-mail" placeholder="omar@bsm.fr" autocomplete="username"></label>'+
+    '<label class="champ"><span>Mot de passe <small>— 10 caractères minimum</small></span><input type="password" id="i-mdp" autocomplete="new-password"><div class="jauge"><i id="i-jauge" style="width:0"></i></div></label>'+
+    '<label class="champ"><span>Confirmer le mot de passe</span><input type="password" id="i-mdp2" autocomplete="new-password"></label>'+
+    '<label class="champ"><span>Question de secours</span><select id="i-q">'+QUESTIONS.map(q=>'<option>'+ech(q)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Réponse <small>— servira à réinitialiser le mot de passe</small></span><input type="text" id="i-rep"></label>'+
+    '<label class="champ"><span>Code maître administrateur</span><input type="password" id="i-code" placeholder="••••••••••••"></label>'+
+    '<button class="btn large" id="b-installer">Créer le compte administrateur</button>'+
+  '</div>';
+}
+function formConnexion(){
+  if(!COMPTES.length){
+    return '<h1>Première installation</h1><p class="sous">Aucun accès n\'existe encore. Créez le compte administrateur de l\'établissement : il pourra ensuite ouvrir les accès de toute l\'équipe.</p>'+
+    '<div class="carte"><div class="corps">'+
+      '<b style="font-size:15px">Compte administrateur</b>'+
+      '<p class="aide" style="margin:6px 0 13px">Accès global : contrôle, validation après rapprochement, gestion des utilisateurs et des seuils. Le code maître de l\'entreprise est demandé.</p>'+
+      '<button class="btn large" id="a-installer" style="width:100%;justify-content:center">Créer le compte administrateur</button>'+
+    '</div></div>';
+  }
+  return '<h1>Connexion</h1><p class="sous">Accédez à votre espace de contrôle.</p>'+
+  '<div class="champs">'+
+    '<label class="champ"><span>Adresse e-mail</span><input type="email" id="l-mail" value="'+ech(authPre.mail||"")+'" autocomplete="username" placeholder="vous@bsm.fr"></label>'+
+    '<label class="champ"><span>Mot de passe</span><input type="password" id="l-mdp" autocomplete="current-password"></label>'+
+    '<button class="btn large" id="b-connexion">Se connecter</button>'+
+  '</div>'+
+  '<div class="auth-liens"><a id="a-oubli">Mot de passe oublié ?</a>'+
+  (P.inscriptionLibre?'<span>Pas encore de compte ? <a id="a-inscription">Créer mon accès</a></span>'
+    :'<span style="color:var(--t3)">La création libre de comptes est fermée : demandez votre accès à un administrateur.</span>')+
+  '</div>';
+}
+function formInscription(){
+  return '<h1>Créer mon accès</h1><p class="sous">Chacun crée son propre compte. Le rôle administrateur exige le code maître de l\'entreprise.</p>'+
+  '<div class="champs">'+
+    '<label class="champ"><span>Nom et prénom</span><input type="text" id="s-nom" placeholder="Babacar" autocomplete="name"></label>'+
+    '<label class="champ"><span>Adresse e-mail</span><input type="email" id="s-mail" placeholder="babacar@bsm.fr" autocomplete="username"></label>'+
+    '<label class="champ"><span>Rôle</span><select id="s-role"><option>Manager</option><option>Équipier</option><option>Administrateur</option></select></label>'+
+    '<label class="champ" id="w-code" style="display:none"><span>Code maître administrateur</span><input type="password" id="s-code" placeholder="••••••••••••"></label>'+
+    '<label class="champ"><span>Mot de passe <small>— 10 caractères minimum</small></span><input type="password" id="s-mdp" autocomplete="new-password"><div class="jauge"><i id="s-jauge" style="width:0"></i></div></label>'+
+    '<label class="champ"><span>Confirmer le mot de passe</span><input type="password" id="s-mdp2" autocomplete="new-password"></label>'+
+    '<label class="champ"><span>Question de secours</span><select id="s-q">'+QUESTIONS.map(q=>'<option>'+ech(q)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Réponse</span><input type="text" id="s-rep" placeholder="Sans elle, aucune réinitialisation possible"></label>'+
+    '<button class="btn large" id="b-inscrire">Créer mon compte</button>'+
+  '</div><div class="auth-liens"><a id="a-retour">Retour à la connexion</a></div>';
+}
+function formOubli(){
+  if(!authPre.etape){
+    return '<h1>Mot de passe oublié</h1><p class="sous">Saisissez votre e-mail : la question de secours choisie à l\'inscription vous sera posée.</p>'+
+    '<div class="champs"><label class="champ"><span>Adresse e-mail</span><input type="email" id="o-mail" value="'+ech(authPre.mail||"")+'"></label>'+
+    '<button class="btn large" id="b-oubli1">Continuer</button></div>'+
+    '<div class="auth-liens"><a id="a-retour">Retour à la connexion</a></div>';
+  }
+  const c=parEmail(authPre.mail);
+  return '<h1>Nouveau mot de passe</h1><p class="sous">Compte de '+ech(c.nom)+' — '+ech(c.role)+'.</p>'+
+  '<div class="champs">'+
+    '<label class="champ"><span>'+ech(c.question)+'</span><input type="text" id="o-rep"></label>'+
+    (RANG[c.role]>=2?'<label class="champ"><span>Code maître administrateur</span><input type="password" id="o-code"></label>':"")+
+    '<label class="champ"><span>Nouveau mot de passe <small>— 10 caractères minimum</small></span><input type="password" id="o-mdp" autocomplete="new-password"><div class="jauge"><i id="o-jauge" style="width:0"></i></div></label>'+
+    '<label class="champ"><span>Confirmer</span><input type="password" id="o-mdp2" autocomplete="new-password"></label>'+
+    '<button class="btn large" id="b-oubli2">Changer le mot de passe</button>'+
+  '</div><div class="auth-liens"><a id="a-retour">Retour à la connexion</a></div>';
+}
+function jauge(id,val){
+  const el=document.getElementById(id); if(!el) return;
+  const f=forceMdp(val), c=["#B42318","#B54708","#B54708","#067647","#067647"][f];
+  el.style.width=(f*25)+"%"; el.style.background=c;
+}
+function brancherAuth(){
+  const go=(e,pre)=>{ ecranAuth=e; authErr=""; authOk=""; authPre=pre||{}; peindre(); };
+  const li=(id,fn)=>{ const el=document.getElementById(id); if(el) el.onclick=fn; };
+  li("a-inscription",()=>go("inscription"));
+  li("a-installer",()=>go("installation"));
+  li("a-oubli",()=>go("oubli",{mail:(document.getElementById("l-mail")||{}).value||""}));
+  li("a-retour",()=>go("connexion"));
+  [["i-mdp","i-jauge"],["s-mdp","s-jauge"],["o-mdp","o-jauge"]].forEach(([a,b])=>{
+    const el=document.getElementById(a); if(el) el.oninput=()=>jauge(b,el.value);
+  });
+  const sr=document.getElementById("s-role");
+  if(sr) sr.onchange=()=>{ document.getElementById("w-code").style.display = sr.value==="Administrateur"?"flex":"none"; };
+  const v=id=>{ const e=document.getElementById(id); return e?e.value:""; };
+
+  li("b-installer",async()=>{
+    const nom=v("i-nom").trim(), mail=v("i-mail").trim(), mdp=v("i-mdp"), mdp2=v("i-mdp2"), rep=v("i-rep").trim();
+    if(!nom) return err("Indiquez votre nom.");
+    if(!emailOK(mail)) return err("Adresse e-mail invalide.");
+    if(mdp.length<10) return err("Le mot de passe doit faire au moins 10 caractères.");
+    if(mdp!==mdp2) return err("Les deux mots de passe ne correspondent pas.");
+    if(!rep) return err("La réponse de secours est obligatoire.");
+    if(!codeMaitreOK(v("i-code"))) return err("Code maître incorrect.");
+    await creerCompte({nom,email:mail,role:"Administrateur",mdp,question:v("i-q"),reponse:rep});
+    authOk="Compte administrateur créé. Connectez-vous."; ecranAuth="connexion"; authPre={mail}; peindre();
+  });
+  li("b-inscrire",async()=>{
+    const nom=v("s-nom").trim(), mail=v("s-mail").trim(), role=v("s-role"), mdp=v("s-mdp"), rep=v("s-rep").trim();
+    if(!nom) return err("Indiquez votre nom.");
+    if(!emailOK(mail)) return err("Adresse e-mail invalide.");
+    if(parEmail(mail)) return err("Un compte existe déjà avec cette adresse.");
+    if(mdp.length<10) return err("Le mot de passe doit faire au moins 10 caractères.");
+    if(mdp!==v("s-mdp2")) return err("Les deux mots de passe ne correspondent pas.");
+    if(!rep) return err("La réponse de secours est obligatoire : sans elle, aucune récupération n'est possible.");
+    if(role==="Administrateur"&&!codeMaitreOK(v("s-code"))) return err("Code maître incorrect : impossible de créer un compte administrateur.");
+    if(role!=="Administrateur"&&!P.inscriptionLibre) return err("L'inscription libre est désactivée. Demandez à un administrateur de créer votre compte.");
+    await creerCompte({nom,email:mail,role,mdp,question:v("s-q"),reponse:rep});
+    authOk="Compte créé. Vous pouvez vous connecter."; ecranAuth="connexion"; authPre={mail}; peindre();
+  });
+  li("b-connexion",async()=>{
+    const mail=v("l-mail").trim(), mdp=v("l-mdp");
+    const c=parEmail(mail);
+    if(!c||deriver(mdp,c.sel)!==c.hMdp){
+      AUDIT.unshift({at:maintenant(),qui:mail||"—",role:"—",action:"Connexion refusée",detail:"E-mail ou mot de passe incorrect"});
+      await ecrire(CLES.a,AUDIT);
+      return err("E-mail ou mot de passe incorrect.");
+    }
+    if(c.actif===false) return err("Ce compte a été désactivé par un administrateur.");
+    ouvrirSession(c);
+  });
+  li("b-oubli1",()=>{
+    const mail=v("o-mail").trim(), c=parEmail(mail);
+    if(!c) return err("Aucun compte avec cette adresse.");
+    authPre={mail, etape:2}; authErr=""; peindre();
+  });
+  li("b-oubli2",async()=>{
+    const c=parEmail(authPre.mail);
+    if(sha256(SEL+"rep|"+v("o-rep").trim().toLowerCase())!==c.hReponse) return err("Réponse incorrecte.");
+    if(RANG[c.role]>=2&&!codeMaitreOK(v("o-code"))) return err("Code maître incorrect : obligatoire pour un compte administrateur.");
+    const mdp=v("o-mdp");
+    if(mdp.length<10) return err("Le mot de passe doit faire au moins 10 caractères.");
+    if(mdp!==v("o-mdp2")) return err("Les deux mots de passe ne correspondent pas.");
+    c.sel=selAleatoire(); c.hMdp=deriver(mdp,c.sel); c.mdpChangeLe=maintenant();
+    await ecrire(CLES.c,COMPTES);
+    AUDIT.unshift({at:maintenant(),qui:c.nom,role:c.role,action:"Mot de passe réinitialisé",detail:c.email});
+    await ecrire(CLES.a,AUDIT);
+    authOk="Mot de passe modifié. Connectez-vous."; ecranAuth="connexion"; authPre={mail:c.email}; peindre();
+  });
+  function err(m){ authErr=m; authOk=""; peindre(); }
+}
+async function creerCompte(o){
+  const sel=selAleatoire();
+  const c={id:uid(), nom:o.nom, email:o.email.toLowerCase(), role:o.role, sel, hMdp:deriver(o.mdp,sel),
+    question:o.question, hReponse:sha256(SEL+"rep|"+o.reponse.toLowerCase()), actif:true, creeLe:maintenant(), dernierAcces:""};
+  COMPTES.push(c);
+  await ecrire(CLES.c,COMPTES);
+  AUDIT.unshift({at:maintenant(),qui:o.nom,role:o.role,action:"Compte créé",detail:o.email+" · "+o.role});
+  await ecrire(CLES.a,AUDIT);
+  return c;
+}
+
+/* ============================================================
+   11. OSSATURE
+   ============================================================ */
+const ONGLETS=[
+  {g:"Exploitation", id:"tableau",   t:"Tableau de bord", i:"◧", min:0},
+  {g:"Exploitation", id:"comptage",  t:"Saisie caisse",   i:"✎", min:0},
+  {g:"Exploitation", id:"fermeture", t:"Fermeture",       i:"⊟", min:0},
+  {g:"Contrôle",     id:"validation",t:"Contrôle caisses",i:"✓", min:1},
+  {g:"Contrôle",     id:"messages",  t:"Messages",        i:"✉", min:0},
+  {g:"Contrôle",     id:"remises",   t:"Remises TR / CV", i:"⇄", min:1},
+  {g:"Pilotage",     id:"journal",   t:"Journal",         i:"⌗", min:0},
+  {g:"Pilotage",     id:"analyse",   t:"Analyse",         i:"◫", min:1},
+  {g:"Pilotage",     id:"audit",     t:"Traçabilité",     i:"⊙", min:1},
+  {g:"Pilotage",     id:"utilisateurs",t:"Accès et équipe", i:"⚇", min:2},
+  {g:"Pilotage",     id:"reglages",  t:"Paramètres",      i:"⚙", min:2}
+];
+const TITRES={tableau:"Tableau de bord", comptage:"Saisie caisse", fermeture:"Fermeture de journée",
+  validation:"Contrôle des caisses", messages:"Messages", remises:"Remises TR / CV",
+  journal:"Journal", analyse:"Analyse", audit:"Traçabilité", utilisateurs:"Accès et équipe", reglages:"Paramètres"};
+
+function peindre(){
+  const rac=document.getElementById("racine");
+  if(!SESSION){
+    rac.innerHTML=vueAuth(); brancherAuth(); return;
+  }
+  const nAl=alertes(jour).length, nVal=fileComptages(estAdmin()?"verifie":"saisi").length, nMsg=nonLus(SESSION.nom), nRem=alertesRemises().length;
+  let grp="";
+  const nav=ONGLETS.map(o=>{
+    let e="";
+    if(o.g!==grp){ grp=o.g; e='<div class="titre-grp">'+o.g+'</div>'; }
+    const bloque=rang()<o.min;
+    let pip="";
+    if(o.id==="validation"&&nVal>0) pip='<span class="pip">'+nVal+'</span>';
+    if(o.id==="messages"&&nMsg>0) pip='<span class="pip">'+nMsg+'</span>';
+    if(o.id==="tableau"&&nAl>0) pip='<span class="pip'+(nAl?"":" calme")+'">'+nAl+'</span>';
+    if(o.id==="remises"&&nRem>0) pip='<span class="pip">'+nRem+'</span>';
+    return e+'<button data-vue="'+o.id+'"'+(vue===o.id?' aria-current="page"':'')+(bloque?" disabled":"")+'>'+
+      '<span class="ic">'+o.i+'</span>'+o.t+(bloque?'<span class="pip calme">🔒</span>':pip)+'</button>';
+  }).join("");
+
+  const plein = vue==="validation";
+  rac.innerHTML='<div class="app">'+
+    '<div class="rail"><div class="marque"><i>◧</i><div>'+ech(P.site||"BSM")+'<span>Contrôle de caisse</span></div></div>'+
+    '<nav>'+nav+'</nav>'+
+    '<div class="pied"><div class="compte-mini"><div class="avatar">'+ech(initiales(SESSION.nom))+'</div>'+
+    '<div class="id"><b>'+ech(SESSION.nom)+'</b><span>'+ech(SESSION.role)+'</span></div>'+
+    '<button class="btn neutre mini" id="deco">Sortir</button></div></div></div>'+
+    '<div class="zone"><div class="topbar"><h1>'+ech(TITRES[vue]||"")+'</h1>'+
+      '<div class="dates"><button class="btn neutre mini" id="j-prec">‹</button>'+
+      '<input type="date" id="j-date" value="'+jour+'">'+
+      '<button class="btn neutre mini" id="j-suiv">›</button></div></div>'+
+      '<div class="contenu'+(plein?" plein":"")+'" id="vue" tabindex="-1"></div></div></div>';
+
+  const o=ONGLETS.find(x=>x.id===vue);
+  const m=document.getElementById("vue");
+  m.innerHTML=(o&&rang()<o.min)?refus(o):({
+    tableau:vueTableau, comptage:vueComptage, fermeture:vueFermeture, validation:vueValidation,
+    messages:vueMessages, remises:vueRemises, journal:vueJournal, analyse:vueAnalyse,
+    audit:vueAudit, utilisateurs:vueUtilisateurs, reglages:vueReglages})[vue]();
+  if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+  brancher();
+}
+function refus(o){
+  return '<div class="interdit"><div class="cad">🔒</div><b>Section réservée</b>'+
+    '<p class="aide">« '+ech(o.t)+" » demande le rôle "+(o.min===2?"Administrateur":"Manager")+
+    ". Vous êtes connecté comme "+ech(SESSION.role)+".</p></div>";
+}
+function toast(msg,estKo){
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const d=document.createElement("div"); d.className="toast"+(estKo?" ko":""); d.textContent=msg;
+  d.setAttribute("role","status"); document.body.appendChild(d); setTimeout(()=>d.remove(),4200);
+}
+function aller(v){ vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true}); }
+function bandeauPersistance(){
+  return persistanceOK?"":'<div class="ruban"><b>Les données ne sont pas enregistrées.</b> Ce fichier tourne hors de son environnement de sauvegarde. '+
+    'Exportez la journée avant de fermer l\'onglet — les photos ne survivront pas non plus.</div>';
+}
+function selNoms(id,val,seulementResp){
+  const l=seulementResp?managersNoms():nomsEquipe();
+  return '<select id="'+id+'"><option value="">— choisir —</option>'+
+    l.map(n=>'<option'+(val===n?" selected":"")+'>'+ech(n)+'</option>').join("")+'</select>';
+}
+function stat(l,v,s,c){ return '<div class="stat '+(c||"")+'"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':"")+'</div>'; }
+function pil(etat){
+  return {conforme:'<span class="pil ok"><i></i>Validé</span>', averifier:'<span class="pil att"><i></i>À valider</span>',
+    refuse:'<span class="pil ko"><i></i>Refusé</span>', manquant:'<span class="pil neu"><i></i>Sans pièce</span>'}[etat];
+}
+
+/* ============================================================
+   12. VUE — TABLEAU DE BORD
+   ============================================================ */
+function vueTableau(){
+  const d=journee(jour), b=bilan(jour), al=alertes(jour), veille=fermetureVeille(jour), cc=controleComplet(jour);
+  const mesMsg=messagesPour(SESSION.nom).filter(m=>!m.resolu);
+  let h=bandeauPersistance();
+
+  if(mesMsg.length) h+='<div class="banniere ko"><span class="sym">✉</span><div><b>'+mesMsg.length+' retour'+(mesMsg.length>1?"s":"")+' vous concerne'+(mesMsg.length>1?"nt":"")+'</b>'+
+    '<p>'+ech(mesMsg[0].texte.slice(0,140))+(mesMsg[0].texte.length>140?"…":"")+'</p>'+
+    '<div class="actions" style="margin-top:9px"><button class="btn mini" data-vue="messages">Voir mes messages</button></div></div></div>';
+
+  h+='<div class="stats">'+
+    stat("Chiffre d'affaires",eur(b.caReel),jolieDate(jour),b.caReel?"prim":"")+
+    stat("Manquant réel",eur(b.anormal),"Hors excédent de non-rendu",b.anormal>P.seuilJour?"ko":(b.anormal>0?"att":"ok"))+
+    stat("Excédent non-rendu",eur(b.boni),"Titres papier, produit acquis","")+
+    stat("Pièces validées",cc.ok+" / "+cc.total,cc.total&&cc.ok===cc.total?"Dossier complet":"Contrôle en cours",cc.total&&cc.ok===cc.total?"ok":"att")+
+    stat("Titres TR / CV",b.nTR+" / "+b.nCV,"Comptés à l'unité","")+
+  '</div>';
+
+  if(al.length) h+='<div class="carte"><header><h2>Points bloquants</h2><p>'+al.length+' élément'+(al.length>1?"s":"")+' à traiter avant clôture</p></header><div class="corps">'+
+    al.map(a=>'<div class="banniere '+a.n+'"><span class="sym">'+(a.n==="ko"?"✕":(a.n==="info"?"i":"!"))+'</span><div><b>'+ech(a.t)+'</b><p>'+ech(a.d)+'</p></div></div>').join("")+'</div></div>';
+  else if(d.cloture) h+='<div class="banniere ok"><span class="sym">✓</span><div><b>Journée clôturée</b><p>Validée par '+ech(d.cloture.par)+" le "+heureCourte(d.cloture.at)+".</p></div></div>";
+
+  h+='<div class="carte"><header><h2>Ouverture du monnayeur</h2></header><div class="corps">';
+  if(d.ouverture){
+    h+='<div class="rangee" style="justify-content:space-between"><div><div class="eyebrow">Fond à l\'ouverture</div>'+
+      '<div class="mono" style="font-size:27px;font-weight:700;letter-spacing:-.02em">'+eur(d.ouverture.montant)+'</div>'+
+      '<p class="aide" style="margin-top:4px">Par '+ech(d.ouverture.par||"—")+" · "+heureCourte(d.ouverture.at)+
+      (d.ouverture.motifCorrection?' · <span style="color:var(--rouge)">corrigé : '+ech(d.ouverture.motifCorrection)+"</span>":"")+'</p></div>'+
+      (d.cloture||!estManager()?"":'<button class="btn neutre mini" data-act="corriger-ouverture">Corriger</button>')+'</div>';
+  } else {
+    h+='<p class="aide" style="margin-bottom:12px">'+(veille===null
+      ? "Aucune fermeture la veille. Saisissez le fond réellement présent : c'est le début de la chaîne."
+      : "Repris de la fermeture d'hier ("+eur(veille)+") et verrouillé. Si le compte n'y est pas, ouvrez quand même et signalez : ne corrigez jamais en silence.")+'</p>'+
+      '<div class="grille g3"><label class="champ"><span>Montant à l\'ouverture</span>'+
+      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"'+(veille!==null?" readonly":"")+'></label>'+
+      '<label class="champ"><span>Ouvert par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
+      '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ouvrir">Ouvrir la journée</button></div></div>';
+  }
+  h+='</div></div>';
+
+  h+='<div class="carte"><header><h2>Comptages</h2><p>'+d.comptages.length+' enregistré'+(d.comptages.length>1?"s":"")+'</p>'+
+    (d.cloture?"":'<div class="droite"><button class="btn mini" data-vue="comptage">Nouveau comptage</button></div>')+'</header>';
+  if(!d.comptages.length) h+='<div class="vide"><b>Aucun comptage pour cette journée</b>Chaque caisse comptée en fin de service donne une ligne signée par deux personnes.</div>';
+  else h+='<table><thead><tr><th>Caisse</th><th>Service</th><th>Opérateur</th><th>Contrôleur</th><th class="n">TR</th><th class="n">CV</th><th class="n">Manquant</th><th>Étape</th><th></th></tr></thead><tbody>'+
+    d.comptages.map(c=>{
+      const e=ecartComptage(c), t=detailTR(c), v=detailCV(c);
+      return '<tr><td><b>'+ech(c.caisse)+'</b></td><td>'+ech(c.service)+'</td><td>'+ech(c.operateur)+'</td><td>'+ech(c.controleur)+'</td>'+
+        '<td class="n">'+t.nb+' tit. · '+eur(t.physique)+'</td><td class="n">'+v.nb+' tit. · '+eur(v.physique)+'</td>'+
+        '<td class="n" style="font-weight:600;color:'+(e.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(e.anormal)+'</td>'+
+        '<td>'+pilEtape(etapeComptage(c))+'</td>'+
+        '<td class="n">'+(d.cloture?"":'<button class="btn neutre mini" data-act="voir-comptage" data-id="'+c.id+'">Ouvrir</button>')+'</td></tr>';
+    }).join("")+'</tbody></table>';
+  h+='</div>';
+
+  if(d.comptages.length){
+    const parC={};
+    d.comptages.forEach(c=>{
+      const t=detailTR(c), v=detailCV(c);
+      const k=c.caisse;
+      parC[k]=parC[k]||{nbTR:0,papTR:0,demTR:0,zTR:0,nbCV:0,papCV:0,zCV:0,serv:[]};
+      parC[k].nbTR+=t.nb; parC[k].papTR+=t.papier; parC[k].demTR+=t.demat; parC[k].zTR+=t.z;
+      parC[k].nbCV+=v.nb; parC[k].papCV+=v.papier; parC[k].zCV+=v.z;
+      parC[k].serv.push(c.service);
+    });
+    h+='<div class="carte"><header><h2>Titres par caisse</h2><p>Quantité et montant, caisse par caisse</p></header>'+
+    '<table><thead><tr><th>Caisse</th><th>Services</th><th class="n">Nb titres TR</th><th class="n">TR papier</th>'+
+    '<th class="n">TR carte</th><th class="n">TR au Z</th><th class="n">Écart TR</th>'+
+    '<th class="n">Nb CV</th><th class="n">CV papier</th><th class="n">Écart CV</th></tr></thead><tbody>'+
+    Object.entries(parC).map(([k,x])=>{
+      const eT=arrondi(x.papTR+x.demTR-x.zTR), eV=arrondi(x.papCV-x.zCV);
+      const col=e=>e<-0.004?"var(--rouge)":(e>0.004?"var(--prim)":"var(--t2)");
+      return '<tr><td><b>'+ech(k)+'</b></td><td class="aide">'+ech(x.serv.join(", "))+'</td>'+
+        '<td class="n" style="font-weight:700;font-size:15px">'+x.nbTR+'</td>'+
+        '<td class="n">'+eur(x.papTR)+'</td><td class="n">'+eur(x.demTR)+'</td><td class="n">'+eur(x.zTR)+'</td>'+
+        '<td class="n" style="font-weight:600;color:'+col(eT)+'">'+signe(eT)+' €</td>'+
+        '<td class="n" style="font-weight:700;font-size:15px">'+x.nbCV+'</td><td class="n">'+eur(x.papCV)+'</td>'+
+        '<td class="n" style="font-weight:600;color:'+col(eV)+'">'+signe(eV)+' €</td></tr>';
+    }).join("")+
+    '<tr style="font-weight:700;background:var(--canvas)"><td>Total</td><td></td>'+
+    '<td class="n">'+b.nTR+'</td><td class="n">'+eur(b.tr-Object.values(parC).reduce((s,x)=>s+x.demTR,0))+'</td>'+
+    '<td class="n">'+eur(Object.values(parC).reduce((s,x)=>s+x.demTR,0))+'</td><td class="n">'+eur(b.trZ)+'</td>'+
+    '<td class="n">'+signe(b.tr-b.trZ)+' €</td><td class="n">'+b.nCV+'</td><td class="n">'+eur(b.cv)+'</td>'+
+    '<td class="n">'+signe(b.cv-b.cvZ)+' €</td></tr>'+
+    '</tbody></table></div>';
+  }
+
+  if(d.fermeture){
+    h+='<div class="carte"><header><h2>Rapprochement</h2></header><table><thead><tr><th>Mode</th><th class="n">Physique</th><th class="n">Ticket Z</th><th class="n">Écart</th><th>Nature</th></tr></thead><tbody>'+
+      ligRap("Titres-restaurant ("+b.nTR+" titres)",b.tr,b.trZ)+ligRap("Chèques-vacances ("+b.nCV+" titres)",b.cv,b.cvZ)+
+      ligRap("Carte bancaire",b.cb,b.cbZ)+ligRap("Espèces",b.especesReelles,nb(d.especesZ))+
+      '<tr><td>Canaux externes</td><td class="n">'+eur(b.canaux)+'</td><td class="n">'+eur(b.canaux)+'</td><td class="n">—</td><td></td></tr>'+
+      '<tr style="font-weight:700"><td>Total</td><td class="n">'+eur(b.caReel)+'</td><td class="n">'+eur(b.caTheo)+'</td><td class="n">'+signe(b.caReel-b.caTheo)+' €</td><td></td></tr>'+
+      '</tbody></table><div class="corps"><p class="aide">Sur les titres papier, un excédent est normal : on ne rend pas la monnaie. Un manquant ne l\'est jamais. Les deux ne sont donc jamais additionnés.</p></div></div>';
+  }
+  return h;
+}
+function ligRap(nom,reel,theo){
+  const e=arrondi(reel-theo);
+  const nat=e<-0.004?'<span class="pil ko">Manquant</span>':(e>0.004?'<span class="pil prim">Excédent</span>':'<span class="pil ok">Juste</span>');
+  return '<tr><td>'+nom+'</td><td class="n">'+eur(reel)+'</td><td class="n">'+eur(theo)+'</td><td class="n">'+signe(e)+' €</td><td>'+nat+'</td></tr>';
+}
+
+/* ============================================================
+   13. VUE — CONTRÔLE DES CAISSES (double panneau, deux niveaux)
+   ============================================================ */
+function vueValidation(){
+  const liste=fileComptages(filtreValid);
+  if(indexValid>=liste.length) indexValid=Math.max(0,liste.length-1);
+  const item=liste[indexValid]||null;
+
+  const onglets=[["saisi","À vérifier"],["verifie","À valider"],["renvoye","Renvoyés"],["valide","Validés"],["tous","Toutes"]];
+  const barre='<div class="valid-outils">'+
+    onglets.map(([k,l])=>'<button data-filtre="'+k+'"'+(filtreValid===k?' style="background:var(--prim);color:#fff"':'')+'>'+
+      l+(compteurEtape(k)?" · "+compteurEtape(k):"")+'</button>').join("")+
+    '<span class="esp"></span>'+
+    (item?'<span class="compteur">'+(indexValid+1)+' / '+liste.length+'</span>'+
+      '<button data-nav="-1"'+(indexValid<=0?" disabled":"")+'>‹ Préc.</button>'+
+      '<button data-nav="1"'+(indexValid>=liste.length-1?" disabled":"")+'>Suiv. ›</button>'+
+      '<button data-zoom="-1">−</button><button data-zoom="0">100 %</button><button data-zoom="1">+</button><button data-rot="1">⟳</button>'
+      :'<span class="compteur">Aucune caisse</span>')+
+  '</div>';
+
+  if(!item) return '<div class="valid"><div class="valid-gauche">'+barre+
+    '<div class="valid-vue"><p class="rien">Aucune caisse dans cette file. '+
+    (filtreValid==="saisi"?"Les comptages saisis par les équipiers arriveront ici pour votre vérification."
+     :"Changez de filtre pour voir les autres étapes.")+'</p></div></div>'+
+    '<div class="valid-droite"><div class="tete"><h3>Rien à contrôler</h3><p>File vide sur ce filtre.</p></div>'+
+    '<div class="flux"><div class="bloc"><h4>Circuit de contrôle</h4>'+
+    paire("1. L\'équipier saisit et photographie",'<span class="pil neu">Saisi</span>')+
+    paire("2. Le manager vérifie la caisse",'<span class="pil att">À vérifier</span>')+
+    paire("3. L\'administrateur valide après rapprochement",'<span class="pil prim">À valider</span>')+
+    paire("4. La journée peut être clôturée",'<span class="pil ok">Validé</span>')+
+    '</div></div></div></div>';
+
+  return '<div class="valid"><div class="valid-gauche">'+barre+
+    '<div class="valid-vue" id="visu"><p class="rien">Chargement de la pièce…</p></div></div>'+
+    '<div class="valid-droite">'+panneauCaisse(item)+'</div></div>';
+}
+
+function panneauCaisse(item){
+  const {jour:iso,c,etape}=item;
+  const d=journee(iso);
+  const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
+  const pieces=piecesComptage(iso,c.id);
+  const cloture=!!d.cloture;
+
+  const tete='<div class="tete"><h3>'+ech(c.caisse)+' — '+ech(c.service)+'</h3>'+
+    '<p>'+jolieDate(iso)+' · '+pilEtape(etape)+'</p>'+
+    (c.renvoi?'<p class="aide" style="margin-top:6px;color:var(--rouge)">Renvoyé par '+ech(c.renvoi.par)+' le '+heureCourte(c.renvoi.at)+' : '+ech(c.renvoi.note)+'</p>':"")+
+    (c.verif?'<p class="aide" style="margin-top:6px">Vérifié par '+ech(c.verif.par)+' · '+heureCourte(c.verif.at)+'</p>':"")+
+    (c.valid?'<p class="aide" style="margin-top:3px">Validé par '+ech(c.valid.par)+' · '+heureCourte(c.valid.at)+'</p>':"")+
+    '</div>';
+
+  let f='';
+  // --- rapprochement
+  f+='<div class="bloc"><h4>Rapprochement</h4>'+
+    ligneRap("Titres-restaurant",t.physique,t.z)+
+    ligneRap("Chèques-vacances",v.physique,v.z)+
+    ligneRap("Carte bancaire",nb(c.cb),nb(c.cbZ))+
+    paire("Manquant réel",eur(e.anormal), e.anormal>0?"fort ko":"fort ok")+
+    paire("Excédent non-rendu",eur(e.boni), e.boni>0?"fort prim":"fort")+
+  '</div>';
+
+  // --- detail titres
+  if(t.nb>0) f+=blocDetailTitres("Titres-restaurant",t);
+  if(v.nb>0) f+=blocDetailTitres("Chèques-vacances",v);
+
+  // --- pieces a pointer
+  f+='<div class="bloc"><h4>Pièces justificatives</h4>';
+  if(!pieces.length) f+='<p class="aide">Aucune pièce attendue pour ce comptage.</p>';
+  pieces.forEach(p=>{
+    f+='<div class="piece-ligne"><div class="pl-vign" data-piece="'+ech(p.id)+'"'+
+      (p.docs[0]&&p.docs[0].vignette?' style="background-image:url('+p.docs[0].vignette+')"':'')+'>'+
+      (p.docs.length?(p.docs[0].type==="application/pdf"?"PDF":""):"—")+'</div>'+
+      '<div class="pl-id"><b>'+ech(p.libelle)+'</b><span>'+eur(p.montant)+(p.oblige?"":" · facultatif")+'</span>'+
+      (p.ctrl&&p.ctrl.note?'<span style="color:var(--rouge)">'+ech(p.ctrl.note)+'</span>':"")+'</div>'+
+      '<div class="pl-act">'+pil(p.etat)+
+      (!cloture&&p.docs.length&&estManager()?'<span class="pl-btns">'+
+        '<button class="btn vert mini" data-piece-ok="'+ech(p.id)+'">✓</button>'+
+        '<button class="btn rouge mini" data-piece-ko="'+ech(p.id)+'">✕</button></span>':"")+
+      '</div></div>';
+  });
+  f+='</div>';
+
+  // --- origine
+  f+='<div class="bloc"><h4>Origine</h4>'+
+    paire("Opérateur",ech(c.operateur||"—"))+
+    paire("Contrôleur",ech(c.controleur||"—"))+
+    paire("Horaires",(c.h1||"--:--")+" → "+(c.h2||"--:--"))+
+    paire("Saisi le",heureCourte(c.at))+
+  '</div>';
+  if(c.motif) f+='<div class="bloc"><h4>Motif saisi par l\'équipe</h4><div class="bulle">'+ech(c.motif)+'</div></div>';
+
+  const fil=MESSAGES.filter(m=>m.comptageId===c.id).sort((a,b)=>a.at.localeCompare(b.at));
+  if(fil.length) f+='<div class="bloc"><h4>Échanges</h4><div class="fil">'+fil.map(m=>
+    '<div class="bulle'+(m.resolu?"":" refus")+'"><div class="qui"><b>'+ech(m.de)+' → '+ech(m.pour)+'</b><span>'+heureCourte(m.at)+'</span></div>'+ech(m.texte)+
+    (m.reponses||[]).map(r=>'<div class="bulle reponse" style="margin-top:7px"><div class="qui"><b>'+ech(r.de)+'</b><span>'+heureCourte(r.at)+'</span></div>'+ech(r.texte)+'</div>').join("")+
+    '</div>').join("")+'</div></div>';
+
+  // --- actions selon le role et l'etape
+  let pied='';
+  if(cloture) pied='<div class="pied"><span class="aide">Journée clôturée : plus aucune modification.</span></div>';
+  else if(!estManager()) pied='<div class="pied"><span class="aide">Seul un manager ou un administrateur peut contrôler une caisse.</span></div>';
+  else if(etape==="valide") pied='<div class="pied">'+
+    (estAdmin()?'<button class="btn neutre" data-caisse="devalider">Annuler la validation</button>':'<span class="aide">Caisse validée.</span>')+'</div>';
+  else if(etape==="verifie") pied='<div class="pied">'+
+    '<button class="btn rouge" data-caisse="renvoyer">Renvoyer</button>'+
+    (estAdmin()?'<button class="btn vert" data-caisse="valider">Valider la caisse</button>'
+      :'<span class="aide" style="flex:1;text-align:center">En attente d\'un administrateur pour la validation finale.</span>')+'</div>';
+  else {
+    const pret=pretAVerifier(iso,c);
+    pied='<div class="pied"><button class="btn rouge" data-caisse="renvoyer">Renvoyer à l\'équipier</button>'+
+      '<button class="btn'+(estAdmin()?"":" vert")+'" data-caisse="verifier"'+(pret?"":" disabled")+'>'+
+      (estAdmin()?"Vérifier et valider":"Vérifier la caisse")+'</button></div>'+
+      (pret?"":'<p class="aide" style="padding:0 17px 12px">Pointez d\'abord toutes les pièces obligatoires ci-dessus.</p>');
+  }
+  return tete+'<div class="flux">'+f+'</div>'+pied;
+}
+function ligneRap(nom,reel,theo){
+  const e=arrondi(reel-theo);
+  return paire(nom, eur(reel)+" / "+eur(theo)+"  <b>"+signe(e)+" €</b>", e<-0.004?"ko":(e>0.004?"prim":"ok"));
+}
+function blocDetailTitres(titre,det){
+  const vals=Object.keys(det.det).map(Number).filter(x=>ent(det.det[x])>0).sort((a,b)=>b-a);
+  return '<div class="bloc"><h4>'+titre+' — détail saisi</h4><div class="lignes-tit">'+
+    (vals.length?vals.map(x=>'<div class="lg"><span>'+ent(det.det[x])+' × '+eur(x)+'</span><b>'+eur(x*ent(det.det[x]))+'</b></div>').join("")
+      :'<div class="lg"><span>Aucun titre papier</span><b>—</b></div>')+
+    '<div class="lg tot"><span>'+det.nb+' titres papier</span><span>'+eur(det.papier)+'</span></div>'+
+    (det.demat>0?'<div class="lg"><span>Dématérialisé</span><b>'+eur(det.demat)+'</b></div>':"")+
+    (det.anciens>0?'<div class="lg" style="color:var(--rouge)"><span>Dont millésime antérieur</span><b>'+det.anciens+'</b></div>':"")+
+    '</div><p class="aide" style="margin-top:8px">Comptez les titres sur la photo : le nombre et les valeurs faciales doivent correspondre.</p></div>';
+}
+function paire(a,b,cl){ return '<div class="paire '+(cl||"")+'"><span>'+a+'</span><span>'+b+'</span></div>'; }
+
+async function chargerVisu(){
+  const liste=fileComptages(filtreValid), item=liste[indexValid];
+  const el=document.getElementById("visu"); if(!el||!item) return;
+  const pieces=piecesComptage(item.jour,item.c.id).filter(p=>p.docs.length);
+  if(!pieces.length){ el.innerHTML='<p class="rien">Aucune photo jointe à ce comptage. Renvoyez-le à l\'équipier.</p>'; return; }
+  const p=pieces.find(x=>x.id===pieceActive)||pieces[0];
+  pieceActive=p.id;
+  const doc=p.docs[0];
+  const data=await ouvrirDoc(doc.id,doc);
+  if(!data){ el.innerHTML='<p class="rien">Pièce introuvable dans le stockage.</p>'; return; }
+  el.innerHTML=(doc.type==="application/pdf"
+    ? '<iframe src="'+data+'" title="Justificatif"></iframe>'
+    : '<img src="'+data+'" alt="'+ech(p.libelle)+'" style="transform:scale('+zoomValid+') rotate('+(rotValid*90)+'deg)">');
+}
+
+/* ============================================================
+   14. VUE — MESSAGES
+   ============================================================ */
+function vueMessages(){
+  const mes=messagesPour(SESSION.nom);
+  const envoyes=MESSAGES.filter(m=>m.de===SESSION.nom);
+  let h='';
+  h+='<div class="carte"><header><h2>Retours qui vous concernent</h2><p>'+mes.filter(m=>!m.resolu).length+' en cours</p></header>';
+  if(!mes.length) h+='<div class="vide"><b>Aucun message</b>Quand un manager refuse une de vos pièces, son commentaire arrive ici.</div>';
+  else h+='<div class="corps"><div class="fil">'+mes.map(m=>
+    '<div class="bulle'+(m.resolu?"":" refus")+'"><div class="qui"><b>'+ech(m.de)+'</b><span>'+heureCourte(m.at)+' · '+ech(m.sujet)+'</span></div>'+
+    ech(m.texte)+
+    (m.reponses||[]).map(r=>'<div class="bulle reponse" style="margin-top:7px"><div class="qui"><b>'+ech(r.de)+'</b><span>'+heureCourte(r.at)+'</span></div>'+ech(r.texte)+'</div>').join("")+
+    '<div class="actions" style="margin-top:9px">'+
+      '<button class="btn neutre mini" data-act="aller-msg" data-jour="'+m.jour+'">Ouvrir la journée du '+courteDate(m.jour)+'</button>'+
+      (m.resolu?'<span class="pil ok">Traité</span>':
+        '<button class="btn mini" data-act="repondre-msg" data-id="'+m.id+'">Répondre</button>'+
+        '<button class="btn vert mini" data-act="resoudre-msg" data-id="'+m.id+'">Marquer comme corrigé</button>')+
+    '</div></div>').join("")+'</div></div>';
+  h+='</div>';
+  if(envoyes.length) h+='<div class="carte"><header><h2>Vos retours envoyés</h2></header><table><thead><tr><th>Date</th><th>Destinataire</th><th>Sujet</th><th>Commentaire</th><th>État</th></tr></thead><tbody>'+
+    envoyes.map(m=>'<tr><td class="n">'+heureCourte(m.at)+'</td><td><b>'+ech(m.pour)+'</b></td><td>'+ech(m.sujet)+'</td>'+
+    '<td class="aide">'+ech(m.texte.slice(0,90))+(m.texte.length>90?"…":"")+'</td>'+
+    '<td>'+(m.resolu?'<span class="pil ok">Traité</span>':'<span class="pil att">En attente</span>')+'</td></tr>').join("")+'</tbody></table></div>';
+  return h;
+}
+
+/* ============================================================
+   15. VUE — SAISIE CAISSE
+   ============================================================ */
+function neufComptage(){
+  return {id:"", caisse:P.caisses[0]||"Caisse 1", service:P.services[1]||"Midi", operateur:SESSION?SESSION.nom:"", controleur:"",
+    h1:"", h2:"", trTitres:{}, trDemat:"", trZ:"", trAnciens:"", cvTitres:{}, cvDemat:"", cvZ:"", cvAnciens:"",
+    cb:"", cbZ:"", motif:"", justificatifs:[]};
+}
+function vueComptage(){
+  const d=journee(jour);
+  if(d.cloture) return '<div class="carte"><div class="vide"><b>Journée clôturée</b>Plus aucun comptage ne peut être ajouté au '+courteDate(jour)+".</div></div>";
+  if(!d.ouverture) return '<div class="carte"><div class="vide"><b>Ouvrez d\'abord la journée</b>'+
+    '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
+  if(!brouillon) brouillon=neufComptage();
+  const c=brouillon, t=detailTR(c), v=detailCV(c), e=ecartComptage(c), pbs=problemesComptage(c);
+
+  return bandeauPersistance()+
+  '<div class="carte"><header><h2>Qui et quand</h2><p>Chaque comptage est signé par deux personnes</p></header><div class="corps">'+
+  '<div class="grille g4">'+
+    '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?" selected":"")+'>'+ech(x)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Service</span><select id="c-service">'+P.services.map(x=>'<option'+(c.service===x?" selected":"")+'>'+ech(x)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Début</span><input type="time" id="c-h1" value="'+ech(c.h1)+'"></label>'+
+    '<label class="champ"><span>Fin</span><input type="time" id="c-h2" value="'+ech(c.h2)+'"></label>'+
+  '</div><div class="grille g2" style="margin-top:14px">'+
+    '<label class="champ"><span>Opérateur <small>— celui qui compte</small></span>'+selNoms("c-op",c.operateur)+'</label>'+
+    '<label class="champ"><span>Contrôleur <small>— celui qui recompte'+(P.controleurManager?", manager ou admin":"")+'</small></span>'+selNoms("c-ct",c.controleur,P.controleurManager)+'</label>'+
+  '</div>'+
+  (c.operateur&&c.operateur===c.controleur?'<div class="banniere ko" style="margin-top:12px"><span class="sym">✕</span><div><b>Une personne ne peut pas se contrôler elle-même</b><p>Choisissez un contrôleur différent.</p></div></div>':"")+
+  '</div></div>'+
+
+  blocTitres("TR","Titres-restaurant",P.valeursTR,c.trTitres,t,"trDemat","trZ","trAnciens",c)+
+  blocTitres("CV","Chèques-vacances",P.valeursCV,c.cvTitres,v,"cvDemat","cvZ","cvAnciens",c)+
+
+  '<div class="carte"><header><h2>Carte bancaire</h2></header><div class="corps"><div class="grille g3">'+
+    '<label class="champ"><span>Total du relevé TPE</span><input type="number" step="0.01" class="eur" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>CB au ticket Z</span><input type="number" step="0.01" class="eur" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label>'+
+    stat("Écart carte bancaire",signe(e.cb)+" €","",Math.abs(e.cb)>0.004?"ko":"ok")+
+  '</div>'+zoneDepot("cb:"+(c.id||"nouveau"),"Relevé TPE",c.justificatifs,P.preuvesObligatoires.cb&&nb(c.cb)>0)+'</div></div>'+
+
+  '<div class="carte"><header><h2>Ticket Z du service</h2><p>La pièce qui fonde tout le théorique</p></header><div class="corps">'+
+  '<p class="aide">Sans cette photo, aucun montant « ticket Z » n\'est vérifiable. C\'est la première chose que le manager regardera.</p>'+
+  zoneDepot("z:"+(c.id||"nouveau"),"Ticket Z",c.justificatifs,P.preuvesObligatoires.ticketZ)+'</div></div>'+
+
+  '<div class="carte"><header><h2>Justification</h2></header><div class="corps">'+
+  '<label class="champ'+(e.abs>0&&!c.motif?" invalide":"")+'"><span>Motif de l\'écart'+(e.abs>0?" — obligatoire":" — facultatif")+'</span>'+
+  '<textarea id="c-motif" placeholder="'+(e.abs>0?"Ex. : 3 titres de 10 € pour une commande à 26,50 €, pas de rendu de monnaie.":"Rien à signaler.")+'">'+ech(c.motif)+'</textarea></label>'+
+  (e.boni>0?'<div class="banniere info" style="margin-top:11px"><span class="sym">i</span><div><b>'+eur(e.boni)+' d\'excédent sur titres</b><p>Cohérent avec le non-rendu de monnaie. Écrivez-le : cet excédent doit être constaté, pas subi.</p></div></div>':"")+
+  (e.anormal>0?'<div class="banniere ko" style="margin-top:11px"><span class="sym">✕</span><div><b>'+eur(e.anormal)+' de manquant</b><p>Un manquant ne s\'explique pas par le non-rendu. Recomptez avant de valider.</p></div></div>':"")+
+  '</div></div>'+
+
+  '<div class="actions" style="margin-bottom:20px">'+
+    '<button class="btn large" data-act="valider-comptage"'+(pbs.length?" disabled":"")+'>Enregistrer le comptage</button>'+
+    (c.id&&estManager()?'<button class="btn rouge" data-act="supprimer-comptage">Supprimer</button>':"")+
+    '<button class="btn neutre" data-act="annuler-comptage">Annuler</button>'+
+    (pbs.length?'<span class="aide">'+ech(pbs[0])+'</span>':"")+
+  '</div>';
+}
+function blocTitres(pfx,titre,valeurs,det,calc,kD,kZ,kA,c){
+  const interp=calc.ecart<-0.004
+    ?'<div class="banniere ko" style="margin-top:13px"><span class="sym">✕</span><div><b>Manque '+eur(-calc.ecart)+' en titres</b><p>La caisse a enregistré plus de titres qu\'il n\'y en a. Recomptez la liasse.</p></div></div>'
+    :(calc.ecart>0.004?'<div class="banniere info" style="margin-top:13px"><span class="sym">i</span><div><b>Excédent de '+eur(calc.ecart)+'</b><p>Normal quand un titre dépasse le montant de la commande : pas de rendu de monnaie.</p></div></div>':"");
+  return '<div class="carte"><header><h2>'+titre+'</h2><p>'+calc.nb+' titre'+(calc.nb>1?"s":"")+' comptés à l\'unité</p></header><div class="corps">'+
+  '<div class="coupures">'+valeurs.map(val=>{
+    const q=ent(det[val]);
+    return '<div class="coup'+(q?" plein":"")+'"><div class="v">'+eur(val)+'</div>'+
+      '<div class="rg"><button data-tit="'+pfx+'" data-val="'+val+'" data-pas="-1" aria-label="Retirer">−</button>'+
+      '<input type="number" min="0" step="1" data-tit-in="'+pfx+'" data-val="'+val+'" value="'+(q||"")+'" placeholder="0" aria-label="Titres de '+val+' euros">'+
+      '<button data-tit="'+pfx+'" data-val="'+val+'" data-pas="1" aria-label="Ajouter">+</button></div>'+
+      '<div class="st">'+(q?eur(val*q):"—")+'</div></div>';
+  }).join("")+'</div>'+
+  '<div class="totaliseur"><div><div class="eyebrow">Titres papier</div><div class="gros" id="tot-'+pfx+'">'+eur(calc.papier)+'</div></div>'+
+    '<label class="champ" style="max-width:170px"><span>Dématérialisé</span><input type="number" step="0.01" class="eur" id="c-'+kD+'" value="'+ech(c[kD])+'" placeholder="0,00"></label>'+
+    '<label class="champ" style="max-width:170px"><span>Montant au ticket Z</span><input type="number" step="0.01" class="eur" id="c-'+kZ+'" value="'+ech(c[kZ])+'" placeholder="0,00"></label>'+
+    '<label class="champ" style="max-width:150px"><span>Millésime antérieur</span><input type="number" min="0" step="1" class="eur" id="c-'+kA+'" value="'+ech(c[kA])+'" placeholder="0"></label>'+
+  '</div>'+
+  '<div class="stats" style="margin-top:15px;margin-bottom:0">'+
+    stat("Total physique",eur(calc.physique),"")+
+    stat("Déclaré au Z",eur(calc.z),"")+
+    stat("Valeur moyenne",calc.nb?eur(calc.moyenne):"—",calc.moyenne>P.plafondTR?"Au-dessus du plafond":"",calc.moyenne>P.plafondTR?"att":"")+
+    stat("Écart",signe(calc.ecart)+" €","",calc.ecart<-0.004?"ko":(calc.ecart>0.004?"prim":"ok"))+
+  '</div>'+interp+
+  zoneDepot(pfx.toLowerCase()+":"+(c.id||"nouveau"),"Liasse "+titre,c.justificatifs,(pfx==="TR"?P.preuvesObligatoires.tr:P.preuvesObligatoires.cv)&&calc.physique>0)+
+  '</div></div>';
+}
+function zoneDepot(cible,libelle,liste,oblige){
+  const docs=docsDe(liste,cible);
+  return '<div class="depot'+(oblige&&!docs.length?" manque":"")+'">'+
+    '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">📷 Joindre une preuve</button>'+
+    '<p>'+ech(libelle)+' — photo ou PDF'+(oblige?' · <b style="color:var(--rouge)">obligatoire</b>':" · facultatif")+'</p>'+
+    (docs.length?'<div class="preuves" style="justify-content:center">'+docs.map(dd=>vignette(dd,true)).join("")+'</div>':"")+'</div>';
+}
+function vignette(d,sup){
+  const f=d.type==="application/pdf"?'<div class="vign" data-doc="'+d.id+'">PDF</div>'
+    :'<div class="vign" data-doc="'+d.id+'" style="background-image:url('+d.vignette+')"></div>';
+  return '<div class="preuve">'+f+(sup?'<button class="sup" data-jeter="'+d.id+'" aria-label="Supprimer">×</button>':"")+
+    '<div class="mt"><b>'+ech(d.libelle)+'</b><span>'+ko(d.taille)+'</span></div></div>';
+}
+function problemesComptage(c){
+  const p=[], e=ecartComptage(c), t=detailTR(c), v=detailCV(c);
+  if(!c.operateur) p.push("Renseignez l'opérateur.");
+  if(!c.controleur) p.push("Renseignez le contrôleur.");
+  if(c.operateur&&c.operateur===c.controleur) p.push("Opérateur et contrôleur doivent être deux personnes différentes.");
+  if(P.controleurManager&&c.controleur&&managersNoms().indexOf(c.controleur)<0) p.push("Le contrôleur doit être manager ou administrateur.");
+  if(!c.h1||!c.h2) p.push("Renseignez les horaires du service.");
+  if(e.abs>0&&!String(c.motif).trim()) p.push("Un écart de "+eur(e.abs)+" doit être justifié par écrit.");
+  const jf=c.justificatifs||[], id=c.id||"nouveau";
+  if(P.preuvesObligatoires.ticketZ&&!docsDe(jf,"z:"+id).length) p.push("Joignez la photo du ticket Z.");
+  if(P.preuvesObligatoires.tr&&t.physique>0&&!docsDe(jf,"tr:"+id).length) p.push("Joignez la photo de la liasse de titres-restaurant.");
+  if(P.preuvesObligatoires.cv&&v.physique>0&&!docsDe(jf,"cv:"+id).length) p.push("Joignez la photo de la liasse de chèques-vacances.");
+  if(P.preuvesObligatoires.cb&&nb(c.cb)>0&&!docsDe(jf,"cb:"+id).length) p.push("Joignez le relevé TPE.");
+  return p;
+}
+
+/* ============================================================
+   16. VUE — FERMETURE
+   ============================================================ */
+function vueFermeture(){
+  const d=journee(jour);
+  if(!d.ouverture) return '<div class="carte"><div class="vide"><b>La journée n\'est pas ouverte</b>'+
+    '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
+  if(!brouillonFerm) brouillonFerm={
+    montant:d.fermeture?d.fermeture.montant:"",
+    par:d.fermeture?d.fermeture.par:SESSION.nom, especesZ:d.especesZ||"", apport:d.apport||"",
+    retrait:Object.assign({montant:"",bordereau:"",par:"",controlePar:""},d.retrait),
+    canaux:Object.assign({cc:"",borne:"",uber:"",deliveroo:""},d.canaux), valideur:""};
+  const f=brouillonFerm;
+  const montant=nb(f.montant);
+  const esp=arrondi(montant-nb(d.ouverture.montant)-nb(f.apport)+nb(f.retrait.montant));
+  const ec=arrondi(esp-nb(f.especesZ));
+  const cc=controleComplet(jour), pbs=problemesFermeture(f,montant);
+
+  return bandeauPersistance()+
+  '<div class="carte"><header><h2>Monnayeur à la fermeture</h2><p>Saisissez directement le total compté</p></header><div class="corps">'+
+  '<div class="grille g3">'+
+    '<label class="champ"><span>Total du monnayeur</span><input type="number" step="0.01" class="eur" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00" style="font-size:19px;padding:13px"></label>'+
+    stat("Ouverture du jour",eur(d.ouverture.montant),"Verrouillé","")+
+    stat("Variation",signe(montant-nb(d.ouverture.montant))+" €","Fermeture moins ouverture","")+
+  '</div>'+
+  (montant>P.plafond?'<div class="banniere att" style="margin-top:13px"><span class="sym">!</span><div><b>Plafond dépassé</b><p>'+eur(montant)+" en caisse pour un plafond de "+eur(P.plafond)+". Faites la remise en banque aujourd'hui.</p></div></div>":"")+
+  zoneDepot("monn","Photo du monnayeur",d.justificatifs,false)+'</div></div>'+
+
+  '<div class="carte"><header><h2>Espèces</h2></header><div class="corps"><div class="grille g4">'+
+    '<label class="champ"><span>Ouverture <small>(verrouillé)</small></span><input type="number" class="eur" value="'+nb(d.ouverture.montant)+'" disabled></label>'+
+    '<label class="champ"><span>Apport de fonds (+)</span><input type="number" step="0.01" class="eur" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>Retrait / banque (−)</span><input type="number" step="0.01" class="eur" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>Espèces au ticket Z</span><input type="number" step="0.01" class="eur" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+
+  '</div><div class="stats" style="margin-top:15px;margin-bottom:0">'+
+    stat("Espèces réellement encaissées",eur(esp),"")+
+    stat("Écart espèces",signe(ec)+" €","",Math.abs(ec)>P.seuilJour?"ko":(Math.abs(ec)>0.004?"att":"ok"))+
+  '</div>'+zoneDepot("esp","Ticket Z espèces",d.justificatifs,P.preuvesObligatoires.especes)+'</div></div>'+
+
+  (nb(f.retrait.montant)>0?'<div class="carte"><header><h2>Remise en banque</h2></header><div class="corps"><div class="grille g3">'+
+    '<label class="champ'+(!f.retrait.bordereau?" invalide":"")+'"><span>N° de bordereau</span><input type="text" id="f-bord" value="'+ech(f.retrait.bordereau)+'" placeholder="BRD-2026-0142"></label>'+
+    '<label class="champ'+(!f.retrait.par?" invalide":"")+'"><span>Retrait fait par</span>'+selNoms("f-par",f.retrait.par)+'</label>'+
+    '<label class="champ'+(!f.retrait.controlePar||f.retrait.par===f.retrait.controlePar?" invalide":"")+'"><span>Contrôlé par</span>'+selNoms("f-ctrl",f.retrait.controlePar,true)+'</label>'+
+  '</div>'+zoneDepot("bord","Bordereau de remise",d.justificatifs,P.preuvesObligatoires.bordereau)+'</div></div>':"")+
+
+  '<div class="carte"><header><h2>Canaux externes</h2></header><div class="corps"><div class="grille g4">'+
+    [["cc","Click &amp; Collect"],["borne","Borne"],["uber","Uber Eats"],["deliveroo","Deliveroo"]].map(([k,l])=>
+      '<label class="champ"><span>'+l+'</span><input type="number" step="0.01" class="eur" id="f-'+k+'" value="'+ech(f.canaux[k])+'" placeholder="0,00"></label>').join("")+
+  '</div>'+[["cc","Click & Collect"],["borne","Borne"],["uber","Uber Eats"],["deliveroo","Deliveroo"]]
+    .filter(([k])=>nb(f.canaux[k])>0).map(([k,l])=>zoneDepot("can:"+k,"Rapport "+l,d.justificatifs,P.preuvesObligatoires.canaux)).join("")+'</div></div>'+
+
+  '<div class="carte"><header><h2>Clôture</h2></header><div class="corps">'+
+  '<div class="banniere '+(cc.total&&cc.ok===cc.total?"ok":"att")+'"><span class="sym">'+(cc.total&&cc.ok===cc.total?"✓":"!")+'</span>'+
+  '<div><b>'+cc.ok+" / "+cc.total+' pièces obligatoires validées</b><p>'+
+  (cc.total&&cc.ok===cc.total?"Tout est en règle.":"Passez par « À valider » : "+
+    (cc.manquants.length?cc.manquants.length+" sans pièce. ":"")+(cc.attente.length?cc.attente.length+" en attente. ":"")+(cc.refuses.length?cc.refuses.length+" refusée(s).":""))+'</p></div></div>'+
+  '<div class="grille g2" style="margin-top:14px">'+
+    '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+
+    '<label class="champ"><span>Clôture validée par <small>— administrateur</small></span>'+selNoms("f-valideur",f.valideur,true)+'</label>'+
+  '</div><div class="actions" style="margin-top:15px">'+
+    '<button class="btn" data-act="enregistrer-fermeture">Enregistrer la fermeture</button>'+
+    '<button class="btn vert" data-act="cloturer"'+(pbs.length||!d.fermeture||!estAdmin()?" disabled":"")+'>Clôturer la journée</button>'+
+    (!estAdmin()?'<span class="aide">La clôture revient à un administrateur, après validation de toutes les caisses.</span>':(pbs.length?'<span class="aide">'+ech(pbs[0])+'</span>':""))+
+  '</div></div></div>';
+}
+function problemesFermeture(f,montant){
+  const p=[], d=journee(jour), cc=controleComplet(jour);
+  if(!montant) p.push("Saisissez le total du monnayeur.");
+  if(!f.especesZ) p.push("Saisissez le total espèces du ticket Z.");
+  if(!f.par) p.push("Indiquez qui a fait la fermeture.");
+  if(nb(f.retrait.montant)>0){
+    if(!f.retrait.bordereau) p.push("Le n° de bordereau est obligatoire dès qu'il y a un retrait.");
+    if(!f.retrait.par||!f.retrait.controlePar) p.push("Un retrait exige deux noms.");
+    else if(f.retrait.par===f.retrait.controlePar) p.push("Le retrait doit être contrôlé par une autre personne.");
+  }
+  const sm=d.comptages.filter(c=>ecartComptage(c).abs>0&&!c.motif).length;
+  if(sm) p.push(sm+" comptage(s) avec un écart non justifié.");
+  if(cc.manquants.length) p.push(cc.manquants.length+" pièce(s) obligatoire(s) manquante(s).");
+  if(cc.attente.length) p.push(cc.attente.length+" pièce(s) en attente de validation.");
+  const nonValidees=(d.comptages||[]).filter(c=>etapeComptage(c)!=="valide");
+  if(nonValidees.length) p.push(nonValidees.length+" caisse(s) pas encore validée(s) par un administrateur.");
+  if(!(d.comptages||[]).length) p.push("Aucun comptage enregistré pour cette journée.");
+  if(!f.valideur) p.push("Indiquez l'administrateur qui clôture.");
+  return p;
+}
+
+/* ============================================================
+   17. VUES — REMISES, JOURNAL, ANALYSE, AUDIT, ADMIN
+   ============================================================ */
+function vueRemises(){
+  const al=alertesRemises(), mois=jour.slice(0,7);
+  let encTR=0, encCV=0;
+  Object.keys(J).filter(k=>k.startsWith(mois)).forEach(k=>J[k].comptages.forEach(c=>{ encTR+=detailTR(c).papier; encCV+=detailCV(c).papier; }));
+  const envTR=REMISES.filter(r=>r.type==="TR"&&r.dateEnvoi.startsWith(mois)).reduce((s,r)=>s+nb(r.montant),0);
+  const envCV=REMISES.filter(r=>r.type==="CV"&&r.dateEnvoi.startsWith(mois)).reduce((s,r)=>s+nb(r.montant),0);
+  const attente=REMISES.filter(r=>r.statut!=="remboursee").reduce((s,r)=>s+nb(r.montant),0);
+  if(!brouillonRemise) brouillonRemise={type:"TR",emetteur:P.emetteursTR[0],dateEnvoi:isoAujourdhui(),nbTitres:"",montant:"",bordereau:"",commission:"",justificatifs:[]};
+  const r=brouillonRemise;
+  let h='<div class="stats">'+
+    stat("TR papier encaissés",eur(encTR),mois,"")+
+    stat("TR envoyés en remise",eur(envTR),"",Math.abs(encTR-envTR)>1?"att":"ok")+
+    stat("TR non encore remis",eur(arrondi(encTR-envTR)),"Titres encore en coffre",arrondi(encTR-envTR)<-1?"ko":"prim")+
+    stat("En attente de remboursement",eur(attente),"",attente?"att":"ok")+'</div>';
+  if(Math.abs(encCV-envCV)>1) h+='<div class="banniere att"><span class="sym">!</span><div><b>Chèques-vacances : '+eur(arrondi(encCV-envCV))+' d\'écart</b>'+
+    '<p>'+eur(encCV)+' encaissés, '+eur(envCV)+' envoyés à l\'ANCV. Un titre non remis est un titre non remboursé.</p></div></div>';
+  al.forEach(a=>h+='<div class="banniere '+a.n+'"><span class="sym">'+(a.n==="ko"?"✕":"!")+'</span><div><b>'+ech(a.t)+'</b><p>'+ech(a.d)+'</p></div></div>');
+  h+='<div class="carte"><header><h2>Nouvelle remise</h2></header><div class="corps"><div class="grille g4">'+
+    '<label class="champ"><span>Type</span><select id="rm-type"><option'+(r.type==="TR"?" selected":"")+'>TR</option><option'+(r.type==="CV"?" selected":"")+'>CV</option></select></label>'+
+    '<label class="champ"><span>Émetteur</span><select id="rm-emetteur">'+(r.type==="CV"?["ANCV"]:P.emetteursTR).map(x=>'<option'+(r.emetteur===x?" selected":"")+'>'+ech(x)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Date d\'envoi</span><input type="date" id="rm-date" value="'+r.dateEnvoi+'"></label>'+
+    '<label class="champ"><span>N° de bordereau</span><input type="text" id="rm-bord" value="'+ech(r.bordereau)+'"></label>'+
+    '<label class="champ"><span>Nombre de titres</span><input type="number" min="0" step="1" class="eur" id="rm-nb" value="'+ech(r.nbTitres)+'"></label>'+
+    '<label class="champ"><span>Montant facial</span><input type="number" step="0.01" class="eur" id="rm-montant" value="'+ech(r.montant)+'"></label>'+
+    '<label class="champ"><span>Commission annoncée</span><input type="number" step="0.01" class="eur" id="rm-comm" value="'+ech(r.commission)+'"></label>'+
+    '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ajout-remise">Enregistrer</button></div>'+
+  '</div>'+zoneDepot("remise:nouvelle","Bordereau d'envoi",r.justificatifs||[],true)+'</div></div>';
+  h+='<div class="carte"><header><h2>Remises suivies</h2><p>'+REMISES.length+' au total</p></header>';
+  if(!REMISES.length) h+='<div class="vide"><b>Aucune remise enregistrée</b>Dès qu\'une liasse part chez l\'émetteur, inscrivez-la ici.</div>';
+  else h+='<table><thead><tr><th>Envoi</th><th>Type</th><th>Émetteur</th><th>Bordereau</th><th class="n">Titres</th><th class="n">Montant</th><th class="n">Reçu</th><th>État</th><th></th></tr></thead><tbody>'+
+    REMISES.slice().sort((a,b)=>b.dateEnvoi.localeCompare(a.dateEnvoi)).map(x=>{
+      const j=joursDepuis(x.dateEnvoi), retard=x.statut!=="remboursee"&&j>P.delaiRembours;
+      return '<tr><td>'+courteDate(x.dateEnvoi)+'<div class="aide">il y a '+j+' j</div></td><td>'+ech(x.type)+'</td><td>'+ech(x.emetteur)+'</td>'+
+      '<td class="mono" style="font-size:12px">'+ech(x.bordereau||"—")+'</td><td class="n">'+ent(x.nbTitres)+'</td><td class="n">'+eur(x.montant)+'</td>'+
+      '<td class="n">'+(x.statut==="remboursee"?eur(x.montantRecu):"—")+'</td>'+
+      '<td>'+(x.statut==="remboursee"?'<span class="pil ok">Remboursée</span>':(retard?'<span class="pil ko">En retard</span>':'<span class="pil att">Envoyée</span>'))+'</td>'+
+      '<td class="n">'+(x.statut!=="remboursee"?'<button class="btn neutre mini" data-act="solder-remise" data-id="'+x.id+'">Pointer</button> ':"")+
+      (estAdmin()?'<button class="btn neutre mini" data-act="suppr-remise" data-id="'+x.id+'">×</button>':"")+'</td></tr>';
+    }).join("")+'</tbody></table>';
+  return h+'</div>';
+}
+function vueJournal(){
+  const cles=Object.keys(J).sort().reverse();
+  let h=bandeauPersistance()+'<div class="carte"><header><h2>Sauvegarde</h2></header><div class="corps"><div class="actions">'+
+    '<button class="btn" data-act="export-json">Exporter la sauvegarde (.json)</button>'+
+    '<button class="btn neutre" data-act="export-csv">Exporter pour Excel (.csv)</button>'+
+    (estAdmin()?'<button class="btn neutre" data-act="import-json">Restaurer une sauvegarde</button>':"")+
+  '</div><p class="aide" style="margin-top:10px">La sauvegarde JSON contient les journées, les comptes, les remises et la traçabilité, mais <b>pas les photos</b> : trop lourdes pour un fichier unique.</p></div></div>';
+  if(!cles.length) return h+'<div class="carte"><div class="vide"><b>Le journal est vide</b>Ouvrez une journée pour commencer.</div></div>';
+  h+='<div class="carte"><header><h2>'+cles.length+' journée'+(cles.length>1?"s":"")+'</h2></header><table><thead><tr>'+
+    '<th>Date</th><th class="n">Ouverture</th><th class="n">Fermeture</th><th class="n">CA réel</th><th class="n">Manquant</th>'+
+    '<th class="n">Excédent</th><th class="n">Pièces</th><th>État</th></tr></thead><tbody>'+
+    cles.map(k=>{
+      const d=J[k], b=bilan(k), al=alertes(k), cc=controleComplet(k);
+      const et=d.cloture?'<span class="pil ok">Clôturée</span>':(al.length?'<span class="pil ko">'+al.length+'</span>':'<span class="pil att">En cours</span>');
+      return '<tr><td><button class="btn neutre mini" data-act="voir-jour" data-jour="'+k+'">'+courteDate(k)+'</button></td>'+
+        '<td class="n">'+(d.ouverture?eur(d.ouverture.montant):"—")+'</td><td class="n">'+(d.fermeture?eur(d.fermeture.montant):"—")+'</td>'+
+        '<td class="n">'+eur(b.caReel)+'</td>'+
+        '<td class="n" style="font-weight:600;color:'+(b.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(b.anormal)+'</td>'+
+        '<td class="n" style="color:var(--prim)">'+eur(b.boni)+'</td><td class="n">'+cc.ok+"/"+cc.total+'</td><td>'+et+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+  return h;
+}
+function vueAnalyse(){
+  const mois=jour.slice(0,7), cles=Object.keys(J).filter(k=>k.startsWith(mois)).sort();
+  if(!cles.length) return '<div class="carte"><div class="vide"><b>Rien à analyser sur '+mois+'</b></div></div>';
+  let ca=0,anormal=0,boni=0,nAl=0,nClo=0,nTR=0,nCV=0;
+  const parPers={}, parCaisse={};
+  cles.forEach(k=>{
+    const b=bilan(k), d=J[k];
+    ca+=b.caReel; anormal+=b.anormal; boni+=b.boni; nAl+=alertes(k).length; nTR+=b.nTR; nCV+=b.nCV;
+    if(d.cloture) nClo++;
+    d.comptages.forEach(c=>{
+      const e=ecartComptage(c);
+      if(c.operateur){ parPers[c.operateur]=parPers[c.operateur]||{n:0,anormal:0,boni:0,ctrl:0}; parPers[c.operateur].n++; parPers[c.operateur].anormal+=e.anormal; parPers[c.operateur].boni+=e.boni; }
+      if(c.controleur){ parPers[c.controleur]=parPers[c.controleur]||{n:0,anormal:0,boni:0,ctrl:0}; parPers[c.controleur].ctrl++; }
+      if(c.caisse){ parCaisse[c.caisse]=parCaisse[c.caisse]||{n:0,anormal:0}; parCaisse[c.caisse].n++; parCaisse[c.caisse].anormal+=e.anormal; }
+    });
+  });
+  const pers=Object.entries(parPers).sort((a,b)=>b[1].anormal-a[1].anormal);
+  const maxP=Math.max(0.01,...pers.map(x=>x[1].anormal));
+  let h='<div class="stats">'+stat("CA du mois",eur(ca),mois,"prim")+
+    stat("Manquant cumulé",eur(anormal),"",anormal>P.seuilJour*3?"ko":(anormal>0?"att":"ok"))+
+    stat("Excédent non-rendu",eur(boni),"","")+stat("Titres TR / CV",nTR+" / "+nCV,"","")+
+    stat("Journées clôturées",nClo+" / "+cles.length,"",nClo<cles.length?"att":"ok")+
+    stat("Alertes ouvertes",nAl,"",nAl?"ko":"ok")+'</div>';
+  h+='<div class="carte"><header><h2>Par personne</h2><p>Les manquants sont-ils dispersés ou concentrés ?</p></header>'+
+    (pers.length?'<table><thead><tr><th>Nom</th><th>Rôle</th><th class="n">Comptages</th><th class="n">Contrôles</th><th class="n">Manquant</th><th class="n">Excédent</th><th style="width:130px">Poids</th></tr></thead><tbody>'+
+    pers.map(([n,x])=>{
+      const cpt=parNom(n);
+      return '<tr><td><b>'+ech(n)+'</b></td><td><span class="pil neu">'+ech(cpt?cpt.role:"Équipier")+'</span></td>'+
+      '<td class="n">'+x.n+'</td><td class="n">'+x.ctrl+'</td>'+
+      '<td class="n" style="font-weight:600;color:'+(x.anormal>P.seuilJour?"var(--rouge)":"var(--t1)")+'">'+eur(x.anormal)+'</td>'+
+      '<td class="n" style="color:var(--prim)">'+eur(x.boni)+'</td>'+
+      '<td><span style="display:block;height:8px;background:var(--bord);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:'+((x.anormal/maxP)*100)+'%;background:'+(x.anormal>P.seuilJour?"var(--rouge)":"var(--prim)")+'"></i></span></td></tr>';
+    }).join("")+'</tbody></table>':'<div class="vide">Aucun comptage nominatif.</div>')+
+    '<div class="corps"><p class="aide">Regardez la colonne « Contrôles » : si une seule personne contrôle tout le monde, le double regard n\'existe que sur le papier.</p></div></div>';
+  h+='<div class="carte"><header><h2>Par caisse</h2></header><table><thead><tr><th>Caisse</th><th class="n">Comptages</th><th class="n">Manquant</th><th class="n">Moyenne</th></tr></thead><tbody>'+
+    Object.entries(parCaisse).map(([n,x])=>'<tr><td><b>'+ech(n)+'</b></td><td class="n">'+x.n+'</td><td class="n">'+eur(x.anormal)+'</td><td class="n">'+eur(x.anormal/x.n)+'</td></tr>').join("")+'</tbody></table></div>';
+  return h;
+}
+function vueAudit(){
+  if(!AUDIT.length) return '<div class="carte"><div class="vide"><b>Aucun mouvement</b></div></div>';
+  return '<div class="carte"><header><h2>'+AUDIT.length+' mouvement'+(AUDIT.length>1?"s":"")+'</h2><p>Connexions, validations, refus, corrections, clôtures</p></header>'+
+    '<table><thead><tr><th>Horodatage</th><th>Qui</th><th>Action</th><th>Détail</th></tr></thead><tbody>'+
+    AUDIT.slice(0,250).map(a=>'<tr><td class="n" style="color:var(--t2)">'+heureCourte(a.at)+'</td>'+
+      '<td><b>'+ech(a.qui||"—")+'</b><div class="aide">'+ech(a.role||"")+'</div></td>'+
+      '<td><span class="pil '+(/refus|Refus/.test(a.action)?"ko":"neu")+'">'+ech(a.action)+'</span></td><td class="aide">'+ech(a.detail)+'</td></tr>').join("")+
+    '</tbody></table></div>';
+}
+function vueUtilisateurs(){
+  const parRole=r=>COMPTES.filter(c=>c.role===r);
+  return '<div class="stats">'+
+    stat("Administrateurs",parRole("Administrateur").length,"Accès global","prim")+
+    stat("Managers",parRole("Manager").length,"Vérifient les caisses","")+
+    stat("Équipiers",parRole("Équipier").length,"Saisissent et photographient","")+
+    stat("Comptes désactivés",COMPTES.filter(c=>c.actif===false).length,"",COMPTES.filter(c=>c.actif===false).length?"att":"ok")+
+  '</div>'+
+
+  '<div class="carte"><header><h2>Créer un accès</h2><p>L\'administrateur ouvre directement le compte et communique le mot de passe</p></header><div class="corps">'+
+  '<div class="grille g3">'+
+    '<label class="champ"><span>Nom et prénom</span><input type="text" id="u-nom" placeholder="Fanny Martin"></label>'+
+    '<label class="champ"><span>Adresse e-mail</span><input type="email" id="u-mail" placeholder="fanny@bsm.fr"></label>'+
+    '<label class="champ"><span>Rôle</span><select id="u-role"><option>Équipier</option><option>Manager</option><option>Administrateur</option></select></label>'+
+    '<label class="champ"><span>Mot de passe <small>— 10 caractères minimum</small></span><input type="password" id="u-mdp"><div class="jauge"><i id="u-jauge" style="width:0"></i></div></label>'+
+    '<label class="champ"><span>Confirmer</span><input type="password" id="u-mdp2"></label>'+
+    '<label class="champ"><span>Question de secours</span><select id="u-q">'+QUESTIONS.map(q=>'<option>'+ech(q)+'</option>').join("")+'</select></label>'+
+    '<label class="champ"><span>Réponse de secours</span><input type="text" id="u-rep" placeholder="À communiquer à la personne"></label>'+
+    '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="creer-acces">Créer l\'accès</button></div>'+
+  '</div>'+
+  '<p class="aide" style="margin-top:11px">La personne pourra changer son mot de passe elle-même. Un rôle Administrateur exige le code maître de l\'entreprise.</p>'+
+  '</div></div>'+
+
+  '<div class="carte"><header><h2>Comptes existants</h2><p>'+COMPTES.length+' accès</p></header>'+
+  '<table><thead><tr><th>Personne</th><th>E-mail</th><th>Rôle</th><th>Créé le</th><th>Dernier accès</th><th>État</th><th></th></tr></thead><tbody>'+
+    COMPTES.map((c,i)=>'<tr><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar">'+ech(initiales(c.nom))+'</div><b>'+ech(c.nom)+'</b></div></td>'+
+      '<td class="aide">'+ech(c.email)+'</td>'+
+      '<td><select data-role-i="'+i+'">'+["Équipier","Manager","Administrateur"].map(r=>'<option'+(c.role===r?" selected":"")+'>'+r+'</option>').join("")+'</select></td>'+
+      '<td class="aide">'+(c.creeLe?courteDate(c.creeLe.slice(0,10)):"—")+'</td>'+
+      '<td class="aide">'+(c.dernierAcces?heureCourte(c.dernierAcces):"jamais")+'</td>'+
+      '<td>'+(c.actif===false?'<span class="pil ko">Désactivé</span>':'<span class="pil ok">Actif</span>')+'</td>'+
+      '<td class="n"><button class="btn neutre mini" data-act="mdp-compte" data-i="'+i+'">Mot de passe</button> '+
+      '<button class="btn neutre mini" data-act="basculer-compte" data-i="'+i+'">'+(c.actif===false?"Réactiver":"Désactiver")+'</button> '+
+      '<button class="btn neutre mini" data-act="suppr-compte" data-i="'+i+'">Supprimer</button></td></tr>').join("")+
+  '</tbody></table>'+
+  '<div class="corps"><label style="display:flex;gap:9px;align-items:center;font-size:13.5px"><input type="checkbox" id="r-libre"'+(P.inscriptionLibre?" checked":"")+' style="width:17px;height:17px">'+
+  'Autoriser chacun à créer son propre accès depuis l\'écran de connexion</label>'+
+  '<p class="aide" style="margin-top:8px">Laissée cochée, cette option permet à quiconque a le fichier de se créer un compte. '+
+  'Décochez-la une fois l\'équipe inscrite : vous créerez alors les accès depuis cette page.</p></div></div>'+
+
+  '<div class="carte"><header><h2>Ce que chaque rôle peut faire</h2></header><table><thead><tr><th>Action</th><th>Équipier</th><th>Manager</th><th>Administrateur</th></tr></thead><tbody>'+
+  [["Saisir un comptage et photographier les pièces",1,1,1],
+   ["Enregistrer la fermeture du jour",1,1,1],
+   ["Pointer les pièces justificatives",0,1,1],
+   ["Vérifier les caisses des équipiers",0,1,1],
+   ["Renvoyer une caisse à corriger",0,1,1],
+   ["Valider une caisse après rapprochement",0,0,1],
+   ["Clôturer la journée",0,0,1],
+   ["Suivre les remises TR / CV",0,1,1],
+   ["Analyse et traçabilité",0,1,1],
+   ["Créer et gérer les accès",0,0,1],
+   ["Modifier les seuils et les listes",0,0,1]
+  ].map(r=>'<tr><td>'+r[0]+'</td>'+[1,2,3].map(i=>'<td>'+(r[i]?'<span class="pil ok">oui</span>':'<span class="pil neu">non</span>')+'</td>').join("")+'</tr>').join("")+
+  '</tbody></table></div>';
+}
+
+function vueReglages(){
+  const ob=P.preuvesObligatoires;
+  const casePreuve=(k,l)=>'<label style="display:flex;gap:9px;align-items:center;padding:7px 0;font-size:13.5px"><input type="checkbox" data-preuve="'+k+'"'+(ob[k]?" checked":"")+' style="width:17px;height:17px">'+l+'</label>';
+  return '<div class="carte"><header><h2>Seuils et paramètres</h2></header><div class="corps"><div class="grille g4">'+
+    '<label class="champ"><span>Nom du site</span><input type="text" id="r-site" value="'+ech(P.site)+'"></label>'+
+    '<label class="champ"><span>Tolérance par comptage</span><input type="number" step="0.5" class="eur" id="r-sc" value="'+P.seuilCaisse+'"></label>'+
+    '<label class="champ"><span>Seuil d\'alerte du jour</span><input type="number" step="1" class="eur" id="r-sj" value="'+P.seuilJour+'"></label>'+
+    '<label class="champ"><span>Plafond d\'espèces</span><input type="number" step="50" class="eur" id="r-pl" value="'+P.plafond+'"></label>'+
+    '<label class="champ"><span>Plafond journalier par titre</span><input type="number" step="1" class="eur" id="r-ptr" value="'+P.plafondTR+'"></label>'+
+    '<label class="champ"><span>Délai de remboursement (j)</span><input type="number" step="1" class="eur" id="r-del" value="'+P.delaiRembours+'"></label>'+
+    '<label class="champ"><span>Verrouillage auto (min)</span><input type="number" step="1" class="eur" id="r-vm" value="'+P.verrouMinutes+'"></label>'+
+    '<label class="champ"><span>Millésime en cours</span><input type="number" step="1" class="eur" id="r-an" value="'+P.anneeTR+'"></label>'+
+  '</div><label style="display:flex;gap:9px;align-items:center;margin-top:13px;font-size:13.5px"><input type="checkbox" id="r-ctrlresp"'+(P.controleurManager?" checked":"")+' style="width:17px;height:17px">Le contrôleur d\'un comptage doit être manager ou administrateur</label>'+
+  '<div class="actions" style="margin-top:14px"><button class="btn" data-act="save-params">Enregistrer</button></div></div></div>'+
+
+  '<div class="carte"><header><h2>Pièces obligatoires</h2><p>Décocher, c\'est accepter un montant sans preuve</p></header><div class="corps"><div class="grille g3">'+
+    casePreuve("ticketZ","Ticket Z du service")+casePreuve("tr","Liasse titres-restaurant")+casePreuve("cv","Liasse chèques-vacances")+
+    casePreuve("cb","Relevé TPE")+casePreuve("especes","Ticket Z espèces")+casePreuve("bordereau","Bordereau de remise")+
+    casePreuve("canaux","Rapports des plateformes")+'</div></div></div>'+
+
+  '<div class="carte"><header><h2>Listes</h2></header><div class="corps"><div class="grille g3">'+
+    '<label class="champ"><span>Caisses</span><textarea id="r-caisses" style="min-height:90px">'+ech(P.caisses.join("\n"))+'</textarea></label>'+
+    '<label class="champ"><span>Services</span><textarea id="r-services" style="min-height:90px">'+ech(P.services.join("\n"))+'</textarea></label>'+
+    '<label class="champ"><span>Équipiers sans compte</span><textarea id="r-equipiers" style="min-height:90px">'+ech((P.equipiers||[]).join("\n"))+'</textarea></label>'+
+    '<label class="champ"><span>Valeurs faciales TR</span><textarea id="r-vtr" style="min-height:90px">'+ech(P.valeursTR.join("\n"))+'</textarea></label>'+
+    '<label class="champ"><span>Valeurs chèques-vacances</span><textarea id="r-vcv" style="min-height:90px">'+ech(P.valeursCV.join("\n"))+'</textarea></label>'+
+    '<label class="champ"><span>Émetteurs de titres</span><textarea id="r-emet" style="min-height:90px">'+ech(P.emetteursTR.join("\n"))+'</textarea></label>'+
+  '</div><div class="actions" style="margin-top:13px"><button class="btn" data-act="save-listes">Enregistrer les listes</button></div></div></div>'+
+
+  '<div class="carte"><header><h2>Zone sensible</h2></header><div class="corps"><p class="aide" style="margin-bottom:12px">Efface journées, remises, messages, traçabilité et photos. Les comptes sont conservés.</p>'+
+  '<button class="btn rouge" data-act="tout-effacer">Effacer toutes les données</button></div></div>';
+}
+
+/* ============================================================
+   18. VISIONNEUSE ET MODALES
+   ============================================================ */
+async function visionner(id){
+  const meta=trouverMeta(id);
+  const v=document.createElement("div"); v.className="voile";
+  v.innerHTML='<div class="voile-tete"><b>'+ech(meta?meta.libelle:"Justificatif")+'</b>'+
+    '<span class="emp">empreinte '+ech(meta?meta.empreinte:"—")+' · '+(meta?ko(meta.taille):"—")+' · '+ech(meta?meta.par:"—")+' · '+(meta?heureCourte(meta.at):"—")+'</span>'+
+    '<span class="sp"><button class="btn neutre mini" id="v-dl">Télécharger</button><button class="btn mini" id="v-fermer">Fermer</button></span></div>'+
+    '<div class="voile-corps"><span style="color:#98A2B3">Chargement…</span></div>';
+  document.body.appendChild(v);
+  v.querySelector("#v-fermer").onclick=()=>v.remove();
+  v.onclick=e=>{ if(e.target===v) v.remove(); };
+  document.addEventListener("keydown",function esc(e){ if(e.key==="Escape"){ v.remove(); document.removeEventListener("keydown",esc); } });
+  const data=await ouvrirDoc(id,meta);
+  const corps=v.querySelector(".voile-corps");
+  if(!data){ corps.innerHTML='<span style="color:#98A2B3">Pièce introuvable dans le stockage.</span>'; return; }
+  corps.innerHTML=(meta&&meta.type==="application/pdf")?'<iframe src="'+data+'" title="Justificatif"></iframe>':'<img src="'+data+'" alt="Justificatif">';
+  v.querySelector("#v-dl").onclick=()=>{
+    const a=document.createElement("a"); a.href=data;
+    a.download=(meta?meta.libelle.replace(/[^\w-]+/g,"_"):"justificatif")+(meta&&meta.type==="application/pdf"?".pdf":".jpg");
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+}
+function ouvrirModale(html,brancherFn){ modale={html,brancherFn}; peindre(); }
+function fermerModale(){ modale=null; peindre(); }
+
+/* ============================================================
+   19. INTERACTIONS
+   ============================================================ */
+function v(id){ const e=document.getElementById(id); return e?e.value:""; }
+function brancher(){
+  const dt=document.getElementById("j-date");
+  if(dt) dt.onchange=e=>{ jour=e.target.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; peindre(); };
+  const pr=document.getElementById("j-prec"), su=document.getElementById("j-suiv"), dc=document.getElementById("deco");
+  if(pr) pr.onclick=()=>{ jour=decale(jour,-1); brouillon=null; brouillonFerm=null; peindre(); };
+  if(su) su.onclick=()=>{ jour=decale(jour,1); brouillon=null; brouillonFerm=null; peindre(); };
+  if(dc) dc.onclick=()=>fermerSession(false);
+
+  document.querySelectorAll("[data-vue]").forEach(b=>b.onclick=()=>{
+    if(b.disabled) return;
+    if(b.dataset.vue==="comptage"&&vue!=="comptage") brouillon=null;
+    if(b.dataset.vue==="fermeture"&&vue!=="fermeture") brouillonFerm=null;
+    aller(b.dataset.vue);
+  });
+
+  // validation
+  document.querySelectorAll("[data-filtre]").forEach(b=>b.onclick=()=>{ filtreValid=b.dataset.filtre; indexValid=0; zoomValid=1; rotValid=0; pieceActive=""; peindre(); });
+  document.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{
+    const l=fileComptages(filtreValid);
+    indexValid=Math.min(l.length-1,Math.max(0,indexValid+parseInt(b.dataset.nav,10)));
+    zoomValid=1; rotValid=0; pieceActive=""; peindre();
+  });
+  document.querySelectorAll("[data-zoom]").forEach(b=>b.onclick=()=>{
+    const z=parseInt(b.dataset.zoom,10);
+    zoomValid = z===0?1:Math.min(4,Math.max(.4,zoomValid+(z*0.25)));
+    const im=document.querySelector("#visu img"); if(im) im.style.transform="scale("+zoomValid+") rotate("+(rotValid*90)+"deg)";
+  });
+  document.querySelectorAll("[data-rot]").forEach(b=>b.onclick=()=>{
+    rotValid=(rotValid+1)%4;
+    const im=document.querySelector("#visu img"); if(im) im.style.transform="scale("+zoomValid+") rotate("+(rotValid*90)+"deg)";
+  });
+  document.querySelectorAll("[data-caisse]").forEach(b=>b.onclick=()=>actionCaisse(b.dataset.caisse));
+  document.querySelectorAll("[data-piece-ok]").forEach(b=>b.onclick=()=>pointerPiece(b.dataset.pieceOk,"conforme"));
+  document.querySelectorAll("[data-piece-ko]").forEach(b=>b.onclick=()=>pointerPiece(b.dataset.pieceKo,"refuse"));
+  document.querySelectorAll("[data-piece]").forEach(b=>b.onclick=()=>{ pieceActive=b.dataset.piece; chargerVisu(); });
+  if(vue==="validation") chargerVisu();
+
+  // saisie comptage
+  const cc={"c-caisse":"caisse","c-service":"service","c-op":"operateur","c-ct":"controleur","c-h1":"h1","c-h2":"h2",
+    "c-trDemat":"trDemat","c-trZ":"trZ","c-trAnciens":"trAnciens","c-cvDemat":"cvDemat","c-cvZ":"cvZ","c-cvAnciens":"cvAnciens",
+    "c-cb":"cb","c-cbZ":"cbZ","c-motif":"motif"};
+  Object.entries(cc).forEach(([id,k])=>{
+    const el=document.getElementById(id); if(!el||!brouillon) return;
+    if(el.tagName==="SELECT"||el.type==="time"){ el.onchange=()=>{ brouillon[k]=el.value; peindre(); }; return; }
+    el.oninput=()=>{ brouillon[k]=el.value; majTitres(); majBouton(); };
+    el.onblur=()=>peindre();
+  });
+  document.querySelectorAll("[data-tit]").forEach(b=>b.onclick=()=>{
+    const c=b.dataset.tit==="TR"?"trTitres":"cvTitres";
+    if(!brouillon[c]) brouillon[c]={};
+    brouillon[c][b.dataset.val]=Math.max(0,ent(brouillon[c][b.dataset.val])+parseInt(b.dataset.pas,10));
+    peindre();
+  });
+  document.querySelectorAll("[data-tit-in]").forEach(i=>{
+    i.oninput=()=>{ const c=i.dataset.titIn==="TR"?"trTitres":"cvTitres";
+      if(!brouillon[c]) brouillon[c]={}; brouillon[c][i.dataset.val]=ent(i.value); majTitres(); majBouton(); };
+    i.onblur=()=>peindre();
+  });
+
+  // fermeture
+  Object.entries({"f-montant":"montant","f-especesz":"especesZ","f-apport":"apport","f-fermepar":"par","f-valideur":"valideur"}).forEach(([id,k])=>{
+    const el=document.getElementById(id); if(!el||!brouillonFerm) return;
+    if(el.tagName==="SELECT"){ el.onchange=()=>{ brouillonFerm[k]=el.value; peindre(); }; return; }
+    el.oninput=()=>{ brouillonFerm[k]=el.value; }; el.onblur=()=>peindre();
+  });
+  Object.entries({"f-retrait":"montant","f-bord":"bordereau","f-par":"par","f-ctrl":"controlePar"}).forEach(([id,k])=>{
+    const el=document.getElementById(id); if(!el||!brouillonFerm) return;
+    if(el.tagName==="SELECT"){ el.onchange=()=>{ brouillonFerm.retrait[k]=el.value; peindre(); }; return; }
+    el.oninput=()=>{ brouillonFerm.retrait[k]=el.value; }; el.onblur=()=>peindre();
+  });
+  ["cc","borne","uber","deliveroo"].forEach(k=>{
+    const el=document.getElementById("f-"+k); if(!el||!brouillonFerm) return;
+    el.oninput=()=>{ brouillonFerm.canaux[k]=el.value; }; el.onblur=()=>peindre();
+  });
+
+  // remises
+  Object.entries({"rm-type":"type","rm-emetteur":"emetteur","rm-date":"dateEnvoi","rm-bord":"bordereau","rm-nb":"nbTitres","rm-montant":"montant","rm-comm":"commission"}).forEach(([id,k])=>{
+    const el=document.getElementById(id); if(!el||!brouillonRemise) return;
+    if(el.tagName==="SELECT"){ el.onchange=()=>{ brouillonRemise[k]=el.value; if(k==="type") brouillonRemise.emetteur=el.value==="CV"?"ANCV":P.emetteursTR[0]; peindre(); }; return; }
+    el.oninput=()=>{ brouillonRemise[k]=el.value; };
+  });
+
+  // pièces
+  document.querySelectorAll("[data-depot]").forEach(b=>b.onclick=()=>{
+    cibleDepot={cible:b.dataset.depot, libelle:b.dataset.lib};
+    document.getElementById("entree-fichier").click();
+  });
+  document.querySelectorAll("[data-doc]").forEach(el=>el.onclick=()=>visionner(el.dataset.doc));
+  document.querySelectorAll("[data-jeter]").forEach(b=>b.onclick=()=>retirerPreuve(b.dataset.jeter));
+
+  // admin
+  document.querySelectorAll("[data-preuve]").forEach(c=>c.onchange=async()=>{
+    P.preuvesObligatoires[c.dataset.preuve]=c.checked; await ecrire(CLES.p,P);
+    tracer("Pièces obligatoires",c.dataset.preuve+" → "+(c.checked?"exigée":"facultative")); peindre();
+  });
+  const um=document.getElementById("u-mdp");
+  if(um) um.oninput=()=>jauge("u-jauge",um.value);
+  const rl=document.getElementById("r-libre");
+  if(rl) rl.onchange=async()=>{ P.inscriptionLibre=rl.checked; await ecrire(CLES.p,P);
+    tracer("Inscription libre",rl.checked?"autorisée":"fermée"); toast(rl.checked?"Inscription libre autorisée.":"Inscription libre fermée."); };
+  document.querySelectorAll("[data-role-i]").forEach(s=>s.onchange=async()=>{
+    const i=parseInt(s.dataset.roleI,10), c=COMPTES[i], ancien=c.role;
+    if(c.id===SESSION.id&&RANG[s.value]<2) return toastPeindre("Vous ne pouvez pas réduire votre propre rôle.");
+    if(ancien==="Administrateur"&&s.value!=="Administrateur"&&COMPTES.filter(x=>x.role==="Administrateur").length<2)
+      return toastPeindre("Il doit rester au moins un administrateur.");
+    if(s.value==="Administrateur"){
+      const code=prompt("Élever "+c.nom+" au rang d'administrateur exige le code maître :","");
+      if(!codeMaitreOK(code)) return toastPeindre("Code maître incorrect.");
+    }
+    c.role=s.value; await ecrire(CLES.c,COMPTES);
+    tracer("Rôle modifié",c.nom+" : "+ancien+" → "+s.value); toast(c.nom+" est désormais "+s.value+"."); peindre();
+  });
+  document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>agir(b.dataset.act,b.dataset));
+  if(modale&&modale.brancherFn) modale.brancherFn();
+}
+function toastPeindre(m){ toast(m,true); peindre(); }
+function majBouton(){ const b=document.querySelector('[data-act="valider-comptage"]'); if(b) b.disabled=problemesComptage(brouillon).length>0; }
+function majTitres(){
+  const a=document.getElementById("tot-TR"), b=document.getElementById("tot-CV");
+  if(a) a.textContent=eur(sommeTitres(brouillon.trTitres||{}));
+  if(b) b.textContent=eur(sommeTitres(brouillon.cvTitres||{}));
+}
+
+/* ---- pointage des pièces et circuit de validation ---- */
+async function pointerPiece(ptId,etat){
+  if(!estManager()) return toast("Seul un manager peut pointer une pièce.",true);
+  const item=fileComptages(filtreValid)[indexValid]; if(!item) return;
+  const d=journeeEcr(item.jour);
+  if(etat==="conforme"){
+    d.controles[ptId]={etat:"conforme",par:SESSION.nom,at:maintenant(),note:""};
+    await sauver(); tracer("Pièce pointée conforme",ptId+" · "+courteDate(item.jour));
+    return peindre();
+  }
+  const note=prompt("Motif du refus de cette pièce — il sera visible par l'équipe :","");
+  if(note===null||!note.trim()) return toast("Refus annulé : un motif est obligatoire.",true);
+  d.controles[ptId]={etat:"refuse",par:SESSION.nom,at:maintenant(),note:note.trim()};
+  await sauver(); tracer("Pièce refusée",ptId+" · "+courteDate(item.jour)+" : "+note.trim());
+  toast("Pièce refusée."); peindre();
+}
+function actionCaisse(quoi){
+  if(!estManager()) return toast("Réservé aux managers et administrateurs.",true);
+  const item=fileComptages(filtreValid)[indexValid]; if(!item) return;
+  const d=journeeEcr(item.jour);
+  const c=d.comptages.find(x=>x.id===item.c.id); if(!c) return;
+  const e=ecartComptage(c);
+
+  if(quoi==="verifier"){
+    if(!pretAVerifier(item.jour,c)) return toast("Toutes les pièces obligatoires doivent être pointées conformes.",true);
+    c.verif={par:SESSION.nom,at:maintenant()}; delete c.renvoi;
+    if(estAdmin()){
+      c.valid={par:SESSION.nom,at:maintenant()};
+      tracer("Caisse vérifiée et validée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · manquant "+eur(e.anormal));
+      toast("Caisse vérifiée et validée.");
+    } else {
+      tracer("Caisse vérifiée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · transmise à l'administrateur");
+      toast("Caisse vérifiée. Elle passe en attente de validation administrateur.");
+    }
+    sauver(); return avancer();
+  }
+  if(quoi==="valider"){
+    if(!estAdmin()) return toast("La validation finale revient à un administrateur.",true);
+    if(e.anormal>P.seuilCaisse&&!String(c.motif).trim())
+      return toast("Manquant de "+eur(e.anormal)+" sans motif écrit : demandez une justification avant de valider.",true);
+    c.valid={par:SESSION.nom,at:maintenant()};
+    tracer("Caisse validée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · rapprochement conforme · manquant "+eur(e.anormal));
+    sauver(); toast("Caisse validée."); return avancer();
+  }
+  if(quoi==="devalider"){
+    if(!estAdmin()) return toast("Réservé aux administrateurs.",true);
+    const m=prompt("Motif de l'annulation de validation :",""); if(!m||!m.trim()) return toast("Annulation abandonnée.",true);
+    delete c.valid;
+    tracer("Validation annulée",courteDate(item.jour)+" · "+c.caisse+" : "+m.trim());
+    sauver(); toast("Validation annulée."); return peindre();
+  }
+  if(quoi==="renvoyer"){
+    const cible=c.operateur||c.controleur||"";
+    const noms=nomsEquipe();
+    ouvrirModale('<div class="modale"><div class="boite">'+
+      '<header><h3>Renvoyer la caisse</h3><p>'+ech(c.caisse)+' · '+ech(c.service)+' · '+courteDate(item.jour)+'</p></header>'+
+      '<div class="corps"><div class="grille" style="gap:13px">'+
+        '<label class="champ"><span>Destinataire</span><select id="m-pour">'+
+          noms.map(n=>'<option'+(n===cible?" selected":"")+'>'+ech(n)+'</option>').join("")+'</select></label>'+
+        '<label class="champ"><span>Ce qui doit être corrigé <small>— obligatoire</small></span>'+
+        '<textarea id="m-texte" placeholder="Ex. : la photo ne montre que 6 titres alors que 9 sont saisis. Reprenez la liasse complète, bien étalée."></textarea></label>'+
+      '</div></div>'+
+      '<footer><button class="btn neutre" id="m-annuler">Annuler</button>'+
+      '<button class="btn rouge" id="m-envoyer">Renvoyer</button></footer></div></div>',
+    ()=>{
+      const an=document.getElementById("m-annuler"), en=document.getElementById("m-envoyer");
+      if(an) an.onclick=fermerModale;
+      if(en) en.onclick=async()=>{
+        const pour=v("m-pour"), txt=v("m-texte").trim();
+        if(!txt) return toast("Sans commentaire, la personne ne sait pas quoi corriger.",true);
+        c.renvoi={par:SESSION.nom,at:maintenant(),note:txt,pour}; delete c.verif; delete c.valid;
+        await sauver();
+        await envoyerMessage({pour, sujet:c.caisse+" · "+c.service+" — "+courteDate(item.jour),
+          jour:item.jour, pointId:"caisse:"+c.id, comptageId:c.id, texte:txt});
+        tracer("Caisse renvoyée",courteDate(item.jour)+" · "+c.caisse+" → "+pour+" : "+txt);
+        modale=null; toast("Caisse renvoyée. "+pour+" a reçu le commentaire."); avancer();
+      };
+    });
+  }
+}
+function avancer(){
+  const l=fileComptages(filtreValid);
+  indexValid=Math.min(indexValid, Math.max(0,l.length-1));
+  zoomValid=1; rotValid=0; pieceActive=""; peindre();
+}
+
+/* ---- réception des fichiers ---- */
+document.getElementById("entree-fichier").addEventListener("change", async e=>{
+  const fs=Array.from(e.target.files||[]); e.target.value="";
+  if(!fs.length||!cibleDepot) return;
+  toast("Traitement de "+fs.length+" pièce(s)…");
+  for(const f of fs){
+    try{
+      const meta=await rangerDoc(f,cibleDepot.cible,cibleDepot.libelle);
+      if(cibleDepot.cible.indexOf("remise:")===0) brouillonRemise.justificatifs=(brouillonRemise.justificatifs||[]).concat([meta]);
+      else if(/^(z|tr|cv|cb):/.test(cibleDepot.cible)){
+        if(!brouillon){ toast("Ouvrez d'abord le comptage concerné.",true); return; }
+        brouillon.justificatifs=(brouillon.justificatifs||[]).concat([meta]);
+      } else { const d=journeeEcr(jour); d.justificatifs=d.justificatifs.concat([meta]); await sauver(); }
+      tracer("Pièce jointe",cibleDepot.libelle+" · "+courteDate(jour)+" · empreinte "+meta.empreinte);
+    }catch(err){ toast(err.message||"Impossible de traiter ce fichier.",true); }
+  }
+  cibleDepot=null; toast("Pièce(s) jointe(s)."); peindre();
+});
+async function retirerPreuve(id){
+  if(!confirm("Retirer cette pièce ? La suppression reste dans la traçabilité.")) return;
+  const oter=l=>{ const i=(l||[]).findIndex(x=>x.id===id); if(i>=0){ const m=l[i]; l.splice(i,1); return m; } return null; };
+  let m=null;
+  if(brouillon) m=oter(brouillon.justificatifs)||m;
+  if(brouillonRemise) m=oter(brouillonRemise.justificatifs)||m;
+  const d=journeeEcr(jour); m=oter(d.justificatifs)||m;
+  d.comptages.forEach(c=>{ m=oter(c.justificatifs)||m; });
+  REMISES.forEach(r=>{ m=oter(r.justificatifs)||m; });
+  await jeterDoc(id); await sauver(); await ecrire(CLES.r,REMISES);
+  tracer("Pièce retirée",(m?m.libelle:"pièce")+" · "+courteDate(jour));
+  toast("Pièce retirée."); peindre();
+}
+
+/* ---- actions ---- */
+async function agir(a,ds){
+  const d=journeeEcr(jour);
+  if(a==="ouvrir"){
+    const m=v("ouv-montant"), par=v("ouv-par");
+    if(m==="") return toast("Saisissez le montant du monnayeur.",true);
+    if(!par) return toast("Indiquez qui ouvre la journée.",true);
+    d.ouverture={montant:nb(m),par,at:maintenant()}; d.statut="ouvert";
+    tracer("Ouverture",courteDate(jour)+" · "+eur(m)+" · "+par);
+    await sauver(); toast("Journée ouverte."); return peindre();
+  }
+  if(a==="corriger-ouverture"){
+    if(!estManager()) return toast("Réservé aux managers.",true);
+    const veille=fermetureVeille(jour);
+    const m=prompt("Nouveau montant d'ouverture (€) :",d.ouverture.montant); if(m===null) return;
+    const mo=prompt("Motif de la correction — obligatoire :",""); if(!mo||!mo.trim()) return toast("Correction refusée : aucun motif.",true);
+    const anc=d.ouverture.montant;
+    d.ouverture.montant=nb(m); d.ouverture.motifCorrection=mo.trim(); d.ouverture.corrigePar=SESSION.nom; d.ouverture.corrigeAt=maintenant();
+    tracer("Correction ouverture",courteDate(jour)+" · "+eur(anc)+" → "+eur(m)+" · "+mo.trim()+(veille!==null?" · fermeture veille "+eur(veille):""));
+    await sauver(); toast("Correction enregistrée."); return peindre();
+  }
+  if(a==="valider-comptage"){
+    const pbs=problemesComptage(brouillon); if(pbs.length) return toast(pbs[0],true);
+    const e=ecartComptage(brouillon);
+    if(!brouillon.id){
+      const n=uid();
+      (brouillon.justificatifs||[]).forEach(x=>{ x.cible=x.cible.replace(/:nouveau$/,":"+n); });
+      brouillon.id=n; brouillon.at=maintenant(); brouillon.saisiPar=SESSION.nom;
+      d.comptages.push(Object.assign({},brouillon));
+      tracer("Comptage enregistré",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur+" / "+brouillon.controleur+
+        " · TR "+detailTR(brouillon).nb+" tit. · CV "+detailCV(brouillon).nb+" tit. · manquant "+eur(e.anormal));
+    } else {
+      const i=d.comptages.findIndex(c=>c.id===brouillon.id);
+      const anc=d.comptages[i];
+      const maj=Object.assign({},brouillon,{modifiePar:SESSION.nom,modifieAt:maintenant()});
+      delete maj.renvoi; delete maj.verif; delete maj.valid;
+      if(anc.renvoi){
+        const m=MESSAGES.find(x=>x.comptageId===anc.id&&!x.resolu);
+        if(m){ m.resolu=true; m.resoluLe=maintenant(); ecrire(CLES.m,MESSAGES); }
+        piecesComptage(jour,anc.id).forEach(p=>{ if(d.controles[p.id]&&d.controles[p.id].etat==="refuse") delete d.controles[p.id]; });
+      }
+      d.comptages[i]=maj;
+      tracer("Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal));
+    }
+    brouillon=null; await sauver();
+    toast(e.anormal===0?"Comptage enregistré, aucun manquant.":"Comptage enregistré avec "+eur(e.anormal)+" de manquant.");
+    return aller("tableau");
+  }
+  if(a==="voir-comptage"){ brouillon=JSON.parse(JSON.stringify(d.comptages.find(c=>c.id===ds.id))); return aller("comptage"); }
+  if(a==="annuler-comptage"){ brouillon=null; return aller("tableau"); }
+  if(a==="supprimer-comptage"){
+    if(!estManager()) return toast("Réservé aux managers.",true);
+    if(!confirm("Supprimer ce comptage ?")) return;
+    d.comptages=d.comptages.filter(c=>c.id!==brouillon.id);
+    tracer("Comptage supprimé",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur);
+    brouillon=null; await sauver(); toast("Comptage supprimé."); return aller("tableau");
+  }
+  if(a==="enregistrer-fermeture"){
+    const f=brouillonFerm;
+    const montant=nb(f.montant);
+    if(!montant) return toast("Saisissez le total du monnayeur.",true);
+    if(!f.par) return toast("Indiquez qui a fait la fermeture.",true);
+    d.fermeture={montant,par:f.par,at:maintenant()};
+    d.especesZ=nb(f.especesZ); d.apport=nb(f.apport);
+    d.retrait={montant:nb(f.retrait.montant),bordereau:f.retrait.bordereau,par:f.retrait.par,controlePar:f.retrait.controlePar};
+    d.canaux={cc:nb(f.canaux.cc),borne:nb(f.canaux.borne),uber:nb(f.canaux.uber),deliveroo:nb(f.canaux.deliveroo)};
+    tracer("Fermeture enregistrée",courteDate(jour)+" · monnayeur "+eur(montant)+" · "+f.par+
+      (nb(f.retrait.montant)>0?" · retrait "+eur(f.retrait.montant)+" bord. "+(f.retrait.bordereau||"MANQUANT"):""));
+    await sauver(); toast("Fermeture enregistrée."); return peindre();
+  }
+  if(a==="cloturer"){
+    if(!estAdmin()) return toast("La clôture revient à un administrateur.",true);
+    if(!toutValide(jour)) return toast("Toutes les caisses doivent être validées avant la clôture.",true);
+    const f=brouillonFerm, b=bilan(jour);
+    const pbs=problemesFermeture(f,d.fermeture?nb(d.fermeture.montant):0);
+    if(pbs.length) return toast(pbs[0],true);
+    if(b.anormal>P.seuilJour&&!d.motif){
+      const m=prompt("Manquant de "+eur(b.anormal)+", au-dessus du seuil.\nMotif et action corrective — obligatoire :","");
+      if(!m||!m.trim()) return toast("Clôture refusée : le manquant n'est pas justifié.",true);
+      d.motif=m.trim();
+    }
+    d.cloture={par:f.valideur,parCompte:SESSION.nom,at:maintenant()}; d.statut="cloture";
+    tracer("Journée clôturée",courteDate(jour)+" · CA "+eur(b.caReel)+" · manquant "+eur(b.anormal)+" · excédent "+eur(b.boni)+" · validé par "+f.valideur);
+    brouillonFerm=null; await sauver(); toast("Journée clôturée."); return aller("tableau");
+  }
+  if(a==="voir-jour"||a==="aller-msg"){ jour=ds.jour; brouillon=null; brouillonFerm=null; return aller("tableau"); }
+
+  if(a==="repondre-msg"){
+    const m=MESSAGES.find(x=>x.id===ds.id);
+    const t=prompt("Votre réponse :",""); if(!t||!t.trim()) return;
+    m.reponses=(m.reponses||[]).concat([{at:maintenant(),de:SESSION.nom,texte:t.trim()}]);
+    m.lu=true; await ecrire(CLES.m,MESSAGES);
+    tracer("Réponse à un retour",m.sujet); toast("Réponse envoyée."); return peindre();
+  }
+  if(a==="resoudre-msg"){
+    const m=MESSAGES.find(x=>x.id===ds.id);
+    m.resolu=true; m.lu=true; m.resoluLe=maintenant(); await ecrire(CLES.m,MESSAGES);
+    const dd=journeeEcr(m.jour);
+    if(dd.controles[m.pointId]) delete dd.controles[m.pointId];
+    await sauver();
+    tracer("Retour traité",m.sujet+" — la pièce repasse en attente de validation");
+    toast("Marqué comme corrigé : la pièce repasse dans la file de validation."); return peindre();
+  }
+
+  if(a==="ajout-remise"){
+    const r=brouillonRemise;
+    if(!nb(r.montant)) return toast("Saisissez le montant facial.",true);
+    if(!r.bordereau) return toast("Le n° de bordereau est obligatoire.",true);
+    if(!(r.justificatifs||[]).length) return toast("Joignez la photo du bordereau d'envoi.",true);
+    const id=uid();
+    (r.justificatifs||[]).forEach(x=>{ x.cible="remise:"+id; });
+    REMISES.push({id, type:r.type, emetteur:r.emetteur, dateEnvoi:r.dateEnvoi, nbTitres:ent(r.nbTitres),
+      montant:nb(r.montant), bordereau:r.bordereau, commission:nb(r.commission), statut:"envoyee",
+      montantRecu:0, dateRembours:"", par:SESSION.nom, at:maintenant(), justificatifs:r.justificatifs||[]});
+    await ecrire(CLES.r,REMISES);
+    tracer("Remise enregistrée",r.type+" · "+r.emetteur+" · "+eur(r.montant)+" · bord. "+r.bordereau);
+    brouillonRemise=null; toast("Remise enregistrée."); return peindre();
+  }
+  if(a==="solder-remise"){
+    const r=REMISES.find(x=>x.id===ds.id);
+    const m=prompt("Montant réellement reçu (€) :",arrondi(nb(r.montant)-nb(r.commission))); if(m===null) return;
+    r.montantRecu=nb(m); r.dateRembours=isoAujourdhui(); r.statut="remboursee"; r.pointePar=SESSION.nom;
+    await ecrire(CLES.r,REMISES);
+    const att=arrondi(nb(r.montant)-nb(r.commission));
+    tracer("Remise pointée",r.emetteur+" · attendu "+eur(att)+" · reçu "+eur(m)+(Math.abs(nb(m)-att)>0.02?" · ÉCART":""));
+    toast(Math.abs(nb(m)-att)>0.02?"Écart de "+eur(nb(m)-att)+" détecté.":"Remise pointée, montant conforme."); return peindre();
+  }
+  if(a==="suppr-remise"){
+    if(!estAdmin()) return toast("Réservé aux administrateurs.",true);
+    if(!confirm("Supprimer cette remise ?")) return;
+    const r=REMISES.find(x=>x.id===ds.id);
+    REMISES=REMISES.filter(x=>x.id!==ds.id); await ecrire(CLES.r,REMISES);
+    tracer("Remise supprimée",r.emetteur+" · "+eur(r.montant)); toast("Remise supprimée."); return peindre();
+  }
+
+  if(a==="creer-acces"){
+    const nom=v("u-nom").trim(), mail=v("u-mail").trim(), role=v("u-role"), mdp=v("u-mdp"), rep=v("u-rep").trim();
+    if(!nom) return toast("Indiquez le nom de la personne.",true);
+    if(!emailOK(mail)) return toast("Adresse e-mail invalide.",true);
+    if(parEmail(mail)) return toast("Un compte existe déjà avec cette adresse.",true);
+    if(mdp.length<10) return toast("Le mot de passe doit faire au moins 10 caractères.",true);
+    if(mdp!==v("u-mdp2")) return toast("Les deux mots de passe ne correspondent pas.",true);
+    if(!rep) return toast("La réponse de secours est obligatoire.",true);
+    if(role==="Administrateur"&&!codeMaitreOK(prompt("Créer un administrateur exige le code maître :",""))) return toast("Code maître incorrect.",true);
+    await creerCompte({nom,email:mail,role,mdp,question:v("u-q"),reponse:rep});
+    toast(nom+" a désormais un accès "+role+"."); return peindre();
+  }
+  if(a==="mdp-compte"){
+    const c=COMPTES[parseInt(ds.i,10)];
+    if(c.role==="Administrateur"&&!codeMaitreOK(prompt("Changer le mot de passe d'un administrateur exige le code maître :",""))) return toast("Code maître incorrect.",true);
+    const m=prompt("Nouveau mot de passe pour "+c.nom+" — 10 caractères minimum :",""); if(m===null) return;
+    if(m.length<10) return toast("Mot de passe trop court.",true);
+    c.sel=selAleatoire(); c.hMdp=deriver(m,c.sel); c.mdpChangeLe=maintenant(); c.mdpChangePar=SESSION.nom;
+    await ecrire(CLES.c,COMPTES);
+    tracer("Mot de passe réinitialisé",c.nom+" · "+c.email+" · par "+SESSION.nom);
+    toast("Mot de passe changé. Communiquez-le à "+c.nom+"."); return peindre();
+  }
+  if(a==="basculer-compte"){
+    const c=COMPTES[parseInt(ds.i,10)];
+    if(c.id===SESSION.id) return toast("Vous ne pouvez pas désactiver votre propre compte.",true);
+    if(c.role==="Administrateur"&&c.actif!==false&&COMPTES.filter(x=>x.role==="Administrateur"&&x.actif!==false).length<2)
+      return toast("Il doit rester au moins un administrateur actif.",true);
+    c.actif=(c.actif===false); await ecrire(CLES.c,COMPTES);
+    tracer("Compte "+(c.actif?"réactivé":"désactivé"),c.nom+" · "+c.email);
+    toast(c.nom+(c.actif?" réactivé.":" désactivé.")); return peindre();
+  }
+  if(a==="suppr-compte"){
+    const c=COMPTES[parseInt(ds.i,10)];
+    if(c.id===SESSION.id) return toast("Vous ne pouvez pas supprimer votre propre compte.",true);
+    if(c.role==="Administrateur"&&COMPTES.filter(x=>x.role==="Administrateur").length<2) return toast("Il doit rester au moins un administrateur.",true);
+    if(!confirm("Supprimer le compte de "+c.nom+" ? Les comptages à son nom sont conservés.")) return;
+    COMPTES=COMPTES.filter(x=>x.id!==c.id); await ecrire(CLES.c,COMPTES);
+    tracer("Compte supprimé",c.nom+" · "+c.email); toast("Compte supprimé."); return peindre();
+  }
+  if(a==="save-params"){
+    P.site=v("r-site")||"BSM"; P.seuilCaisse=nb(v("r-sc")); P.seuilJour=nb(v("r-sj")); P.plafond=nb(v("r-pl"));
+    P.plafondTR=nb(v("r-ptr")); P.delaiRembours=ent(v("r-del")); P.verrouMinutes=ent(v("r-vm")); P.anneeTR=ent(v("r-an"));
+    const cr=document.getElementById("r-ctrlresp"); P.controleurManager=cr?cr.checked:true;
+    await ecrire(CLES.p,P); tracer("Paramètres modifiés","seuils "+P.seuilCaisse+"/"+P.seuilJour+" · plafond "+P.plafond);
+    toast("Paramètres enregistrés."); return peindre();
+  }
+  if(a==="save-listes"){
+    const L=id=>v(id).split("\n").map(s=>s.trim()).filter(Boolean);
+    const c=L("r-caisses"), s=L("r-services"), vt=L("r-vtr").map(nb).filter(x=>x>0), vc=L("r-vcv").map(nb).filter(x=>x>0);
+    if(!c.length||!s.length||!vt.length||!vc.length) return toast("Chaque liste doit contenir au moins une valeur.",true);
+    P.caisses=c; P.services=s; P.valeursTR=vt.sort((a,b)=>a-b); P.valeursCV=vc.sort((a,b)=>a-b);
+    P.emetteursTR=L("r-emet"); P.equipiers=L("r-equipiers");
+    await ecrire(CLES.p,P); tracer("Listes modifiées",c.length+" caisses · "+vt.length+" valeurs TR");
+    toast("Listes enregistrées."); return peindre();
+  }
+  if(a==="export-json"){
+    telecharger("sauvegarde-caisse-"+isoAujourdhui()+".json",
+      JSON.stringify({version:4,exporteLe:maintenant(),exportePar:SESSION.nom,params:P,comptes:COMPTES,journal:J,remises:REMISES,messages:MESSAGES,audit:AUDIT},null,2),"application/json");
+    tracer("Export sauvegarde",Object.keys(J).length+" journées");
+    return toast("Sauvegarde exportée (sans les photos).");
+  }
+  if(a==="export-csv"){ telecharger("controle-caisse-"+isoAujourdhui()+".csv",construireCSV(),"text/csv"); return toast("CSV exporté."); }
+  if(a==="import-json"){ return document.getElementById("entree-restaure").click(); }
+  if(a==="tout-effacer"){
+    if(!confirm("Effacer TOUTES les données d'exploitation, photos comprises ?")) return;
+    if(prompt('Tapez EFFACER pour confirmer :')!=="EFFACER") return toast("Rien n'a été effacé.");
+    const ids=[];
+    Object.keys(J).forEach(k=>{ (J[k].justificatifs||[]).forEach(x=>ids.push(x.id)); J[k].comptages.forEach(c=>(c.justificatifs||[]).forEach(x=>ids.push(x.id))); });
+    REMISES.forEach(r=>(r.justificatifs||[]).forEach(x=>ids.push(x.id)));
+    for(const i of ids) await jeterDoc(i);
+    J={}; REMISES=[]; MESSAGES=[];
+    await ecrire(CLES.j,J); await ecrire(CLES.r,REMISES); await ecrire(CLES.m,MESSAGES);
+    tracer("Effacement total",ids.length+" pièces supprimées"); toast("Données effacées."); return aller("tableau");
+  }
+}
+
+/* ============================================================
+   20. EXPORT / IMPORT
+   ============================================================ */
+function telecharger(nom,contenu,type){
+  const b=new Blob([type.indexOf("csv")>-1?"\uFEFF"+contenu:contenu],{type:type+";charset=utf-8"});
+  const u=URL.createObjectURL(b), a=document.createElement("a");
+  a.href=u; a.download=nom; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(u); a.remove();},600);
+}
+function construireCSV(){
+  const s=";", num=x=>typeof x==="number"?String(x).replace(".",","):x, L=[];
+  L.push(["Date","Service","Caisse","Operateur","Controleur","Debut","Fin",
+    "TR nb titres","TR papier","TR demat","TR physique","TR ticket Z","Ecart TR","TR millesime anterieur",
+    "CV nb titres","CV papier","CV demat","CV physique","CV ticket Z","Ecart CV","CV millesime anterieur",
+    "CB releve","CB ticket Z","Ecart CB","Manquant","Excedent","Pieces jointes","Motif","Saisi par"].join(s));
+  Object.keys(J).sort().forEach(k=>J[k].comptages.forEach(c=>{
+    const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
+    L.push([courteDate(k),c.service,c.caisse,c.operateur,c.controleur,c.h1,c.h2,
+      t.nb,t.papier,t.demat,t.physique,t.z,t.ecart,t.anciens,
+      v.nb,v.papier,v.demat,v.physique,v.z,v.ecart,v.anciens,
+      nb(c.cb),nb(c.cbZ),e.cb,e.anormal,e.boni,(c.justificatifs||[]).length,
+      String(c.motif||"").replace(/[;\n\r]/g," "),c.saisiPar||""].map(num).join(s));
+  }));
+  L.push("");
+  L.push(["Date","Statut","Ouverture","Fermeture","Apport","Retrait","Bordereau","Especes reelles","Especes Z",
+    "Ecart especes","Manquant jour","Excedent jour","CA reel","CA theorique","Pieces validees","Pieces attendues","Cloture par"].join(s));
+  Object.keys(J).sort().forEach(k=>{
+    const d=J[k], b=bilan(k), cc=controleComplet(k);
+    L.push([courteDate(k),d.cloture?"Cloturee":(d.ouverture?"En cours":"—"),b.ouv,b.fer,b.app,b.ret,d.retrait.bordereau||"",
+      b.especesReelles,nb(d.especesZ),b.ecartEspeces,b.anormal,b.boni,b.caReel,b.caTheo,cc.ok,cc.total,
+      d.cloture?d.cloture.par:""].map(num).join(s));
+  });
+  L.push("");
+  L.push(["Remise - envoi","Type","Emetteur","Bordereau","Nb titres","Montant facial","Commission","Statut","Date remboursement","Montant recu","Ecart"].join(s));
+  REMISES.forEach(r=>{
+    const a=arrondi(nb(r.montant)-nb(r.commission));
+    L.push([courteDate(r.dateEnvoi),r.type,r.emetteur,r.bordereau,ent(r.nbTitres),nb(r.montant),nb(r.commission),
+      r.statut,r.dateRembours?courteDate(r.dateRembours):"",nb(r.montantRecu),
+      r.statut==="remboursee"?arrondi(nb(r.montantRecu)-a):""].map(num).join(s));
+  });
+  return L.join("\r\n");
+}
+document.getElementById("entree-restaure").addEventListener("change",e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=async()=>{
+    try{
+      const o=JSON.parse(fr.result);
+      if(!o.journal) throw new Error("format");
+      if(!confirm("Remplacer les données actuelles ?\nLes photos déjà stockées ne seront pas restaurées.")) return;
+      P=Object.assign(JSON.parse(JSON.stringify(PARAMS_DEFAUT)),o.params||{});
+      if(o.comptes&&o.comptes.length) COMPTES=o.comptes;
+      J=o.journal||{}; REMISES=o.remises||[]; MESSAGES=o.messages||[]; AUDIT=o.audit||[];
+      await ecrire(CLES.p,P); await ecrire(CLES.c,COMPTES); await ecrire(CLES.j,J);
+      await ecrire(CLES.r,REMISES); await ecrire(CLES.m,MESSAGES); await ecrire(CLES.a,AUDIT);
+      tracer("Sauvegarde restaurée",Object.keys(J).length+" journées");
+      toast("Sauvegarde restaurée."); peindre();
+    }catch(err){ toast("Fichier illisible : ce n'est pas une sauvegarde de cette application.",true); }
+  };
+  fr.readAsText(f);
+});
+
+/* ============================================================
+   21. DÉMARRAGE
+   ============================================================ */
+(async function demarrer(){
+  P=Object.assign(JSON.parse(JSON.stringify(PARAMS_DEFAUT)),await lire(CLES.p,{}));
+  if(!P.preuvesObligatoires) P.preuvesObligatoires=JSON.parse(JSON.stringify(PARAMS_DEFAUT.preuvesObligatoires));
+  COMPTES=await lire(CLES.c,[])||[];
+  J=await lire(CLES.j,{})||{}; AUDIT=await lire(CLES.a,[])||[];
+  REMISES=await lire(CLES.r,[])||[]; MESSAGES=await lire(CLES.m,[])||[];
+  peindre();
+})();
+</script>
