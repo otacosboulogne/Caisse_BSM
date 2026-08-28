@@ -311,10 +311,10 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .rail .marque,.rail .titre-grp,.rail .pied{display:none}
   .moi-mobile{display:flex}
   .rail nav button{min-width:70px}
-  .rail nav{display:flex;overflow-x:auto;padding:7px 8px;gap:5px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .rail nav{display:flex;overflow:hidden;padding:7px 8px;gap:5px;scrollbar-width:none}
   .rail nav button{scroll-snap-align:center}
   .rail nav::-webkit-scrollbar{display:none}
-  .rail nav button{flex:none;flex-direction:column;gap:3px;padding:7px 11px;font-size:10.5px;min-width:62px;text-align:center;position:relative}
+  .rail nav button{flex:1;flex-direction:column;gap:3px;padding:7px 11px;font-size:10.5px;min-width:0;text-align:center;position:relative}
   .rail nav .ic{font-size:17px;width:auto}
   .rail nav .pip{position:absolute;top:2px;right:5px;margin:0;font-size:9.5px;padding:0 5px}
   .topbar{height:auto;padding:9px 12px;gap:8px}
@@ -348,6 +348,29 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .preuve{width:calc(50% - 5px)}
   .depot{padding:16px 11px}
   .depot .btn{width:100%;justify-content:center}
+
+  /* Mobile iPhone + Android : navigation tactile, zones sûres et journal lisible */
+  .app{height:100vh;height:100dvh;min-height:-webkit-fill-available}
+  .zone{min-height:0}
+  .contenu{min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+  .topbar{padding-left:calc(12px + env(safe-area-inset-left));padding-right:calc(12px + env(safe-area-inset-right));padding-top:env(safe-area-inset-top)}
+  .rail{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+  .rail nav{width:100%}
+  .rail nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;line-height:1.15}
+  .carte>header{flex-wrap:wrap}
+  .carte>header .droite{width:100%;margin-left:0;flex-wrap:wrap}
+  .carte>header .droite .btn{flex:1 1 auto}
+  .periode{gap:6px}
+  .periode .btn{flex:1 1 calc(25% - 6px);padding-left:7px;padding-right:7px}
+  .periode .aide{width:100%;margin-left:0!important}
+  .grille-journal,.tableau-scroll{max-width:100%;overscroll-behavior-x:contain}
+  table.journal{min-width:max-content}
+}
+@media(max-width:380px){
+  .rail nav{padding-left:4px;padding-right:4px;gap:2px}
+  .rail nav button{padding-left:4px;padding-right:4px;font-size:9.5px}
+  .rail nav .ic{font-size:16px}
+  .topbar h1{font-size:14px}
 }
 @media(max-width:420px){
   .stats{grid-template-columns:1fr}
@@ -1162,6 +1185,7 @@ function surMobile(){ return !!(window.matchMedia&&window.matchMedia("(max-width
 const TITRES={tableau:"Tableau de bord", comptage:"Saisie caisse", fermeture:"Fermeture de journée",
   validation:"Contrôle des caisses", messages:"Messages", remises:"Remises aux émetteurs", stock:"Stock de titres",
   journal:"Journal", analyse:"Analyse", audit:"Traçabilité", utilisateurs:"Accès et équipe", reglages:"Paramètres"};
+const TITRES_MOBILE={tableau:"Inventaire", comptage:"Caisse", fermeture:"Fermeture", journal:"Journal"};
 
 function peindre(){
   const rac=document.getElementById("racine");
@@ -1180,8 +1204,9 @@ function peindre(){
     let pip="";
     if(o.id==="validation"&&nVal>0) pip='<span class="pip">'+nVal+'</span>';
     if(o.id==="messages"&&nMsg>0) pip='<span class="pip">'+nMsg+'</span>';
+    const libelleOnglet=mob?(TITRES_MOBILE[o.id]||o.t):o.t;
     return e+'<button data-vue="'+o.id+'"'+(vue===o.id?' aria-current="page"':'')+(bloque?" disabled":"")+'>'+
-      '<span class="ic">'+o.i+'</span>'+o.t+(bloque?'<span class="pip calme">🔒</span>':pip)+'</button>';
+      '<span class="ic">'+o.i+'</span>'+libelleOnglet+(bloque?'<span class="pip calme">🔒</span>':pip)+'</button>';
   }).join("");
 
   const plein = vue==="validation";
@@ -1199,7 +1224,7 @@ function peindre(){
     '<div class="pied"><div class="compte-mini"><div class="avatar">'+ech(initiales(SESSION.nom))+'</div>'+
     '<div class="id"><b>'+ech(SESSION.nom)+'</b><span>'+ech(SESSION.role)+'</span></div>'+
     '<button class="btn neutre mini" id="deco">Sortir</button></div></div></div>'+
-    '<div class="zone"><div class="topbar"><h1>'+ech(TITRES[vue]||"")+'</h1>'+
+    '<div class="zone"><div class="topbar"><h1>'+ech((mob?TITRES_MOBILE[vue]:null)||TITRES[vue]||"")+'</h1>'+
       '<span class="moi-mobile"><span class="avatar">'+ech(initiales(SESSION.nom))+'</span>'+
       '<button class="btn neutre mini" id="deco">Sortir</button></span>'+
       '<span class="sync '+(syncActif?(syncEtat==="ok"?"ok":"ko"):(persistanceOK?"off":"ko"))+'" title="'+ech(syncErreur||"")+'">'+
@@ -1256,7 +1281,28 @@ function pil(etat){
     refuse:'<span class="pil ko"><i></i>Refusé</span>', manquant:'<span class="pil neu"><i></i>Sans pièce</span>'}[etat];
 }
 
+function vueInventaireMobile(){
+  const d=journee(jour), veille=fermetureVeille(jour);
+  let h='<div class="carte"><header><h2>Inventaire du monnayeur</h2></header><div class="corps">';
+  if(d.ouverture){
+    h+='<div class="rangee" style="justify-content:space-between"><div><div class="eyebrow">Fond à l\'ouverture</div>'+
+      '<div class="mono" style="font-size:27px;font-weight:700;letter-spacing:-.02em">'+eur(d.ouverture.montant)+'</div>'+
+      '<p class="aide" style="margin-top:4px">Par '+ech(d.ouverture.par||"—")+' · '+heureCourte(d.ouverture.at)+'</p></div></div>'+
+      zoneDepot("inv-matin","Photo inventaire monnayeur — ouverture",d.justificatifs,true);
+  } else {
+    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Montant repris de la fermeture de la veille : '+eur(veille)+'</p>':"")+
+      '<div class="grille">'+
+      '<label class="champ"><span>Montant du monnayeur</span><input type="number" step="0.01" inputmode="decimal" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"'+(veille!==null?" readonly":"")+' placeholder="0,00"></label>'+
+      '<label class="champ"><span>Inventaire fait par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
+      '<button class="btn large" data-act="ouvrir">Enregistrer l\'inventaire</button>'+
+      '</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
 function vueTableau(){
+  if(surMobile()) return vueInventaireMobile();
   const d=journee(jour), b=bilan(jour), veille=fermetureVeille(jour), cc=controleComplet(jour);
   const mesMsg=messagesPour(SESSION.nom).filter(m=>!m.resolu);
   let h='';
@@ -1608,8 +1654,9 @@ function problemesComptage(c){
 }
 function zoneDepot(cible,libelle,liste,oblige){
   const docs=docsDe(liste,cible);
+  const texteBouton=surMobile()?"📷 Prendre une photo":"📷 Joindre une preuve";
   return '<div class="depot'+(oblige&&!docs.length?" manque":"")+'">'+
-    '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">📷 Joindre une preuve</button>'+
+    '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">'+texteBouton+'</button>'+
     '<p>'+ech(libelle)+' — photo ou PDF'+(oblige?' · <b style="color:var(--rouge)">obligatoire</b>':" · facultatif")+'</p>'+
     (docs.length?'<div class="preuves" style="justify-content:center">'+docs.map(dd=>vignette(dd,true)).join("")+'</div>':"")+'</div>';
 }
@@ -2234,7 +2281,13 @@ function surClic(e){
   if(j.piece!==undefined){ pieceActive=j.piece; return chargerVisu(true); }
   if(j.depot!==undefined){
     cibleDepot={cible:j.depot, libelle:j.lib};
-    return document.getElementById("entree-fichier").click();
+    const entree=document.getElementById("entree-fichier");
+    if(surMobile()){
+      entree.accept="image/*"; entree.setAttribute("capture","environment"); entree.multiple=false;
+    } else {
+      entree.accept="image/*,application/pdf"; entree.removeAttribute("capture"); entree.multiple=true;
+    }
+    return entree.click();
   }
   if(j.doc!==undefined) return visionner(j.doc);
   if(j.jeter!==undefined) return retirerPreuve(j.jeter);
