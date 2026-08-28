@@ -484,6 +484,22 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .mobile-status.ok{background:#ECFDF3;border-color:#ABEFC6;color:#067647}
   .mobile-status.att{background:#FFFAEB;border-color:#FEDF89;color:#93370D}
   .mobile-inline-error{font-size:12px;color:#B42318;background:#FEF3F2;border:1px solid #FECDCA;padding:9px 10px;border-radius:9px;margin-top:10px}
+  .mobile-ecarts{margin-top:14px;border:1px solid #EAECF0;border-radius:12px;background:#F9FAFB;overflow:hidden}
+  .mobile-ecarts-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid #EAECF0}
+  .mobile-ecarts-head b{font-size:12.5px;color:#344054}
+  .mobile-ecarts-head span{font-size:11px;font-weight:700;color:#067647;background:#ECFDF3;border-radius:999px;padding:4px 7px;white-space:nowrap}
+  .mobile-ecarts.has-gap .mobile-ecarts-head span{color:#93370D;background:#FFFAEB}
+  .mobile-ecarts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#EAECF0}
+  .mobile-ecarts-item{background:#fff;padding:9px 8px;text-align:center}
+  .mobile-ecarts-item span{display:block;font-size:10.5px;color:#98A2B3;margin-bottom:3px}
+  .mobile-ecarts-item b{font-size:13px;color:#344054;font-variant-numeric:tabular-nums}
+  .mobile-ecarts-item b.gap{color:#B54708}
+  .mobile-ecarts-total{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;font-size:11.5px;color:#667085}
+  .mobile-ecarts-total b{color:#344054;font-size:12.5px}
+  .mobile-commentaire{margin-top:11px}
+  .mobile-commentaire textarea{min-height:60px!important}
+  .mobile-commentaire small{display:block;color:#98A2B3;font-size:10.5px;line-height:1.35;margin-top:5px}
+  .mobile-commentaire.need small{color:#B54708;font-weight:600}
 
   /* Le shell desktop et la barre basse ne doivent jamais apparaître sur téléphone. */
   .app-mobile .rail,.app-mobile .topbar{display:none!important}
@@ -853,6 +869,50 @@ function eur(n){ return (Number(n)||0).toLocaleString("fr-FR",{minimumFractionDi
 function signe(n){ n=arrondi(n); return (n>0?"+":"")+n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function arrondi(n){ return Math.round((Number(n)||0)*100)/100; }
 function nb(v){ const x=parseFloat(String(v==null?"":v).replace(",",".")); return isNaN(x)?0:x; }
+
+/* Mobile FR : autorise réellement la virgule sur iPhone et Android.
+   Les inputs number peuvent bloquer la virgule selon Safari/Chrome et le clavier.
+   Sur mobile, les montants deviennent donc des champs texte à clavier décimal,
+   tout en restant convertis en nombre par nb() lors des calculs/enregistrements. */
+function activerVirguleMobile(){
+  if(!surMobile()) return;
+  /* Tous les champs de montant utilisent un champ texte + clavier décimal.
+     Cela évite le blocage de la virgule par Safari iPhone et certains claviers Android. */
+  const idsMontants=[
+    "ouv-montant","c-montantTR","c-trZ","c-montantCV","c-cvZ","c-cb","c-cbZ",
+    "f-montant","f-especesz","f-tpe1","f-tpe2","f-apport","f-retrait",
+    "f-cc","f-borne","f-uber","f-deliveroo","rm-montant","rm-comm"
+  ];
+  const selecteurs=[
+    '#vue input[inputmode="decimal"]',
+    '#vue input[type="number"][step="0.01"]',
+    '#vue input.eur'
+  ].concat(idsMontants.map(id=>'#'+id));
+  document.querySelectorAll(selecteurs.join(",")).forEach(el=>{
+    /* Les compteurs de titres restent des entiers. */
+    if(el.getAttribute("step")==="1" || el.getAttribute("inputmode")==="numeric") return;
+    if(el.dataset.virguleMobile==="1") return;
+    el.dataset.virguleMobile="1";
+    el.setAttribute("type","text");
+    el.setAttribute("inputmode","decimal");
+    el.setAttribute("autocomplete","off");
+    el.setAttribute("autocorrect","off");
+    el.setAttribute("spellcheck","false");
+    el.setAttribute("enterkeyhint","done");
+    if(el.value && el.value.indexOf(",")<0 && el.value.indexOf(".")>=0) el.value=el.value.replace(/\./g,",");
+    el.addEventListener("input",()=>{
+      const avant=el.value;
+      let s=avant.replace(/\s/g,"").replace(/\./g,",").replace(/[^0-9,\-]/g,"");
+      const neg=s.charAt(0)==="-";
+      s=s.replace(/-/g,"");
+      const p=s.split(",");
+      let entier=p.shift()||"";
+      const dec=p.join("").slice(0,2);
+      s=(neg?"-":"")+entier+(p.length?","+dec:"");
+      if(s!==avant) el.value=s;
+    });
+  });
+}
 function ent(v){ const x=parseInt(v,10); return isNaN(x)||x<0?0:x; }
 function ech(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -1419,6 +1479,7 @@ function peindreVue(){
   const av=bandeauPersistance();
   if(av&&vue!=="validation") m.insertAdjacentHTML("afterbegin",av);
   m.scrollTop=defil;
+  activerVirguleMobile();
   poserEcouteurs();
   if(vue==="validation") chargerVisu();
 }
@@ -1785,7 +1846,10 @@ function vueComptageMobile(){
   if(d.cloture) return '<div class="mobile-form"><div class="mobile-status att">Cette journée est déjà clôturée.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
   if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
   if(!brouillon) brouillon=neufComptage();
-  const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0;
+  const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0.004;
+  const classeEcart=motifNec?" has-gap":"";
+  const etatEcart=motifNec?"À justifier":"Aucun écart";
+  const classeValeur=n=>Math.abs(n)>0.004?"gap":"";
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
     '<div class="mobile-section-title">Service</div><div class="mobile-paire">'+
       '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label>'+ 
@@ -1794,18 +1858,31 @@ function vueComptageMobile(){
     '<label class="champ" style="margin-top:9px"><span>Tenue par</span>'+selNoms("c-op",c.operateur)+'</label>'+ 
 
     '<div class="mobile-divider"></div><div class="mobile-section-title">Titres-restaurant</div>'+ 
-    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbTR" value="'+ech(c.nbTR)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="number" step="0.01" inputmode="decimal" id="c-montantTR" value="'+ech(c.montantTR)+'" placeholder="0,00"></label></div>'+ 
-    '<label class="champ" style="margin-top:9px"><span>Montant TR au rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-trZ" value="'+ech(c.trZ)+'" placeholder="0,00"></label>'+ 
+    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbTR" value="'+ech(c.nbTR)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="text" inputmode="decimal" id="c-montantTR" value="'+ech(c.montantTR)+'" placeholder="0,00"></label></div>'+ 
+    '<label class="champ" style="margin-top:9px"><span>Montant TR au rapport Z</span><input type="text" inputmode="decimal" id="c-trZ" value="'+ech(c.trZ)+'" placeholder="0,00"></label>'+ 
 
     '<div class="mobile-divider"></div><div class="mobile-section-title">Chèques-vacances</div>'+ 
-    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbCV" value="'+ech(c.nbCV)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="number" step="0.01" inputmode="decimal" id="c-montantCV" value="'+ech(c.montantCV)+'" placeholder="0,00"></label></div>'+ 
-    '<label class="champ" style="margin-top:9px"><span>Montant CV au rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-cvZ" value="'+ech(c.cvZ)+'" placeholder="0,00"></label>'+ 
+    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbCV" value="'+ech(c.nbCV)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="text" inputmode="decimal" id="c-montantCV" value="'+ech(c.montantCV)+'" placeholder="0,00"></label></div>'+ 
+    '<label class="champ" style="margin-top:9px"><span>Montant CV au rapport Z</span><input type="text" inputmode="decimal" id="c-cvZ" value="'+ech(c.cvZ)+'" placeholder="0,00"></label>'+ 
 
     '<div class="mobile-divider"></div><div class="mobile-section-title">Carte bancaire</div><div class="mobile-paire">'+
-      '<label class="champ"><span>Encaissé</span><input type="number" step="0.01" inputmode="decimal" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+ 
-      '<label class="champ"><span>Rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label></div>'+ 
-    (motifNec?'<div class="mobile-divider"></div><label class="champ"><span>Justification de l’écart</span><textarea id="c-motif" placeholder="Expliquez l’écart">'+ech(c.motif)+'</textarea></label>':'<input type="hidden" id="c-motif" value="'+ech(c.motif)+'">')+
-    (pbs.length?'<div class="mobile-inline-error">'+ech(pbs[0])+'</div>':'')+
+      '<label class="champ"><span>Encaissé</span><input type="text" inputmode="decimal" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+ 
+      '<label class="champ"><span>Rapport Z</span><input type="text" inputmode="decimal" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label></div>'+ 
+
+    '<div class="mobile-ecarts'+classeEcart+'" id="mobile-ecarts">'+
+      '<div class="mobile-ecarts-head"><b>Suivi des écarts</b><span id="me-etat">'+etatEcart+'</span></div>'+ 
+      '<div class="mobile-ecarts-grid">'+
+        '<div class="mobile-ecarts-item"><span>TR</span><b id="me-tr" class="'+classeValeur(e.tr)+'">'+signe(e.tr)+' €</b></div>'+ 
+        '<div class="mobile-ecarts-item"><span>CV</span><b id="me-cv" class="'+classeValeur(e.cv)+'">'+signe(e.cv)+' €</b></div>'+ 
+        '<div class="mobile-ecarts-item"><span>Carte</span><b id="me-cb" class="'+classeValeur(e.cb)+'">'+signe(e.cb)+' €</b></div>'+ 
+      '</div>'+ 
+      '<div class="mobile-ecarts-total"><span>Total à justifier</span><b id="me-total">'+eur(e.abs)+'</b></div>'+ 
+    '</div>'+ 
+
+    '<label class="champ mobile-commentaire'+(motifNec?' need':'')+'" id="mobile-commentaire"><span id="c-motif-label">Commentaire'+(motifNec?' — obligatoire pour enregistrer':' — facultatif')+'</span>'+ 
+      '<textarea id="c-motif" placeholder="'+(motifNec?'Expliquez brièvement l’écart':'À renseigner seulement si nécessaire')+'">'+ech(c.motif)+'</textarea>'+ 
+      '<small id="c-motif-help">'+(motifNec?'Ajoutez une explication : l’écart sera enregistré avec ce commentaire.':'En cas d’écart, ce commentaire permettra d’enregistrer la caisse sans rester bloqué.')+'</small></label>'+ 
+    (pbs.length&&!(pbs.length===1&&motifNec&&!String(c.motif).trim())?'<div class="mobile-inline-error" id="mobile-erreur">'+ech(pbs[0])+'</div>':'<div class="mobile-inline-error" id="mobile-erreur" style="display:none"></div>')+
     '<div class="mobile-actions-sticky"><button class="btn" data-act="valider-comptage"'+(pbs.length?' disabled':'')+'>Enregistrer et terminer</button></div>'+ 
   '</div></div></div>';
 }
@@ -2645,9 +2722,32 @@ async function changerRole(i,val){
   toast(c.nom+" est désormais "+val+"."); peindre();
 }
 function majSaisie(){
+  const pbs=problemesComptage(brouillon);
   const b=document.querySelector('[data-act="valider-comptage"]');
-  if(b) b.disabled=problemesComptage(brouillon).length>0;
+  if(b) b.disabled=pbs.length>0;
   const t=detailTR(brouillon), v=detailCV(brouillon), e=ecartComptage(brouillon);
+
+  if(surMobile()){
+    const box=document.getElementById("mobile-ecarts"), et=document.getElementById("me-etat");
+    const tr=document.getElementById("me-tr"), cv=document.getElementById("me-cv"), cb=document.getElementById("me-cb"), total=document.getElementById("me-total");
+    const motif=document.getElementById("mobile-commentaire"), lab=document.getElementById("c-motif-label"), help=document.getElementById("c-motif-help"), err=document.getElementById("mobile-erreur");
+    const gap=e.abs>0.004;
+    if(box) box.classList.toggle("has-gap",gap);
+    if(et) et.textContent=gap?"À justifier":"Aucun écart";
+    const setE=(el,n)=>{ if(!el) return; el.textContent=signe(n)+" €"; el.className=Math.abs(n)>0.004?"gap":""; };
+    setE(tr,e.tr); setE(cv,e.cv); setE(cb,e.cb);
+    if(total) total.textContent=eur(e.abs);
+    if(motif) motif.classList.toggle("need",gap);
+    if(lab) lab.textContent="Commentaire"+(gap?" — obligatoire pour enregistrer":" — facultatif");
+    if(help) help.textContent=gap?"Ajoutez une explication : l’écart sera enregistré avec ce commentaire.":"En cas d’écart, ce commentaire permettra d’enregistrer la caisse sans rester bloqué.";
+    if(err){
+      const autre=pbs.find(x=>!/^Un écart de .* doit être justifié par écrit\.$/.test(x));
+      if(autre){ err.textContent=autre; err.style.display="block"; }
+      else { err.textContent=""; err.style.display="none"; }
+    }
+    return;
+  }
+
   const maj=(sel,val,cl)=>{
     const n=document.querySelectorAll(sel);
     n.forEach(x=>{ const q=x.querySelector(".v"); if(q) q.textContent=val;
@@ -2838,7 +2938,8 @@ async function agir(a,ds){
       brouillon.id=n; brouillon.at=maintenant(); brouillon.saisiPar=SESSION.nom;
       d.comptages.push(Object.assign({},brouillon));
       tracer("Comptage enregistré",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur+
-        " · TR "+detailTR(brouillon).nb+" tit. · CV "+detailCV(brouillon).nb+" tit. · manquant "+eur(e.anormal));
+        " · TR "+detailTR(brouillon).nb+" tit. · CV "+detailCV(brouillon).nb+" tit. · manquant "+eur(e.anormal)+
+        (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     } else {
       const i=d.comptages.findIndex(c=>c.id===brouillon.id);
       const anc=d.comptages[i];
@@ -2850,7 +2951,8 @@ async function agir(a,ds){
         pointsControle(jour).forEach(p=>{ if(d.controles[p.id]&&d.controles[p.id].etat==="refuse") delete d.controles[p.id]; });
       }
       d.comptages[i]=maj;
-      tracer("Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal));
+      tracer("Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
+        (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     }
     const ancienneCaisse=brouillon.caisse, ancienService=brouillon.service;
     brouillon=neufComptage();
