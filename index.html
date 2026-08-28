@@ -527,6 +527,12 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .mobile-recap.ecart .mobile-recap-net b{color:#B93815}
   .mobile-recap-note{padding:0 12px 11px;font-size:10.5px;color:#667085;line-height:1.4}
   .mobile-admin-note{margin:0 0 11px;padding:9px 10px;border:1px solid #B2DDFF;border-radius:10px;background:#EFF8FF;color:#175CD3;font-size:11px;font-weight:600}
+  .mobile-review-title{margin-bottom:12px}.mobile-review-title b{display:block;font-size:18px;color:#101828;letter-spacing:-.02em}.mobile-review-title span{display:block;margin-top:4px;font-size:11.5px;color:#667085;line-height:1.4}
+  .mobile-review-list{border:1px solid #EAECF0;border-radius:12px;overflow:hidden;background:#fff;margin-bottom:11px}
+  .mobile-review-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 11px;border-bottom:1px solid #F2F4F7}.mobile-review-row:last-child{border-bottom:0}
+  .mobile-review-row span{font-size:11.5px;color:#667085}.mobile-review-row b{font-size:13px;color:#101828;text-align:right;font-variant-numeric:tabular-nums}
+  .mobile-review-row b.warn{color:#B54708}.mobile-review-row b.ok{color:#067647}.mobile-review-note{padding:10px 11px;border-radius:10px;background:#FFFAEB;border:1px solid #FEDF89;color:#93370D;font-size:11.5px;line-height:1.4;margin-bottom:11px}
+  .mobile-delete-zone{margin-top:8px;text-align:center}.mobile-delete-zone .btn{background:transparent!important;border:0!important;box-shadow:none!important;color:#B42318!important;min-height:38px!important;font-size:12px!important}
 
   /* Le shell desktop et la barre basse ne doivent jamais apparaître sur téléphone. */
   .app-mobile .rail,.app-mobile .topbar{display:none!important}
@@ -563,6 +569,21 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .mj-detail-grid{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:0;margin-top:8px;border:1px solid var(--bord);border-radius:10px;overflow:hidden;font-size:10.5px}.mj-detail-grid>*{padding:7px 6px;border-bottom:1px solid var(--bord);background:var(--surface)}.mj-detail-grid>*:nth-last-child(-n+4){border-bottom:0}.mj-detail-grid .h{background:var(--canvas);font-weight:700;color:var(--t2)}.mj-detail-grid .n{text-align:right}.mj-detail-grid .neg{color:var(--rouge);font-weight:700}.mj-detail-grid .pos{color:var(--bleu);font-weight:700}
   .mj-note{margin-top:8px;background:#FFF9EC;border:1px solid #F4D995;border-radius:9px;padding:8px 9px;font-size:11.5px;color:#775B12}
   .mj-close-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px 14px}.mj-close-grid div{background:var(--canvas);border:1px solid var(--bord);border-radius:10px;padding:9px}.mj-close-grid span{display:block;color:var(--t2);font-size:10.5px;margin-bottom:3px}.mj-close-grid b{font-size:13.5px}
+}
+
+/* V8 — détail nominatif intégré au tableau Journal mobile */
+@media(max-width:900px){
+  table.journal tr.jc-row td{background:#fff}
+  table.journal tr.jc-row:hover td{background:var(--prim-tint)}
+  table.journal .jc-label{padding-left:14px!important;min-width:155px!important}
+  table.journal .jc-label b{display:block;font-size:11px;color:var(--t1);font-weight:700}
+  table.journal .jc-label small{display:block;font-size:8.5px;color:var(--t3);font-weight:500;margin-top:1px}
+  table.journal .jc-cell{min-width:92px;line-height:1.15;padding-top:6px!important;padding-bottom:6px!important}
+  table.journal .jc-cell>b{display:block;font-size:10.5px;color:var(--t1);font-weight:700}
+  table.journal .jc-cell small{display:block;font-size:8.5px;color:var(--t3);margin-top:2px}
+  table.journal .jc-cell .neg{color:var(--rouge);font-weight:700}
+  table.journal .jc-cell .pos{color:var(--bleu);font-weight:700}
+  table.journal .jc-cell .zero{color:var(--vert);font-weight:700}
 }
 </style>
 
@@ -897,7 +918,7 @@ let P=JSON.parse(JSON.stringify(PARAMS_DEFAUT));
 let COMPTES=[], J={}, AUDIT=[], REMISES=[], MESSAGES=[];
 let SESSION=null, dernierGeste=Date.now();
 let vue="tableau", jour=isoAujourdhui();
-let brouillon=null, brouillonFerm=null, brouillonRemise=null;
+let brouillon=null, brouillonFerm=null, brouillonRemise=null, brouillonOuv=null;
 let cibleDepot=null, modale=null;
 let ecranAuth="connexion", authErr="", authOk="", authPre={}, modeLocalAccepte=false;
 let filtreValid="saisi", indexValid=0, zoomValid=1, rotValid=0, pieceActive="";
@@ -1433,6 +1454,7 @@ const TITRES={tableau:"Tableau de bord", comptage:"Saisie caisse", fermeture:"Fe
   journal:"Journal", analyse:"Analyse", audit:"Traçabilité", utilisateurs:"Accès et équipe", reglages:"Paramètres"};
 const TITRES_MOBILE={tableau:"Menu", comptage:"Caisse", fermeture:"Fermeture", journal:"Journal"};
 let mobileAccueil=true;
+let mobileRevueInventaire=false, mobileRevueComptage=false, mobileRevueFermeture=false;
 function titreMobileActuel(){
   if(vue==="tableau") return mobileAccueil?"Menu":"Inventaire";
   return TITRES_MOBILE[vue]||TITRES[vue]||"";
@@ -1551,7 +1573,8 @@ function aller(v){
   vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true});
 }
 function retourAccueilMobile(message){
-  mobileAccueil=true; vue="tableau"; brouillon=null; brouillonFerm=null; signatureCoque="";
+  mobileAccueil=true; vue="tableau"; brouillon=null; brouillonFerm=null; brouillonOuv=null;
+  mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false; signatureCoque="";
   peindre();
   try{ window.scrollTo({top:0,left:0,behavior:"auto"}); }catch(e){ window.scrollTo(0,0); }
   requestAnimationFrame(()=>{ if(message) toast(message); });
@@ -1597,21 +1620,57 @@ function zoneDepotMobile(cible,libelle,liste,oblige){
   return '<div class="mobile-piece '+(ok?'ok':'')+'"><div><b>'+ech(libelle)+'</b><span>'+(ok?'Photo ajoutée ✓':(oblige?'Photo obligatoire':'Photo facultative'))+'</span></div>'+
     '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">📷 '+(ok?'Ajouter':'Photo')+'</button></div>';
 }
-function vueInventaireMobile(){
-  const d=journee(jour), veille=fermetureVeille(jour), docs=docsDe(d.justificatifs,"inv-matin");
-  let h='<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">';
-  if(d.ouverture){
-    h+='<div class="mobile-status ok">Inventaire enregistré · '+eur(d.ouverture.montant)+' · '+ech(d.ouverture.par||"—")+'</div>'+zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
-      '<div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Terminer</button></div>';
-  } else {
-    h+=(veille!==null?'<div class="mobile-status">Montant repris automatiquement de la fermeture précédente : <b>'+eur(veille)+'</b></div>':"")+
-      '<label class="champ"><span>Montant du monnayeur</span><input type="number" step="0.01" inputmode="decimal" id="ouv-montant" value="'+(veille===null?"":veille)+'"'+(veille!==null?' readonly':'')+' placeholder="0,00"></label>'+ 
-      '<label class="champ" style="margin-top:10px"><span>Inventaire fait par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+ 
-      zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
-      '<div class="mobile-actions-sticky"><button class="btn" data-act="ouvrir">Enregistrer et terminer</button></div>';
+function memoriserFormulaireAvantDepot(){
+  if(!surMobile()) return;
+  const lit=id=>{ const el=document.getElementById(id); return el?el.value:null; };
+  if(vue==="tableau"&&!mobileAccueil){
+    if(!brouillonOuv) brouillonOuv={montant:"",par:SESSION?SESSION.nom:""};
+    const m=lit("ouv-montant"), par=lit("ouv-par");
+    if(m!==null) brouillonOuv.montant=m;
+    if(par!==null) brouillonOuv.par=par;
   }
-  h+='</div></div></div>';
-  return h;
+  if(vue==="comptage"&&brouillon){
+    Object.keys(CHAMPS_C).forEach(id=>{ const x=lit(id); if(x!==null) brouillon[CHAMPS_C[id]]=x; });
+  }
+  if(vue==="fermeture"&&brouillonFerm){
+    Object.keys(CHAMPS_F).forEach(id=>{ const x=lit(id); if(x!==null) brouillonFerm[CHAMPS_F[id]]=x; });
+    Object.keys(CHAMPS_R).forEach(id=>{ const x=lit(id); if(x!==null) brouillonFerm.retrait[CHAMPS_R[id]]=x; });
+    ["cc","borne","uber","deliveroo"].forEach(k=>{ const x=lit("f-"+k); if(x!==null) brouillonFerm.canaux[k]=x; });
+  }
+}
+function ligneRevueMobile(lib,val,cl){ return '<div class="mobile-review-row"><span>'+lib+'</span><b'+(cl?' class="'+cl+'"':'')+'>'+val+'</b></div>'; }
+function statutPhotoMobile(d,cible){ return docsDe(d.justificatifs,cible).length?'<span style="color:#067647">Photo OK ✓</span>':'<span style="color:#B54708">Photo manquante</span>'; }
+
+function vueInventaireMobile(){
+  const d=journee(jour), veille=fermetureVeille(jour);
+  if(d.ouverture){
+    return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+      '<div class="mobile-status ok">Inventaire enregistré · '+eur(d.ouverture.montant)+' · '+ech(d.ouverture.par||"—")+'</div>'+
+      zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
+      '<div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Terminer</button></div>'+
+    '</div></div></div>';
+  }
+  if(!brouillonOuv) brouillonOuv={montant:veille===null?"":String(veille),par:SESSION.nom};
+  const o=brouillonOuv, photoOK=docsDe(d.justificatifs,"inv-matin").length>0;
+  if(mobileRevueInventaire){
+    return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+      '<div class="mobile-review-title"><b>Vérifiez avant d’enregistrer</b><span>Rien n’est encore validé. Revenez en arrière si une information est incorrecte.</span></div>'+
+      '<div class="mobile-review-list">'+
+        ligneRevueMobile('Montant du monnayeur',eur(nb(o.montant)))+
+        ligneRevueMobile('Inventaire fait par',ech(o.par||'—'))+
+        ligneRevueMobile('Justificatif',photoOK?'Photo ajoutée ✓':'Photo manquante',photoOK?'ok':'warn')+
+      '</div>'+
+      (!photoOK?'<div class="mobile-review-note">Ajoutez la photo du monnayeur avant de confirmer l’inventaire.</div>':'')+
+      '<div class="mobile-actions-sticky"><button class="btn" data-act="confirmer-inventaire"'+(photoOK?'':' disabled')+'>Confirmer et enregistrer</button><button class="btn neutre" data-act="modifier-inventaire">Modifier la saisie</button></div>'+
+    '</div></div></div>';
+  }
+  return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+    (veille!==null?'<div class="mobile-status">Montant repris automatiquement de la fermeture précédente : <b>'+eur(veille)+'</b></div>':"")+
+    '<label class="champ"><span>Montant du monnayeur</span><input type="text" inputmode="decimal" id="ouv-montant" value="'+ech(o.montant)+'"'+(veille!==null?' readonly':'')+' placeholder="0,00"></label>'+
+    '<label class="champ" style="margin-top:10px"><span>Inventaire fait par</span>'+selNoms("ouv-par",o.par)+'</label>'+
+    zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
+    '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-inventaire">Vérifier ma saisie</button><button class="btn neutre" data-vue="tableau">Annuler</button></div>'+
+  '</div></div></div>';
 }
 function vueTableau(){
   if(surMobile()) return mobileAccueil?vueAccueilMobile():vueInventaireMobile();
@@ -1923,6 +1982,27 @@ function vueComptageMobile(){
     return '<div class="mobile-form"><div class="mobile-status att">Cette caisse a été validée. Seul un administrateur peut maintenant la modifier.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
 
   const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0.004;
+  const t=detailTR(c), cvd=detailCV(c), enc=arrondi(t.physique+cvd.physique+nb(c.cb)), ztot=arrondi(t.z+cvd.z+nb(c.cbZ));
+  if(mobileRevueComptage){
+    const peutSupprimer=!!existant&&(estAdmin()||etapeComptage(existant)!=="valide");
+    return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+      '<div class="mobile-review-title"><b>Vérifiez la caisse</b><span>Contrôlez les montants avant l’enregistrement. Vous pourrez encore modifier la caisse tant qu’elle n’est pas validée.</span></div>'+
+      '<div class="mobile-review-list">'+
+        ligneRevueMobile('Caisse / service',ech(c.caisse)+' · '+ech(c.service))+
+        ligneRevueMobile('Caissier',ech(c.operateur||'—'))+
+        ligneRevueMobile('Horaires',ech(c.h1||'—')+' → '+ech(c.h2||'—'))+
+        ligneRevueMobile('Titres-restaurant',eur(t.physique)+' / Z '+eur(t.z)+(Math.abs(e.tr)>0.004?' · '+signe(e.tr)+' €':''),Math.abs(e.tr)>0.004?'warn':'')+
+        ligneRevueMobile('Chèques-vacances',eur(cvd.physique)+' / Z '+eur(cvd.z)+(Math.abs(e.cv)>0.004?' · '+signe(e.cv)+' €':''),Math.abs(e.cv)>0.004?'warn':'')+
+        ligneRevueMobile('Carte bancaire',eur(nb(c.cb))+' / Z '+eur(nb(c.cbZ))+(Math.abs(e.cb)>0.004?' · '+signe(e.cb)+' €':''),Math.abs(e.cb)>0.004?'warn':'')+
+        ligneRevueMobile('Encaissement total',eur(enc))+
+        ligneRevueMobile('Total ticket Z',eur(ztot))+
+        ligneRevueMobile('Écart net',signe(e.net)+' €',Math.abs(e.net)>0.004?'warn':'ok')+
+      '</div>'+
+      (String(c.motif||'').trim()?'<div class="mobile-status"><b>Commentaire :</b> '+ech(String(c.motif).trim())+'</div>':'')+
+      '<div class="mobile-actions-sticky"><button class="btn" data-act="valider-comptage">'+(existant?'Confirmer la modification':'Confirmer et enregistrer')+'</button><button class="btn neutre" data-act="modifier-comptage-mobile">Modifier la saisie</button>'+
+      (peutSupprimer?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
+      '</div></div></div></div>';
+  }
   const classeEcart=motifNec?" has-gap":"";
   const etatEcart=motifNec?"À justifier":"Aucun écart";
   const classeValeur=n=>Math.abs(n)>0.004?"gap":"";
@@ -1961,7 +2041,9 @@ function vueComptageMobile(){
       '<textarea id="c-motif" placeholder="'+(motifNec?'Expliquez brièvement l’écart':'À renseigner seulement si nécessaire')+'">'+ech(c.motif)+'</textarea>'+ 
       '<small id="c-motif-help">'+(motifNec?'Ajoutez une explication : l’écart sera enregistré avec ce commentaire.':'En cas d’écart, ce commentaire permettra d’enregistrer la caisse sans rester bloqué.')+'</small></label>'+ 
     (pbs.length&&!(pbs.length===1&&motifNec&&!String(c.motif).trim())?'<div class="mobile-inline-error" id="mobile-erreur">'+ech(pbs[0])+'</div>':'<div class="mobile-inline-error" id="mobile-erreur" style="display:none"></div>')+
-    '<div class="mobile-actions-sticky"><button class="btn" data-act="valider-comptage"'+(pbs.length?' disabled':'')+'>'+(existant?'Enregistrer la modification':'Enregistrer et terminer')+'</button><button class="btn neutre" data-vue="tableau">Annuler</button></div>'+ 
+    '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-comptage"'+(pbs.length?' disabled':'')+'>'+(existant?'Vérifier les modifications':'Vérifier ma saisie')+'</button><button class="btn neutre" data-vue="tableau">Annuler</button>'+
+      (existant&&(estAdmin()||etapeComptage(existant)!=="valide")?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
+    '</div>'+ 
   '</div></div></div>';
 }
 function vueComptage(){
@@ -2108,37 +2190,62 @@ function vueFermetureMobile(){
   const attenteControle=pbs.filter(x=>/validation|validée|validé|caisse\(s\)|pièce\(s\)/i.test(x));
   const rap=rapprochementFermeture(f), ecartJour=rap.pretEspeces&&rap.abs>0.004;
   const peutClore=!d.cloture&&d.fermeture&&pbs.length===0&&peut("cloturer");
+  const photosCibles=["inv-soir","z-global","tpe1"].concat(P.deuxTPE?["tpe2"]:[]);
+  const nbPhotos=photosCibles.filter(k=>docsDe(d.justificatifs,k).length).length;
+
+  if(mobileRevueFermeture){
+    return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+      '<div class="mobile-review-title"><b>Vérifiez la fermeture</b><span>Contrôlez une dernière fois les montants avant de les enregistrer.</span></div>'+
+      '<div class="mobile-review-list">'+
+        ligneRevueMobile('Monnayeur fermeture',eur(nb(f.montant)))+
+        ligneRevueMobile('Espèces ticket Z',eur(nb(f.especesZ)))+
+        ligneRevueMobile('TPE 1',eur(nb(f.tpe1)))+
+        (P.deuxTPE?ligneRevueMobile('TPE 2',eur(nb(f.tpe2))):'')+
+        ligneRevueMobile('Click & Collect',eur(nb(f.canaux.cc)))+
+        ligneRevueMobile('Borne',eur(nb(f.canaux.borne)))+
+        ligneRevueMobile('Uber Eats',eur(nb(f.canaux.uber)))+
+        ligneRevueMobile('Deliveroo',eur(nb(f.canaux.deliveroo)))+
+        ligneRevueMobile('Photos',nbPhotos+' / '+photosCibles.length+(nbPhotos===photosCibles.length?' ✓':''),nbPhotos===photosCibles.length?'ok':'warn')+
+        ligneRevueMobile('Fermeture faite par',ech(f.par||'—'))+
+      '</div>'+
+      blocRapprochementMobile(f)+
+      (String(f.motif||'').trim()?'<div class="mobile-status"><b>Commentaire :</b> '+ech(String(f.motif).trim())+'</div>':'')+
+      (peut("remises")&&(nb(f.apport)||nb(f.retrait.montant))?'<div class="mobile-status"><b>Mouvement de fonds :</b> apport '+eur(nb(f.apport))+' · retrait '+eur(nb(f.retrait.montant))+'</div>':'')+
+      '<div class="mobile-actions-sticky"><button class="btn" data-act="enregistrer-fermeture">'+(d.cloture&&estAdmin()?'Confirmer la correction':(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer'))+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier la saisie</button></div>'+
+    '</div></div></div>';
+  }
+
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
     (d.cloture&&estAdmin()?'<div class="mobile-admin-note">Journée clôturée : vous êtes en mode correction administrateur. Toute modification est tracée.</div>':'')+
     (d.fermeture&&!d.cloture?'<div class="mobile-status ok">Fermeture déjà enregistrée. Vous pouvez encore la modifier tant que la journée n’est pas clôturée.</div>':'')+
-    '<div class="mobile-section-title">Monnayeur</div>'+ 
-    '<label class="champ"><span>Total à la fermeture</span><input type="text" inputmode="decimal" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00"></label>'+ 
+    '<div class="mobile-section-title">Monnayeur</div>'+
+    '<label class="champ"><span>Total à la fermeture</span><input type="text" inputmode="decimal" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00"></label>'+
     zoneDepotMobile("inv-soir","Photo du monnayeur",d.justificatifs,true)+
 
-    '<div class="mobile-divider"></div><div class="mobile-section-title">Ticket Z</div>'+ 
-    '<label class="champ"><span>Espèces au ticket Z</span><input type="text" inputmode="decimal" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+ 
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Ticket Z</div>'+
+    '<label class="champ"><span>Espèces au ticket Z</span><input type="text" inputmode="decimal" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+
     zoneDepotMobile("z-global","Photo du ticket Z",d.justificatifs,true)+
 
-    '<div class="mobile-divider"></div><div class="mobile-section-title">TPE</div>'+ 
-    '<label class="champ"><span>TPE 1</span><input type="text" inputmode="decimal" id="f-tpe1" value="'+ech(f.tpe1)+'" placeholder="0,00"></label>'+ 
+    '<div class="mobile-divider"></div><div class="mobile-section-title">TPE</div>'+
+    '<label class="champ"><span>TPE 1</span><input type="text" inputmode="decimal" id="f-tpe1" value="'+ech(f.tpe1)+'" placeholder="0,00"></label>'+
     zoneDepotMobile("tpe1","Photo télécollecte TPE 1",d.justificatifs,true)+
     (P.deuxTPE?'<label class="champ" style="margin-top:10px"><span>TPE 2</span><input type="text" inputmode="decimal" id="f-tpe2" value="'+ech(f.tpe2)+'" placeholder="0,00"></label>'+zoneDepotMobile("tpe2","Photo télécollecte TPE 2",d.justificatifs,true):'')+
 
-    blocRapprochementMobile(f)+
-    '<label class="champ mobile-commentaire'+(ecartJour?' need':'')+'"><span id="f-motif-label">Commentaire de fermeture'+(ecartJour?' — obligatoire':' — facultatif')+'</span><textarea id="f-motif" placeholder="'+(ecartJour?'Ex. écart TR compensé par +10 € en espèces':'Observation facultative')+'">'+ech(f.motif||'')+'</textarea><small id="f-motif-help">'+(ecartJour?'Expliquez l’écart ou la compensation observée entre les moyens de paiement.':'Aucun commentaire n’est nécessaire si la journée est équilibrée.')+'</small></label>'+ 
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Canaux de vente</div>'+
+    '<div class="mobile-paire"><label class="champ"><span>Click & Collect</span><input type="text" inputmode="decimal" id="f-cc" value="'+ech(f.canaux.cc)+'" placeholder="0,00"></label><label class="champ"><span>Borne</span><input type="text" inputmode="decimal" id="f-borne" value="'+ech(f.canaux.borne)+'" placeholder="0,00"></label></div>'+
+    '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Uber Eats</span><input type="text" inputmode="decimal" id="f-uber" value="'+ech(f.canaux.uber)+'" placeholder="0,00"></label><label class="champ"><span>Deliveroo</span><input type="text" inputmode="decimal" id="f-deliveroo" value="'+ech(f.canaux.deliveroo)+'" placeholder="0,00"></label></div>'+
 
-    '<details><summary>Autres montants</summary><div class="corps">'+
-      (peut("remises")?'<div class="mobile-paire"><label class="champ"><span>Apport</span><input type="text" inputmode="decimal" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label><label class="champ"><span>Retrait</span><input type="text" inputmode="decimal" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label></div><label class="champ" style="margin-top:9px"><span>N° bordereau</span><input type="text" id="f-bord" value="'+ech(f.retrait.bordereau)+'"></label><label class="champ" style="margin-top:9px"><span>Retrait fait par</span>'+selNoms("f-par",f.retrait.par,true)+'</label>':'')+
-      '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Click & Collect</span><input type="text" inputmode="decimal" id="f-cc" value="'+ech(f.canaux.cc)+'" placeholder="0,00"></label><label class="champ"><span>Borne</span><input type="text" inputmode="decimal" id="f-borne" value="'+ech(f.canaux.borne)+'" placeholder="0,00"></label></div>'+ 
-      '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Uber Eats</span><input type="text" inputmode="decimal" id="f-uber" value="'+ech(f.canaux.uber)+'" placeholder="0,00"></label><label class="champ"><span>Deliveroo</span><input type="text" inputmode="decimal" id="f-deliveroo" value="'+ech(f.canaux.deliveroo)+'" placeholder="0,00"></label></div>'+ 
-    '</div></details>'+ 
-    '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+ 
+    blocRapprochementMobile(f)+
+    '<label class="champ mobile-commentaire'+(ecartJour?' need':'')+'"><span id="f-motif-label">Commentaire de fermeture'+(ecartJour?' — obligatoire':' — facultatif')+'</span><textarea id="f-motif" placeholder="'+(ecartJour?'Ex. écart TR compensé par +10 € en espèces':'Observation facultative')+'">'+ech(f.motif||'')+'</textarea><small id="f-motif-help">'+(ecartJour?'Expliquez l’écart ou la compensation observée entre les moyens de paiement.':'Aucun commentaire n’est nécessaire si la journée est équilibrée.')+'</small></label>'+
+
+    (peut("remises")?'<details><summary>Apport / retrait de fonds</summary><div class="corps"><div class="mobile-paire"><label class="champ"><span>Apport</span><input type="text" inputmode="decimal" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label><label class="champ"><span>Retrait</span><input type="text" inputmode="decimal" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label></div><label class="champ" style="margin-top:9px"><span>N° bordereau</span><input type="text" id="f-bord" value="'+ech(f.retrait.bordereau)+'"></label><label class="champ" style="margin-top:9px"><span>Retrait fait par</span>'+selNoms("f-par",f.retrait.par,true)+'</label></div></details>':'')+
+    '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+
     (d.fermeture&&attenteControle.length&&!d.cloture?'<div class="mobile-status att" style="margin-top:11px">Fermeture enregistrée. Le contrôle final reste à faire sur ordinateur.</div>':'')+
     '<div class="mobile-actions-sticky">'+
-      '<button class="btn" data-act="enregistrer-fermeture">'+(d.cloture&&estAdmin()?'Enregistrer la correction':(d.fermeture?'Mettre à jour et terminer':'Enregistrer et terminer'))+'</button>'+ 
+      '<button class="btn" data-act="verifier-fermeture">'+(d.cloture&&estAdmin()?'Vérifier la correction':(d.fermeture?'Vérifier la mise à jour':'Vérifier ma saisie'))+'</button>'+
       (peutClore?'<button class="btn vert" data-act="cloturer">Clôturer la journée</button>':'')+
-      '<button class="btn neutre" data-vue="tableau">Retour au menu</button>'+ 
-    '</div>'+ 
+      '<button class="btn neutre" data-vue="tableau">Retour au menu</button>'+
+    '</div>'+
   '</div></div></div>';
 }
 function vueFermeture(){
@@ -2407,46 +2514,147 @@ function colonnesJournal(){
 }
 function vueJournalMobile(){
   if(!peut("journal")) return '<div class="interdit"><div class="cad">🔒</div><b>Journal non autorisé</b><p class="aide">L’administrateur doit vous accorder le droit « Journal des journées ».</p></div>';
-  const d=journee(jour), b=bilan(jour), cc=controleComplet(jour), cs=d.comptages||[];
-  const ecJour=arrondi(b.ecartNet);
-  const classeJour=Math.abs(ecJour)<0.004?"ok":(ecJour<0?"ko":"prim");
-  const statut=d.cloture?"Clôturée":(d.fermeture?"Fermeture enregistrée":"En cours");
-  const init=n=>String(n||"?").trim().charAt(0).toUpperCase();
-  const ecl=n=>Math.abs(n)<0.004?"zero":(n<0?"gap":"plus");
-  const detailLigne=(lib,reel,z)=>{
-    const e=arrondi(reel-z), cl=e<-.004?"neg":(e>.004?"pos":"");
-    return '<div>'+ech(lib)+'</div><div class="n">'+eur(reel)+'</div><div class="n">'+eur(z)+'</div><div class="n '+cl+'">'+signe(e)+' €</div>';
+  const cols=colonnesJournal();
+  const actifs=[]; cols.forEach(c=>c.jours.forEach(k=>actifs.push(k)));
+  const caisses=P.caisses;
+  const somme=(col,fn)=>{ let t=0; col.jours.forEach(k=>t+=fn(k)); return arrondi(t); };
+
+  const enTete='<tr><th class="fige">Rubrique</th>'+cols.map(c=>
+    '<th class="n'+(c.vide?" pale":"")+'">'+c.t+'<div class="jsem">'+c.s+'</div>'+ 
+    (c.jours.length===1&&journee(c.jours[0]).cloture?'<div style="color:var(--vert);font-size:9px">✓</div>':"")+'</th>').join("")+
+    '<th class="n">Total</th></tr>';
+
+  const ligne=(nom,fn,cl,total)=>{
+    let som=0;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return '<td class="n pale">—</td>';
+      const v=somme(c,fn); som+=v;
+      return '<td class="n">'+(v?eur(v):"—")+'</td>';
+    }).join("");
+    return '<tr class="'+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
+      '<td class="n" style="font-weight:700">'+(total===false?"":eur(som))+'</td></tr>';
   };
-  const caissiers=cs.map(c=>{
-    const e=ecartComptage(c), reel=arrondi(nb(c.montantTR)+nb(c.montantCV)+nb(c.cb)), theo=arrondi(nb(c.trZ)+nb(c.cvZ)+nb(c.cbZ));
-    const net=arrondi(reel-theo), et=etapeComptage(c), etLib=(ETAPES[et]&&ETAPES[et].l)||et;
-    const horaire=(c.h1&&c.h2)?(c.h1+' → '+c.h2):'Horaires non renseignés';
-    return '<article class="mj-cashier">'+
-      '<div class="mj-cashier-top"><span class="mj-avatar">'+ech(init(c.operateur))+'</span><div class="mj-cashier-id"><b>'+ech(c.operateur||"Sans nom")+'</b><span>'+ech(c.caisse||"Caisse")+' · '+ech(c.service||"Service")+' · '+ech(horaire)+'</span></div><span class="mj-state">'+ech(etLib)+'</span></div>'+
-      '<div class="mj-money"><div><span>Encaissé</span><b>'+eur(reel)+'</b></div><div><span>Ticket Z</span><b>'+eur(theo)+'</b></div><div class="'+ecl(net)+'"><span>Écart</span><b>'+signe(net)+' €</b></div></div>'+
-      '<details class="mj-detail"><summary>Voir le détail TR · CV · Carte</summary><div class="mj-detail-grid">'+
-        '<div class="h">Mode</div><div class="h n">Compté</div><div class="h n">Ticket Z</div><div class="h n">Écart</div>'+ 
-        detailLigne('TR',nb(c.montantTR),nb(c.trZ))+detailLigne('CV',nb(c.montantCV),nb(c.cvZ))+detailLigne('Carte',nb(c.cb),nb(c.cbZ))+
-      '</div></details>'+(String(c.motif||'').trim()?'<div class="mj-note"><b>Commentaire :</b> '+ech(c.motif)+'</div>':'')+
-    '</article>';
-  }).join('');
-  const fermeture=d.fermeture?'<div class="mj-close-grid">'+
-      '<div><span>Monnayeur fermeture</span><b>'+eur(d.fermeture.montant)+'</b></div>'+ 
-      '<div><span>Espèces réelles</span><b>'+eur(b.especesReelles)+'</b></div>'+ 
-      '<div><span>Espèces ticket Z</span><b>'+eur(nb(d.especesZ))+'</b></div>'+ 
-      '<div><span>Écart espèces</span><b style="color:'+(Math.abs(b.ecartEspeces)<.004?'var(--vert)':(b.ecartEspeces<0?'var(--rouge)':'var(--bleu)'))+'">'+signe(b.ecartEspeces)+' €</b></div>'+ 
-      '<div><span>Télécollecte TPE</span><b>'+eur(b.tpe)+'</b></div>'+ 
-      '<div><span>Écart TPE / cartes</span><b style="color:'+(Math.abs(b.ecartTPE)<.004?'var(--vert)':(b.ecartTPE<0?'var(--rouge)':'var(--bleu)'))+'">'+signe(b.ecartTPE)+' €</b></div>'+ 
-    '</div>':'<div class="mj-empty">Fermeture non encore enregistrée.</div>';
-  return '<div class="mj-wrap">'+
-    '<div class="mj-summary"><div class="mj-kpi prim"><span>CA réel</span><b>'+eur(b.caReel)+'</b></div><div class="mj-kpi"><span>CA théorique</span><b>'+eur(b.caTheo)+'</b></div><div class="mj-kpi '+classeJour+'"><span>Écart net journée</span><b>'+signe(ecJour)+' €</b></div><div class="mj-kpi"><span>État</span><b style="font-size:14px">'+ech(statut)+'</b></div></div>'+ 
-    '<section class="mj-section"><div class="mj-section-head"><b>Caissiers</b><span>'+cs.length+' saisie'+(cs.length>1?'s':'')+'</span></div>'+(cs.length?caissiers:'<div class="mj-empty">Aucune caisse saisie pour cette journée.</div>')+'</section>'+ 
-    '<section class="mj-section"><div class="mj-section-head"><b>Fermeture</b><span>Photos '+cc.ok+'/'+cc.total+'</span></div>'+fermeture+'</section>'+ 
+  const ligneEcart=(nom,fn,cl)=>{
+    let som=0;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return '<td class="n pale">—</td>';
+      const e=somme(c,fn); som+=e;
+      if(Math.abs(e)<0.004) return '<td class="n" style="color:var(--t3)">—</td>';
+      return '<td class="n" style="font-weight:700;color:'+(e<0?"var(--rouge)":"var(--bleu)")+'">'+signe(e)+'</td>';
+    }).join("");
+    return '<tr class="ecart '+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
+      '<td class="n" style="font-weight:700">'+signe(som)+'</td></tr>';
+  };
+  const sep=t=>'<tr class="sep"><td class="fige">'+ech(t)+'</td><td colspan="'+(cols.length+1)+'"></td></tr>';
+
+  const calcCaissier=(jours,ca,op)=>{
+    let reel=0,theo=0,ec=0,n=0;
+    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{
+      reel+=nb(c.montantTR)+nb(c.montantCV)+nb(c.cb);
+      theo+=nb(c.trZ)+nb(c.cvZ)+nb(c.cbZ);
+      ec+=ecartComptage(c).net;
+      n++;
+    }));
+    return {reel:arrondi(reel),theo:arrondi(theo),ec:arrondi(ec),n};
+  };
+  const celluleCaissier=x=>{
+    if(!x.n) return '<td class="n pale">—</td>';
+    const cl=Math.abs(x.ec)<0.004?'zero':(x.ec<0?'neg':'pos');
+    return '<td class="n jc-cell"><b>'+eur(x.reel)+'</b><small>Z '+eur(x.theo)+' · <span class="'+cl+'">Écart '+signe(x.ec)+' €</span></small></td>';
+  };
+  const ligneCaissier=(ca,op)=>{
+    let tot={reel:0,theo:0,ec:0,n:0};
+    const cells=cols.map(c=>{
+      const x=calcCaissier(c.jours,ca,op);
+      tot.reel+=x.reel; tot.theo+=x.theo; tot.ec+=x.ec; tot.n+=x.n;
+      return celluleCaissier(x);
+    }).join("");
+    tot.reel=arrondi(tot.reel); tot.theo=arrondi(tot.theo); tot.ec=arrondi(tot.ec);
+    return '<tr class="jc-row"><td class="fige jc-label"><b>'+ech(op)+'</b><small>Encaissé · ticket Z · écart</small></td>'+cells+celluleCaissier(tot)+'</tr>';
+  };
+
+  let corps='';
+  corps+=ligne("MONNAYEUR OUVERTURE",k=>journee(k).ouverture?nb(journee(k).ouverture.montant):0,"grp",false);
+  caisses.forEach(ca=>{
+    corps+=sep(ca.toUpperCase());
+
+    /* Détail nominatif directement dans le tableau, sans changer sa présentation générale. */
+    const ops=[...new Set(actifs.flatMap(k=>journee(k).comptages
+      .filter(c=>c.caisse===ca)
+      .map(c=>(c.operateur||"Sans nom"))))].sort((a,b)=>a.localeCompare(b,"fr"));
+    ops.forEach(op=>{ corps+=ligneCaissier(ca,op); });
+
+    if(journalDetail) [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
+      corps+=ligne("  "+lib+" — compté",k=>{
+        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
+          v+= mode==="tr"?nb(c.montantTR):(mode==="cv"?nb(c.montantCV):nb(c.cb)); });
+        return arrondi(v);
+      });
+      corps+=ligne("  "+lib+" — ticket Z",k=>{
+        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
+          v+= mode==="tr"?nb(c.trZ):(mode==="cv"?nb(c.cvZ):nb(c.cbZ)); });
+        return arrondi(v);
+      });
+    });
+    corps+=ligneEcart("  ÉCART "+ca,k=>{
+      let e=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ e+=ecartComptage(c).net; });
+      return arrondi(e);
+    });
+  });
+  corps+=sep("FERMETURE");
+  corps+=ligne("  Monnayeur fermeture",k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0,"",false);
+  corps+=ligne("  Retrait / remise",k=>nb(journee(k).retrait.montant));
+  corps+=ligne("  Espèces réelles",k=>bilan(k).especesReelles);
+  corps+=ligne("  Espèces ticket Z",k=>nb(journee(k).especesZ));
+  corps+=ligne("  Télécollecte TPE",k=>bilan(k).tpe);
+  corps+=sep("CANAUX");
+  [["Click & Collect","cc"],["Borne","borne"],["Uber Eats","uber"],["Deliveroo","deliveroo"]].forEach(([l,k2])=>{
+    corps+=ligne("  "+l,k=>nb(journee(k).canaux[k2]));
+  });
+  corps+=sep("RÉSULTAT");
+  corps+=ligne("  CA RÉEL",k=>bilan(k).caReel,"grp");
+  corps+=ligne("  CA THÉORIQUE",k=>bilan(k).caTheo,"grp");
+  corps+='<tr class="ecart grp"><td class="fige">  MANQUANT RÉEL</td>'+cols.map(c=>{
+    if(!c.jours.length) return '<td class="n pale">—</td>';
+    const a=somme(c,k=>bilan(k).anormal);
+    return a>0.004?'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(a)+'</td>':'<td class="n" style="color:var(--vert)">0</td>';
+  }).join("")+'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(actifs.reduce((s,k)=>s+bilan(k).anormal,0))+'</td></tr>';
+  corps+='<tr class="ecart"><td class="fige">  EXCÉDENT NON-RENDU</td>'+cols.map(c=>{
+    if(!c.jours.length) return '<td class="n pale">—</td>';
+    const b=somme(c,k=>bilan(k).boni);
+    return '<td class="n" style="color:'+(b>0.004?"var(--bleu)":"var(--t3)")+'">'+(b>0.004?eur(b):"—")+'</td>';
+  }).join("")+'<td class="n" style="font-weight:700;color:var(--bleu)">'+eur(actifs.reduce((s,k)=>s+bilan(k).boni,0))+'</td></tr>';
+  corps+='<tr><td class="fige">  Nb titres TR / CV</td>'+cols.map(c=>{
+    if(!c.jours.length) return '<td class="n pale">—</td>';
+    let t=0,v=0; c.jours.forEach(k=>{ const b=bilan(k); t+=b.nTR; v+=b.nCV; });
+    return '<td class="n">'+(t||v?t+" / "+v:"—")+'</td>';
+  }).join("")+'<td class="n">'+actifs.reduce((s,k)=>s+bilan(k).nTR,0)+" / "+actifs.reduce((s,k)=>s+bilan(k).nCV,0)+'</td></tr>';
+
+  const totCA=actifs.reduce((s,k)=>s+bilan(k).caReel,0);
+  const totManq=actifs.reduce((s,k)=>s+bilan(k).anormal,0);
+  const nClo=actifs.filter(k=>journee(k).cloture).length;
+
+  return barrePeriode()+'<div class="stats">'+
+    stat("Journées renseignées",actifs.length,"","")+
+    stat("Chiffre d'affaires",eur(totCA),"","prim")+
+    stat("Manquant cumulé",eur(totManq),"",totManq>0?"ko":"ok")+
+    stat("Journées clôturées",nClo+" / "+actifs.length,"",nClo<actifs.length?"att":"ok")+
+  '</div>'+ 
+  '<div class="carte"><header><h2>Journal</h2>'+ 
+  '<div class="droite"><button class="btn neutre mini" data-act="journal-detail">'+
+  (journalDetail?"Masquer le détail":"Détail par mode")+'</button>'+ 
+  '<button class="btn neutre mini" data-act="export-csv">Exporter en CSV</button>'+ 
+  (peut("reglages")?'<button class="btn neutre mini" data-act="export-json">Sauvegarde</button>'+ 
+   '<button class="btn neutre mini" data-act="import-json">Restaurer</button>':"")+'</div></header>'+ 
+  (actifs.length?'<div class="grille-journal"><table class="journal">'+
+    '<thead>'+enTete+'</thead><tbody>'+corps+'</tbody></table></div>'
+   :'<div class="vide"><b>Aucune journée sur cette période</b></div>')+
   '</div>';
 }
 
 function vueJournal(){
   if(surMobile()) return vueJournalMobile();
+  if(!peut("journal")) return '<div class="carte"><div class="vide"><b>Journal non autorisé</b>Accès réservé aux utilisateurs autorisés.</div></div>';
   const cols=colonnesJournal();
   const actifs=[]; cols.forEach(c=>c.jours.forEach(k=>actifs.push(k)));
   const caisses=P.caisses;
@@ -2778,8 +2986,9 @@ function surClic(e){
   if(t.id==="deco") return fermerSession(false);
   if(j.vue!==undefined){
     if(surMobile()&&j.vue!=="tableau") mobileAccueil=false;
-    if(j.vue==="comptage"&&vue!=="comptage") brouillon=null;
-    if(j.vue==="fermeture"&&vue!=="fermeture") brouillonFerm=null;
+    if(j.vue==="comptage"&&vue!=="comptage"){ brouillon=null; mobileRevueComptage=false; }
+    if(j.vue==="fermeture"&&vue!=="fermeture"){ brouillonFerm=null; mobileRevueFermeture=false; }
+    if(j.vue==="tableau"&&surMobile()){ mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false; }
     return aller(j.vue);
   }
   if(j.filtre!==undefined){ filtreValid=j.filtre; indexValid=0; zoomValid=1; rotValid=0; pieceActive=""; return peindre(); }
@@ -2806,6 +3015,7 @@ function surClic(e){
   if(j.pieceKo!==undefined) return pointerPiece(j.pieceKo,"refuse");
   if(j.piece!==undefined){ pieceActive=j.piece; return chargerVisu(true); }
   if(j.depot!==undefined){
+    memoriserFormulaireAvantDepot();
     cibleDepot={cible:j.depot, libelle:j.lib};
     const entree=document.getElementById("entree-fichier");
     if(surMobile()){
@@ -2828,6 +3038,11 @@ function surSaisie(e){
   if(id==="i-mdp") return jauge("i-jauge",el.value);
   if(id==="s-mdp") return jauge("s-jauge",el.value);
   if(id==="o-mdp") return jauge("o-jauge",el.value);
+  if(surMobile()&&!mobileAccueil&&(id==="ouv-montant"||id==="ouv-par")){
+    if(!brouillonOuv) brouillonOuv={montant:"",par:SESSION?SESSION.nom:""};
+    if(id==="ouv-montant") brouillonOuv.montant=el.value; else brouillonOuv.par=el.value;
+    return;
+  }
   if(brouillon&&CHAMPS_C[id]!==undefined){
     brouillon[CHAMPS_C[id]]=el.value;
     if(el.tagName==="SELECT"||el.type==="time") return peindreVue();
@@ -2858,7 +3073,7 @@ function surSaisie(e){
 function surChangement(e){
   const el=e.target, id=el.id;
   if(id==="s-role"){ const w=document.getElementById("w-code"); if(w) w.style.display=el.value==="Administrateur"?"flex":"none"; return; }
-  if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; if(surMobile()) mobileAccueil=true; return peindre(); }
+  if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; brouillonOuv=null; mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false; if(surMobile()) mobileAccueil=true; return peindre(); }
   if(id==="s-du"){ filtreDu=el.value; return peindreVue(); }
   if(id==="s-au"){ filtreAu=el.value; return peindreVue(); }
   if(id==="r-libre") return basculerInscription(el.checked);
@@ -3089,7 +3304,24 @@ async function retirerPreuve(id){
 
 async function agir(a,ds){
   const d=journeeEcr(jour);
-  if(a==="mobile-inventaire"){ mobileAccueil=false; return peindre(); }
+  if(a==="mobile-inventaire"){ mobileAccueil=false; mobileRevueInventaire=false; return peindre(); }
+  if(a==="verifier-inventaire"){
+    memoriserFormulaireAvantDepot();
+    const m=brouillonOuv?String(brouillonOuv.montant||"").trim():"", par=brouillonOuv?brouillonOuv.par:"";
+    if(m==="") return toast("Saisissez le montant du monnayeur.",true);
+    if(!par) return toast("Indiquez qui fait l’inventaire.",true);
+    mobileRevueInventaire=true; return peindre();
+  }
+  if(a==="modifier-inventaire"){ mobileRevueInventaire=false; return peindre(); }
+  if(a==="confirmer-inventaire"){
+    const m=brouillonOuv?String(brouillonOuv.montant||"").trim():"", par=brouillonOuv?brouillonOuv.par:"";
+    if(m==="") return toast("Saisissez le montant du monnayeur.",true);
+    if(!par) return toast("Indiquez qui fait l’inventaire.",true);
+    if(!docsDe(d.justificatifs,"inv-matin").length) return toast("Ajoutez la photo du monnayeur avant de confirmer.",true);
+    d.ouverture={montant:nb(m),par,at:maintenant()}; d.statut="ouvert";
+    tracer("Ouverture",courteDate(jour)+" · "+eur(m)+" · "+par);
+    await sauver(); return retourAccueilMobile("Inventaire enregistré.");
+  }
   if(a==="ouvrir"){
     const m=v("ouv-montant"), par=v("ouv-par");
     if(m==="") return toast("Saisissez le montant du monnayeur.",true);
@@ -3110,12 +3342,18 @@ async function agir(a,ds){
     tracer("Correction ouverture",courteDate(jour)+" · "+eur(anc)+" → "+eur(m)+" · "+mo.trim()+(veille!==null?" · fermeture veille "+eur(veille):""));
     await sauver(); toast("Correction enregistrée."); return peindre();
   }
-  if(a==="mobile-nouveau-comptage"){ brouillon=neufComptage(); return peindreVue(); }
+  if(a==="mobile-nouveau-comptage"){ mobileRevueComptage=false; brouillon=neufComptage(); return peindreVue(); }
   if(a==="mobile-editer-comptage"){
     const cible=(d.comptages||[]).find(c=>c.id===ds.id); if(!cible) return toast("Saisie introuvable.",true);
     if(etapeComptage(cible)==="valide"&&!estAdmin()) return toast("Cette caisse est validée : modification réservée à l’administrateur.",true);
-    brouillon=JSON.parse(JSON.stringify(cible)); return peindreVue();
+    mobileRevueComptage=false; brouillon=JSON.parse(JSON.stringify(cible)); return peindreVue();
   }
+  if(a==="verifier-comptage"){
+    memoriserFormulaireAvantDepot();
+    const pbs=problemesComptage(brouillon); if(pbs.length) return toast(pbs[0],true);
+    mobileRevueComptage=true; return peindreVue();
+  }
+  if(a==="modifier-comptage-mobile"){ mobileRevueComptage=false; return peindreVue(); }
   if(a==="valider-comptage"){
     if(d.cloture&&!estAdmin()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
     const persiste=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
@@ -3151,7 +3389,7 @@ async function agir(a,ds){
         (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     }
     const ancienneCaisse=brouillon.caisse, ancienService=brouillon.service;
-    brouillon=neufComptage();
+    mobileRevueComptage=false; brouillon=neufComptage();
     const idx=P.caisses.indexOf(ancienneCaisse);
     brouillon.caisse=P.caisses[(idx+1)%P.caisses.length]||ancienneCaisse;
     brouillon.service=ancienService;
@@ -3161,14 +3399,31 @@ async function agir(a,ds){
     return peindre();
   }
   if(a==="voir-comptage"){ const c=d.comptages.find(c=>c.id===ds.id); if(!c) return; if(etapeComptage(c)==="valide"&&!estAdmin()) return toast("Caisse validée : modification réservée à l’administrateur.",true); brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage"); }
-  if(a==="annuler-comptage"){ brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
+  if(a==="annuler-comptage"){ mobileRevueComptage=false; brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
   if(a==="supprimer-comptage"){
-    if(!peut("supprimer")) return toast("Droit « Supprimer un comptage » non accordé.",true);
-    if(!confirm("Supprimer ce comptage ?")) return;
+    const cible=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
+    const autorise=surMobile()?!!cible&&(estAdmin()||(etapeComptage(cible)!=="valide"&&peut("saisir"))):peut("supprimer");
+    if(!autorise) return toast(surMobile()?"Cette caisse est validée : suppression réservée à l’administrateur.":"Droit « Supprimer un comptage » non accordé.",true);
+    if(!confirm("Supprimer cette saisie de caisse ?")) return;
     d.comptages=d.comptages.filter(c=>c.id!==brouillon.id);
     tracer("Comptage supprimé",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur);
-    brouillon=null; await sauver(); toast("Comptage supprimé."); return aller("tableau");
+    mobileRevueComptage=false; brouillon=null; await sauver();
+    if(surMobile()) return retourAccueilMobile("Saisie supprimée.");
+    toast("Comptage supprimé."); return aller("tableau");
   }
+  if(a==="verifier-fermeture"){
+    memoriserFormulaireAvantDepot();
+    const f=brouillonFerm, montant=nb(f.montant);
+    if(String(f.montant==null?"":f.montant).trim()==="") return toast("Saisissez le total du monnayeur.",true);
+    if(String(f.especesZ==null?"":f.especesZ).trim()==="") return toast("Saisissez les espèces du ticket Z.",true);
+    if(!f.par) return toast("Indiquez qui a fait la fermeture.",true);
+    if(String(f.tpe1==null?"":f.tpe1).trim()==="") return toast("Saisissez la télécollecte du TPE 1.",true);
+    if(P.deuxTPE&&String(f.tpe2==null?"":f.tpe2).trim()==="") return toast("Saisissez la télécollecte du TPE 2.",true);
+    const r=rapprochementFermeture(f);
+    if(r.pretEspeces&&r.abs>0.004&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart ou la compensation.",true);
+    mobileRevueFermeture=true; return peindreVue();
+  }
+  if(a==="modifier-fermeture-mobile"){ mobileRevueFermeture=false; return peindreVue(); }
   if(a==="enregistrer-fermeture"){
     if(d.cloture&&!estAdmin()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
     const correctionApresCloture=!!d.cloture;
@@ -3188,7 +3443,7 @@ async function agir(a,ds){
     d.motifFermeture=String(f.motif||"").trim();
     tracer(correctionApresCloture?"Correction administrateur de fermeture":"Fermeture enregistrée",courteDate(jour)+" · monnayeur "+eur(montant)+" · "+f.par+
       (nb(f.retrait.montant)>0?" · retrait "+eur(f.retrait.montant)+" bord. "+(f.retrait.bordereau||"MANQUANT"):""));
-    await sauver();
+    mobileRevueFermeture=false; await sauver();
     if(surMobile()) return retourAccueilMobile(correctionApresCloture?"Correction administrateur enregistrée.":"Fermeture enregistrée.");
     toast(correctionApresCloture?"Correction administrateur enregistrée.":"Fermeture enregistrée."); return peindre();
   }
@@ -3201,7 +3456,7 @@ async function agir(a,ds){
     if(pbs.length) return toast(pbs[0],true);
     d.cloture={par:SESSION.nom,at:maintenant()}; d.statut="cloture";
     tracer("Journée clôturée",courteDate(jour)+" · CA "+eur(b.caReel)+" · manquant "+eur(b.anormal)+" · excédent "+eur(b.boni));
-    brouillonFerm=null; await sauver();
+    mobileRevueFermeture=false; brouillonFerm=null; await sauver();
     if(surMobile()) return retourAccueilMobile("Journée clôturée.");
     toast("Journée clôturée."); return aller("tableau");
   }
