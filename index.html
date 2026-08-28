@@ -655,6 +655,36 @@ table.journal .jc-rt small{display:block;color:var(--t3);font-size:8.5px;margin-
   .grille-journal{scrollbar-gutter:stable;touch-action:pan-x pan-y}
 }
 
+
+/* V15 — Journal détaillé commun téléphone / ordinateur */
+@media(min-width:901px){
+  table.journal-paires{font-size:11px;min-width:max-content}
+  table.journal-paires .j-day-head{text-align:center!important;min-width:190px;padding:8px 10px!important;background:var(--canvas)}
+  table.journal-paires .j-total-head{background:#EEF0F8}
+  table.journal-paires .j-sub-head th{top:42px!important;text-align:center!important;font-size:9px!important;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);min-width:95px;padding:6px 8px!important;background:#F8F9FB}
+  table.journal-paires .j-pair-head th{top:0!important;height:42px}
+  table.journal-paires thead .fige{top:0!important;vertical-align:middle;min-width:190px!important}
+  table.journal-paires .j-subcell{min-width:95px;padding:8px 9px!important}
+  table.journal-paires .j-closed{display:inline-block;margin-left:5px;color:var(--vert);font-size:10px}
+  table.journal-paires .jc-person-band{text-align:left;color:var(--t3);font-size:10px;font-weight:600;background:#F8F9FC}
+  table.journal-paires tr.jc-person td{border-top:2px solid var(--bord-fort)}
+  table.journal-paires .jc-mode-label{padding-left:26px!important}
+  table.journal-paires tr.jc-total td{background:#F5F7FB;font-weight:700}
+  table.journal-paires tr.jc-total .fige{background:#EEF1F7}
+  table.journal-paires .jc-total-label{padding-left:26px!important;color:var(--t1)}
+  table.journal-paires .j-total-theo{color:var(--t2);font-weight:700}
+  table.journal-paires .j-total-real{color:var(--t1);font-weight:800}
+  table.journal-paires .j-gap-pair{text-align:center!important;min-width:190px;font-weight:800;padding:8px 9px!important}
+  table.journal-paires .j-gap-total{background:#FFF5DE}
+  table.journal-paires .jc-gap-global .fige{padding-left:26px!important}
+  table.journal-paires .jc-gap-global .fige b{display:block;color:var(--t1);font-size:11px}
+  table.journal-paires .jc-gap-global .fige small{display:block;color:var(--t3);font-size:9px;margin-top:2px}
+  table.journal-paires .j-comp-ok{color:#8A5B00;font-weight:800}
+  table.journal-paires .j-zero{color:var(--vert);font-weight:800}
+  table.journal-paires .j-neg{color:var(--rouge);font-weight:800}
+  table.journal-paires .j-pos{color:var(--bleu);font-weight:800}
+}
+
 </style>
 
 <div id="racine"><div class="demarrage"><div class="marque-logo"></div><p>Chargement…</p></div></div>
@@ -875,7 +905,7 @@ async function verifierMaj(){
     } else { if(j.version>syncVersion) syncVersion=j.version; syncEtat="ok"; syncErreur=""; }
   }catch(e){ syncEtat="erreur"; syncErreur=e.message; }
 }
-setInterval(verifierMaj,10000);
+setInterval(verifierMaj,4000);
 if(window.matchMedia){
   const mq=window.matchMedia("(max-width:860px)");
   const relancer=()=>{ if(SESSION) peindre(); };
@@ -1019,7 +1049,7 @@ function nb(v){ const x=parseFloat(String(v==null?"":v).replace(",",".")); retur
    Sur mobile, les montants deviennent donc des champs texte à clavier décimal,
    tout en restant convertis en nombre par nb() lors des calculs/enregistrements. */
 function activerVirguleMobile(){
-  if(!surMobile()) return;
+  /* Saisie française cohérente sur téléphone ET ordinateur. */
   /* Tous les champs de montant utilisent un champ texte + clavier décimal.
      Cela évite le blocage de la virgule par Safari iPhone et certains claviers Android. */
   const idsMontants=[
@@ -1089,6 +1119,9 @@ function parNom(n){ return COMPTES.find(c=>c.nom===n)||null; }
 function rang(){ return SESSION?(RANG[SESSION.role]||0):-1; }
 function estManager(){ return peut("verifier"); }
 function estAdmin(){ return peut("valider"); }
+/* Les corrections d’une caisse déjà contrôlée sont réservées au rôle Administrateur,
+   même si un autre compte reçoit ponctuellement le droit de valider. */
+function estAdministrateur(){ return !!(SESSION&&SESSION.role==="Administrateur"); }
 function nomsEquipe(){
   const s=new Set(P.equipiers||[]);
   COMPTES.filter(c=>c.actif!==false).forEach(c=>s.add(c.nom));
@@ -1210,9 +1243,11 @@ function ecartComptage(c){
     abs:arrondi(ecarts.reduce((s,e)=>s+Math.abs(e),0))};
 }
 function comptageVerrouille(c){
-  const e=etapeComptage(c);
-  return e==="verifie"||e==="valide";
+  /* Verrou fort : on regarde les marqueurs enregistrés eux-mêmes, pas seulement l’étiquette d’étape. */
+  return !!(c&&(c.verif||c.valid));
 }
+function peutModifierComptage(c){ return !!c&&(estAdministrateur()||!comptageVerrouille(c)); }
+function peutSupprimerComptage(c){ return !!c&&(estAdministrateur()||!comptageVerrouille(c)); }
 function snapshotComptage(c,action,par,at){
   const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
   return {vid:uid(), comptageId:c.id||"", action:action||"État enregistré", par:par||"", at:at||maintenant(),
@@ -1707,7 +1742,7 @@ function vueAccueilMobile(){
     '<div class="mobile-home-intro"><b>Bonjour '+ech((SESSION.nom||"").split(" ")[0]||"")+'</b><span>Choisissez une action. Une fois enregistrée, vous revenez automatiquement ici.</span></div>'+
     '<div class="mobile-menu">'+
       '<button data-act="mobile-inventaire"><span class="mi">▣</span><span class="ml"><b>Inventaire</b><span>'+ech(invEtat)+'</span></span><span class="chev">›</span></button>'+
-      '<button data-vue="comptage"'+(d.cloture&&!estAdmin()?' disabled':'')+'><span class="mi">✎</span><span class="ml"><b>Caisse</b><span>'+ech(caisseEtat)+'</span></span><span class="chev">›</span></button>'+
+      '<button data-vue="comptage"'+(d.cloture&&!estAdministrateur()?' disabled':'')+'><span class="mi">✎</span><span class="ml"><b>Caisse</b><span>'+ech(caisseEtat)+'</span></span><span class="chev">›</span></button>'+
       '<button data-vue="fermeture"><span class="mi">⊟</span><span class="ml"><b>Fermeture</b><span>'+ech(fermEtat)+'</span></span><span class="chev">›</span></button>'+
       (peut("journal")?'<button data-vue="journal"><span class="mi">⌗</span><span class="ml"><b>Journal</b><span>Caissiers, encaissements et écarts</span></span><span class="chev">›</span></button>':'')+
     '</div>'+
@@ -1720,9 +1755,9 @@ function zoneDepotMobile(cible,libelle,liste,oblige){
     '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">📷 '+(ok?'Ajouter':'Photo')+'</button></div>';
 }
 function memoriserFormulaireAvantDepot(){
-  if(!surMobile()) return;
+  /* Conserve le brouillon avant l’ouverture du sélecteur photo/fichier, sur tous les appareils. */
   const lit=id=>{ const el=document.getElementById(id); return el?el.value:null; };
-  if(vue==="tableau"&&!mobileAccueil){
+  if(vue==="tableau"&&(!surMobile()||!mobileAccueil)){
     if(!brouillonOuv) brouillonOuv={montant:"",par:SESSION?SESSION.nom:""};
     const m=lit("ouv-montant"), par=lit("ouv-par");
     if(m!==null) brouillonOuv.montant=m;
@@ -1800,11 +1835,19 @@ function vueTableau(){
       (d.cloture||!peut("corriger")?"":'<button class="btn neutre mini" data-act="corriger-ouverture">Corriger</button>')+'</div>'+
       zoneDepot("inv-matin","Inventaire monnayeur — matin",d.justificatifs,true);
   } else {
-    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Proposé depuis la fermeture de la veille : '+eur(veille)+' · modifiable</p>':"")+
-      '<div class="grille g3"><label class="champ"><span>Montant à l\'ouverture</span>'+
-      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"></label>'+
-      '<label class="champ"><span>Ouvert par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
-      '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ouvrir">Ouvrir la journée</button></div></div>';
+    if(!brouillonOuv) brouillonOuv={montant:veille===null?"":String(veille),par:SESSION.nom};
+    const o=brouillonOuv, photoOK=docsDe(d.justificatifs,"inv-matin").length>0;
+    if(mobileRevueInventaire){
+      h+='<div class="banniere info"><span class="sym">✓</span><div><b>Vérifiez l\'inventaire avant enregistrement</b><p>Montant '+eur(nb(o.montant))+' · '+ech(o.par||"—")+' · '+(photoOK?'photo ajoutée':'photo manquante')+'</p></div></div>'+
+        '<div class="actions" style="margin-top:14px"><button class="btn" data-act="confirmer-inventaire"'+(photoOK?'':' disabled')+'>Confirmer et enregistrer</button><button class="btn neutre" data-act="modifier-inventaire">Modifier</button></div>';
+    } else {
+      h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Proposé depuis la fermeture de la veille : '+eur(veille)+' · modifiable</p>':"")+
+        '<div class="grille g3"><label class="champ"><span>Montant à l\'ouverture</span>'+
+        '<input type="text" inputmode="decimal" id="ouv-montant" class="eur" value="'+ech(o.montant)+'"></label>'+
+        '<label class="champ"><span>Ouvert par</span>'+selNoms("ouv-par",o.par)+'</label>'+
+        '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="verifier-inventaire">Vérifier ma saisie</button></div></div>'+
+        zoneDepot("inv-matin","Inventaire monnayeur — matin",d.justificatifs,true);
+    }
   }
   h+='</div></div>';
 
@@ -1818,7 +1861,7 @@ function vueTableau(){
         '<td class="n">'+t.nb+' tit. · '+eur(t.physique)+'</td><td class="n">'+v.nb+' tit. · '+eur(v.physique)+'</td>'+
         '<td class="n" style="font-weight:600;color:'+(e.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(e.anormal)+'</td>'+
         '<td>'+pilEtape(etapeComptage(c))+'</td>'+
-        '<td class="n">'+((d.cloture&&!estAdmin())?"":((comptageVerrouille(c)&&!estAdmin())?'<span title="Verrouillé">🔒</span>':'<button class="btn neutre mini" data-act="voir-comptage" data-id="'+c.id+'">Ouvrir</button>'))+'</td></tr>';
+        '<td class="n">'+((d.cloture&&!estAdministrateur())?"":((comptageVerrouille(c)&&!estAdministrateur())?'<span title="Verrouillé">🔒</span>':'<button class="btn neutre mini" data-act="voir-comptage" data-id="'+c.id+'">Ouvrir</button>'))+'</td></tr>';
     }).join("")+'</tbody></table></div>';
   h+='</div>';
 
@@ -2055,21 +2098,21 @@ function neufComptage(){
 }
 function vueComptageMobile(){
   const d=journee(jour);
-  if(d.cloture&&!estAdmin()) return '<div class="mobile-form"><div class="mobile-status att">Journée clôturée. Seul un administrateur peut encore corriger une saisie.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(d.cloture&&!estAdministrateur()) return '<div class="mobile-form"><div class="mobile-status att">Journée clôturée. Seul un administrateur peut encore corriger une saisie.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
   if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
 
   /* Quand il existe déjà des caisses, on affiche d’abord une liste compacte.
      Cela permet de corriger une saisie uniquement avant sa vérification. */
   if(!brouillon && (d.comptages||[]).length){
     const lignes=(d.comptages||[]).map(c=>{
-      const et=etapeComptage(c), verrou=comptageVerrouille(c)&&!estAdmin();
+      const et=etapeComptage(c), verrou=comptageVerrouille(c)&&!estAdministrateur();
       const ec=ecartComptage(c);
       return '<div class="mobile-day-row"><div class="mdr-main"><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b><span>'+ech(c.operateur||"—")+' · écart net '+signe(ec.net)+' €</span></div>'+ 
         '<span class="mdr-state '+(et==="valide"?'ok':(et==="verifie"?'att':''))+'">'+ech(ETAPES[et].l)+'</span>'+ 
         (verrou?'<span style="font-size:16px" title="Verrouillé">🔒</span>':'<button class="btn neutre mini" data-act="mobile-editer-comptage" data-id="'+c.id+'">Modifier</button>')+'</div>';
     }).join("");
     return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-      (d.cloture&&estAdmin()?'<div class="mobile-admin-note">Correction administrateur sur une journée déjà clôturée.</div>':'')+
+      (d.cloture&&estAdministrateur()?'<div class="mobile-admin-note">Correction administrateur sur une journée déjà clôturée.</div>':'')+
       '<div class="mobile-section-title">Caisses du jour</div><div class="mobile-day-list">'+lignes+'</div>'+ 
       '<div class="mobile-actions-sticky"><button class="btn" data-act="mobile-nouveau-comptage">Nouvelle saisie caisse</button><button class="btn neutre" data-vue="tableau">Retour au menu</button></div>'+ 
     '</div></div></div>';
@@ -2077,13 +2120,13 @@ function vueComptageMobile(){
 
   if(!brouillon) brouillon=neufComptage();
   const existant=brouillon.id?(d.comptages||[]).find(x=>x.id===brouillon.id):null;
-  if(existant&&comptageVerrouille(existant)&&!estAdmin())
+  if(existant&&comptageVerrouille(existant)&&!estAdministrateur())
     return '<div class="mobile-form"><div class="mobile-status att">Cette caisse a été vérifiée ou validée. Elle est maintenant verrouillée ; seul un administrateur peut la corriger.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
 
   const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0.004;
   const t=detailTR(c), cvd=detailCV(c), enc=arrondi(t.physique+cvd.physique+nb(c.cb)), ztot=arrondi(t.z+cvd.z+nb(c.cbZ));
   if(mobileRevueComptage){
-    const peutSupprimer=!!existant&&(estAdmin()||!comptageVerrouille(existant));
+    const peutSupprimer=!!existant&&(estAdministrateur()||!comptageVerrouille(existant));
     return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
       '<div class="mobile-review-title"><b>Vérifiez la caisse</b><span>Contrôlez les montants avant l’enregistrement. Après confirmation elle reste modifiable jusqu’à sa vérification par le contrôle.</span></div>'+
       '<div class="mobile-review-list">'+
@@ -2106,8 +2149,8 @@ function vueComptageMobile(){
   const etatEcart=motifNec?"À justifier":"Aucun écart";
   const classeValeur=n=>Math.abs(n)>0.004?"gap":"";
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-    (existant&&comptageVerrouille(existant)&&estAdmin()?'<div class="mobile-admin-note">Caisse vérifiée/validée : correction réservée à l’administrateur. Le statut de contrôle sera conservé et la correction tracée.</div>':'')+
-    (d.cloture&&estAdmin()?'<div class="mobile-admin-note">Journée clôturée : correction administrateur.</div>':'')+
+    (existant&&comptageVerrouille(existant)&&estAdministrateur()?'<div class="mobile-admin-note">Caisse vérifiée/validée : correction réservée à l’administrateur. Le statut de contrôle sera conservé et la correction tracée.</div>':'')+
+    (d.cloture&&estAdministrateur()?'<div class="mobile-admin-note">Journée clôturée : correction administrateur.</div>':'')+
     '<div class="mobile-section-title">Service</div><div class="mobile-paire">'+
       '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label>'+ 
       '<label class="champ"><span>Service</span><select id="c-service">'+P.services.map(x=>'<option'+(c.service===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label></div>'+ 
@@ -2141,20 +2184,41 @@ function vueComptageMobile(){
       '<small id="c-motif-help">'+(motifNec?'Ajoutez une explication : l’écart sera enregistré avec ce commentaire.':'En cas d’écart, ce commentaire permettra d’enregistrer la caisse sans rester bloqué.')+'</small></label>'+ 
     (pbs.length&&!(pbs.length===1&&motifNec&&!String(c.motif).trim())?'<div class="mobile-inline-error" id="mobile-erreur">'+ech(pbs[0])+'</div>':'<div class="mobile-inline-error" id="mobile-erreur" style="display:none"></div>')+
     '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-comptage"'+(pbs.length?' disabled':'')+'>'+(existant?'Vérifier les modifications':'Vérifier ma saisie')+'</button><button class="btn neutre" data-vue="tableau">Annuler</button>'+
-      (existant&&(estAdmin()||!comptageVerrouille(existant))?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
+      (existant&&(estAdministrateur()||!comptageVerrouille(existant))?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
     '</div>'+ 
   '</div></div></div>';
 }
 function vueComptage(){
   if(surMobile()) return vueComptageMobile();
   const d=journee(jour);
-  if(d.cloture&&!estAdmin()) return '<div class="carte"><div class="vide"><b>Journée clôturée</b>Seul un administrateur peut encore corriger une saisie du '+courteDate(jour)+".</div></div>";
+  if(d.cloture&&!estAdministrateur()) return '<div class="carte"><div class="vide"><b>Journée clôturée</b>Seul un administrateur peut encore corriger une saisie du '+courteDate(jour)+".</div></div>";
   if(!d.ouverture) return '<div class="carte"><div class="vide"><b>Ouvrez d\'abord la journée</b>'+
     '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
   if(!brouillon) brouillon=neufComptage();
   const existant=brouillon.id?(d.comptages||[]).find(x=>x.id===brouillon.id):null;
-  if(existant&&comptageVerrouille(existant)&&!estAdmin()) return '<div class="carte"><div class="vide"><b>Caisse verrouillée</b>Après vérification ou validation, seul un administrateur peut désormais la modifier.</div></div>';
+  if(existant&&comptageVerrouille(existant)&&!estAdministrateur()) return '<div class="carte"><div class="vide"><b>Caisse verrouillée</b>Après vérification ou validation, seul un administrateur peut désormais la modifier.</div></div>';
   const c=brouillon, t=detailTR(c), v=detailCV(c), e=ecartComptage(c), pbs=problemesComptage(c);
+  if(mobileRevueComptage){
+    const enc=arrondi(t.physique+v.physique+nb(c.cb)), ztot=arrondi(t.z+v.z+nb(c.cbZ));
+    const peutSupprimer=!!existant&&peutSupprimerComptage(existant)&&peut("supprimer");
+    return '<div class="carte"><header><h2>Vérification avant enregistrement</h2><p>Contrôlez les informations. Rien n\'est encore enregistré à cette étape.</p></header><div class="corps">'+
+      '<div class="grille g3">'+
+        stat("Encaissement réel",eur(enc),"TR + CV + CB","prim")+
+        stat("Total théorique",eur(ztot),"Rapports Z","")+
+        stat("Écart compensé",signe(e.net)+" €","TR + CV + CB",Math.abs(e.net)>0.004?"att":"ok")+
+      '</div>'+
+      '<div class="tableau-scroll" style="margin-top:14px"><table><thead><tr><th>Moyen</th><th class="n">Théorique</th><th class="n">Réel</th><th class="n">Écart</th></tr></thead><tbody>'+
+        '<tr><td>Titres-restaurant</td><td class="n">'+eur(t.z)+'</td><td class="n">'+eur(t.physique)+'</td><td class="n">'+signe(e.tr)+' €</td></tr>'+
+        '<tr><td>Chèques-vacances</td><td class="n">'+eur(v.z)+'</td><td class="n">'+eur(v.physique)+'</td><td class="n">'+signe(e.cv)+' €</td></tr>'+
+        '<tr><td>Carte bancaire</td><td class="n">'+eur(nb(c.cbZ))+'</td><td class="n">'+eur(nb(c.cb))+'</td><td class="n">'+signe(e.cb)+' €</td></tr>'+
+      '</tbody></table></div>'+
+      '<p class="aide" style="margin-top:12px"><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(c.operateur||"—")+' · '+ech(c.h1||"—")+' → '+ech(c.h2||"—")+'</p>'+
+      (String(c.motif||"").trim()?'<div class="banniere info" style="margin-top:12px"><span class="sym">i</span><div><b>Commentaire</b><p>'+ech(String(c.motif).trim())+'</p></div></div>':'')+
+      '<div class="actions" style="margin-top:16px"><button class="btn" data-act="valider-comptage">'+(existant?'Confirmer la modification':'Confirmer et enregistrer')+'</button>'+
+      '<button class="btn neutre" data-act="modifier-comptage-mobile">Modifier la saisie</button>'+
+      (peutSupprimer?'<button class="btn rouge" data-act="supprimer-comptage">Supprimer</button>':'')+
+      '</div></div></div>';
+  }
 
   return '<div class="carte"><header><h2>Votre rapport Z</h2></header><div class="corps">'+
   '<div class="grille g4">'+
@@ -2184,8 +2248,8 @@ function vueComptage(){
   '</div></div>'+
 
   '<div class="actions" style="margin-bottom:20px">'+
-    '<button class="btn large" data-act="valider-comptage"'+(pbs.length?" disabled":"")+'>Enregistrer mon rapport</button>'+
-    (c.id&&peut("supprimer")?'<button class="btn rouge" data-act="supprimer-comptage">Supprimer</button>':"")+
+    '<button class="btn large" data-act="verifier-comptage"'+(pbs.length?" disabled":"")+'>Vérifier ma saisie</button>'+
+    (c.id&&peut("supprimer")&&peutSupprimerComptage(existant||c)?'<button class="btn rouge" data-act="supprimer-comptage">Supprimer</button>':"")+
     '<button class="btn neutre" data-act="annuler-comptage">Annuler</button>'+
     (pbs.length?'<span class="aide">'+ech(pbs[0])+'</span>':"")+
   '</div>';
@@ -2300,7 +2364,7 @@ function majFermetureMobile(){
 function vueFermetureMobile(){
   const d=journee(jour);
   if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
-  if(d.cloture&&!estAdmin()) return '<div class="mobile-form"><div class="mobile-status ok">Journée clôturée par '+ech(d.cloture.par||"—")+'.</div><div class="mobile-status att">Les données sont verrouillées. Seul un administrateur peut les corriger.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(d.cloture&&!estAdministrateur()) return '<div class="mobile-form"><div class="mobile-status ok">Journée clôturée par '+ech(d.cloture.par||"—")+'.</div><div class="mobile-status att">Les données sont verrouillées. Seul un administrateur peut les corriger.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
   if(!brouillonFerm) brouillonFerm={
     montant:d.fermeture?d.fermeture.montant:"", par:d.fermeture?d.fermeture.par:SESSION.nom,
     especesZ:d.especesZ||"", apport:d.apport||"", tpe1:d.tpe1||"", tpe2:d.tpe2||"", motif:d.motifFermeture||"",
@@ -2331,12 +2395,12 @@ function vueFermetureMobile(){
       blocRapprochementMobile(f)+
       (String(f.motif||'').trim()?'<div class="mobile-status"><b>Commentaire :</b> '+ech(String(f.motif).trim())+'</div>':'')+
       (peut("remises")&&(nb(f.apport)||nb(f.retrait.montant))?'<div class="mobile-status"><b>Mouvement de fonds :</b> apport '+eur(nb(f.apport))+' · retrait '+eur(nb(f.retrait.montant))+'</div>':'')+
-      '<div class="mobile-actions-sticky"><button class="btn" data-act="enregistrer-fermeture">'+(d.cloture&&estAdmin()?'Confirmer la correction':(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer'))+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier la saisie</button></div>'+
+      '<div class="mobile-actions-sticky"><button class="btn" data-act="enregistrer-fermeture">'+(d.cloture&&estAdministrateur()?'Confirmer la correction':(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer'))+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier la saisie</button></div>'+
     '</div></div></div>';
   }
 
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-    (d.cloture&&estAdmin()?'<div class="mobile-admin-note">Journée clôturée : vous êtes en mode correction administrateur. Toute modification est tracée.</div>':'')+
+    (d.cloture&&estAdministrateur()?'<div class="mobile-admin-note">Journée clôturée : vous êtes en mode correction administrateur. Toute modification est tracée.</div>':'')+
     (d.fermeture&&!d.cloture?'<div class="mobile-status ok">Fermeture déjà enregistrée. Vous pouvez encore la modifier tant que la journée n’est pas clôturée.</div>':'')+
     '<div class="mobile-section-title">Monnayeur</div>'+
     '<label class="champ"><span>Total à la fermeture</span><input type="text" inputmode="decimal" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00"></label>'+
@@ -2362,7 +2426,7 @@ function vueFermetureMobile(){
     '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+
     (d.fermeture&&attenteControle.length&&!d.cloture?'<div class="mobile-status att" style="margin-top:11px">Fermeture enregistrée. Le contrôle final reste à faire sur ordinateur.</div>':'')+
     '<div class="mobile-actions-sticky">'+
-      '<button class="btn" data-act="verifier-fermeture">'+(d.cloture&&estAdmin()?'Vérifier la correction':(d.fermeture?'Vérifier la mise à jour':'Vérifier ma saisie'))+'</button>'+
+      '<button class="btn" data-act="verifier-fermeture">'+(d.cloture&&estAdministrateur()?'Vérifier la correction':(d.fermeture?'Vérifier la mise à jour':'Vérifier ma saisie'))+'</button>'+
       (peutClore?'<button class="btn vert" data-act="cloturer">Clôturer la journée</button>':'')+
       '<button class="btn neutre" data-vue="tableau">Retour au menu</button>'+
     '</div>'+
@@ -2386,6 +2450,25 @@ function vueFermeture(){
   const tpe=arrondi(nb(f.tpe1)+nb(f.tpe2));
   const ecTPE=arrondi(tpe-b.cb);
   const cc=controleComplet(jour), pbs=problemesFermeture(f,montant), rap=rapprochementFermeture(f);
+  if(mobileRevueFermeture){
+    return '<div class="carte"><header><h2>Vérification de la fermeture</h2><p>Contrôlez les montants avant l\'enregistrement définitif.</p></header><div class="corps">'+
+      '<div class="grille g4">'+
+        stat("Monnayeur fermeture",eur(nb(f.montant)),"","")+
+        stat("Espèces ticket Z",eur(nb(f.especesZ)),"","")+
+        stat("Télécollecte TPE",eur(arrondi(nb(f.tpe1)+nb(f.tpe2))),"","")+
+        stat("Écart net compensé",signe(rap.net)+" €","TR + CV + CB + espèces",Math.abs(rap.net)>0.004?"att":"ok")+
+      '</div>'+
+      '<div class="tableau-scroll" style="margin-top:14px"><table><thead><tr><th>Canal</th><th class="n">Montant</th></tr></thead><tbody>'+
+        '<tr><td>Click & Collect</td><td class="n">'+eur(nb(f.canaux.cc))+'</td></tr>'+
+        '<tr><td>Borne</td><td class="n">'+eur(nb(f.canaux.borne))+'</td></tr>'+
+        '<tr><td>Uber Eats</td><td class="n">'+eur(nb(f.canaux.uber))+'</td></tr>'+
+        '<tr><td>Deliveroo</td><td class="n">'+eur(nb(f.canaux.deliveroo))+'</td></tr>'+
+      '</tbody></table></div>'+
+      '<div class="banniere '+(rap.aCommenter?"att":"ok")+'" style="margin-top:14px"><span class="sym">'+(rap.aCommenter?"!":"✓")+'</span><div><b>Rapprochement global : '+signe(rap.net)+' €</b><p>CB global '+signe(rap.cbGlobal)+' € · espèces '+signe(rap.especes)+' € · TR '+signe(rap.tr)+' € · CV '+signe(rap.cv)+' €</p></div></div>'+
+      (String(f.motif||"").trim()?'<div class="banniere info" style="margin-top:12px"><span class="sym">i</span><div><b>Commentaire</b><p>'+ech(String(f.motif).trim())+'</p></div></div>':'')+
+      '<div class="actions" style="margin-top:16px"><button class="btn" data-act="enregistrer-fermeture">'+(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer')+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier</button></div>'+
+      '</div></div>';
+  }
 
   return '<div class="carte"><header><h2>Monnayeur à la fermeture</h2></header><div class="corps">'+
   '<div class="grille g3">'+
@@ -2450,7 +2533,7 @@ function vueFermeture(){
   '<div class="grille g2" style="margin-top:14px">'+
     '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+
   '</div><div class="actions" style="margin-top:15px">'+
-    '<button class="btn" data-act="enregistrer-fermeture">Enregistrer la fermeture</button>'+
+    '<button class="btn" data-act="verifier-fermeture">Vérifier la fermeture</button>'+
     '<button class="btn vert" data-act="cloturer"'+(pbs.length||!d.fermeture||!peut("cloturer")?" disabled":"")+'>Clôturer la journée</button>'+
     (!peut("cloturer")?'<span class="aide">Droit « Clôturer la journée » non accordé.</span>':(pbs.length?'<span class="aide">'+ech(pbs[0])+'</span>':""))+
   '</div></div></div>';
@@ -2852,8 +2935,9 @@ function vueJournalMobile(){
   corps+=sep('RÉSULTAT');
   corps+=lignePaire('  CA TOTAL',k=>bilan(k).caTheo,k=>bilan(k).caReel,'grp');
   corps+=ligneGapPaire('  ÉCART GLOBAL',k=>bilan(k).caTheo,k=>bilan(k).caReel,k=>bilan(k).aJustifier,'grp');
-  corps+=ligneSimpleReel('  Manquant constaté',k=>bilan(k).anormal,'ecart');
-  corps+=ligneSimpleReel('  Excédent non-rendu',k=>bilan(k).boni,'ecart');
+  /* Les lignes d'écart occupent une seule cellule par journée, comme Fermeture et Canaux. */
+  corps+=ligneEcartUneColonneJour('  MANQUANT',k=>-bilan(k).anormal,'grp');
+  corps+=ligneEcartUneColonneJour('  EXCÉDENT NON-RENDU',k=>bilan(k).boni,'ecart');
 
   const totCA=actifs.reduce((s,k)=>s+bilan(k).caReel,0);
   const totManq=actifs.reduce((s,k)=>s+bilan(k).anormal,0);
@@ -2874,171 +2958,9 @@ function vueJournalMobile(){
 }
 
 function vueJournal(){
-  if(surMobile()) return vueJournalMobile();
-  if(!peut("journal")) return '<div class="carte"><div class="vide"><b>Journal non autorisé</b>Accès réservé aux utilisateurs autorisés.</div></div>';
-  const cols=colonnesJournal();
-  const actifs=[]; cols.forEach(c=>c.jours.forEach(k=>actifs.push(k)));
-  const caisses=P.caisses;
-  const somme=(col,fn)=>{ let t=0; col.jours.forEach(k=>t+=fn(k)); return arrondi(t); };
-
-  const enTete='<tr><th class="fige">Rubrique</th>'+cols.map(c=>
-    '<th class="n'+(c.vide?" pale":"")+'">'+c.t+'<div class="jsem">'+c.s+'</div>'+
-    (c.jours.length===1&&journee(c.jours[0]).cloture?'<div style="color:var(--vert);font-size:9px">✓</div>':"")+'</th>').join("")+
-    '<th class="n">Total</th></tr>';
-
-  const ligne=(nom,fn,cl,total)=>{
-    let som=0;
-    const cells=cols.map(c=>{
-      if(!c.jours.length) return '<td class="n pale">—</td>';
-      const v=somme(c,fn); som+=v;
-      return '<td class="n">'+(v?eur(v):"—")+'</td>';
-    }).join("");
-    return '<tr class="'+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
-      '<td class="n" style="font-weight:700">'+(total===false?"":eur(som))+'</td></tr>';
-  };
-  const ligneEcart=(nom,fn,cl)=>{
-    let som=0;
-    const cells=cols.map(c=>{
-      if(!c.jours.length) return '<td class="n pale">—</td>';
-      const e=somme(c,fn); som+=e;
-      if(Math.abs(e)<0.004) return '<td class="n" style="color:var(--t3)">—</td>';
-      return '<td class="n" style="font-weight:700;color:'+(e<0?"var(--rouge)":"var(--bleu)")+'">'+signe(e)+'</td>';
-    }).join("");
-    return '<tr class="ecart '+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
-      '<td class="n" style="font-weight:700">'+signe(som)+'</td></tr>';
-  };
-  const sep=t=>'<tr class="sep"><td class="fige">'+ech(t)+'</td><td colspan="'+(cols.length+1)+'"></td></tr>';
-
-  const calcCaissier=(jours,ca,op)=>{
-    let reel=0,theo=0,ec=0,n=0;
-    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{
-      const t=detailTR(c), v=detailCV(c); reel+=t.physique+v.physique+nb(c.cb); theo+=t.z+v.z+nb(c.cbZ); ec+=ecartComptage(c).net; n++;
-    }));
-    return {reel:arrondi(reel),theo:arrondi(theo),ec:arrondi(ec),n};
-  };
-  const calcModeCaissier=(jours,ca,op,mode)=>{
-    let reel=0,theo=0,n=0;
-    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{ const x=valeursModeJournal(c,mode); reel+=x.reel; theo+=x.theo; n++; }));
-    reel=arrondi(reel); theo=arrondi(theo); return {reel,theo,ec:arrondi(reel-theo),n};
-  };
-  const celluleCaissier=x=>{
-    if(!x.n) return '<td class="n pale">—</td>';
-    const cl=Math.abs(x.ec)<0.004?'zero':(x.ec<0?'neg':'pos');
-    return '<td class="n jc-cell"><b>'+eur(x.reel)+'</b><small>Théo '+eur(x.theo)+' · <span class="'+cl+'">Écart '+signe(x.ec)+' €</span></small></td>';
-  };
-  const ligneCaissier=(ca,op)=>{
-    let tot={reel:0,theo:0,ec:0,n:0};
-    const cells=cols.map(c=>{ const x=calcCaissier(c.jours,ca,op); tot.reel+=x.reel; tot.theo+=x.theo; tot.ec+=x.ec; tot.n+=x.n; return celluleCaissier(x); }).join('');
-    tot.reel=arrondi(tot.reel); tot.theo=arrondi(tot.theo); tot.ec=arrondi(tot.ec);
-    const cp=COMPTES.find(x=>x.nom===op), role=cp?cp.role:"Équipier"; return '<tr class="jc-person"><td class="fige jc-label"><b>'+ech(op)+'</b><small>'+ech(role)+' · total réel · théorique · écart</small></td>'+cells+celluleCaissier(tot)+'</tr>';
-  };
-  const ligneModeCaissier=(ca,op,lib,mode)=>{
-    let tr=0,tt=0,tn=0;
-    const cells=cols.map(c=>{ const x=calcModeCaissier(c.jours,ca,op,mode); tr+=x.reel; tt+=x.theo; tn+=x.n; if(!x.n) return '<td class="n pale">—</td>'; return '<td class="n jc-rt"><b>R '+eur(x.reel)+'</b><small>T '+eur(x.theo)+'</small></td>'; }).join('');
-    return '<tr class="jc-mode"><td class="fige jc-mode-label">'+ech(lib)+' · réel / théorique</td>'+cells+'<td class="n jc-rt">'+(tn?'<b>R '+eur(arrondi(tr))+'</b><small>T '+eur(arrondi(tt))+'</small>':'—')+'</td></tr>';
-  };
-  const ligneEcartModeCaissier=(ca,op,lib,mode)=>{
-    let te=0,tn=0;
-    const cells=cols.map(c=>{ const x=calcModeCaissier(c.jours,ca,op,mode); te+=x.ec; tn+=x.n; if(!x.n) return '<td class="n pale">—</td>'; const col=Math.abs(x.ec)<0.004?'var(--vert)':(x.ec<0?'var(--rouge)':'var(--bleu)'); return '<td class="n" style="font-weight:700;color:'+col+'">'+signe(x.ec)+'</td>'; }).join('');
-    const col=Math.abs(te)<0.004?'var(--vert)':(te<0?'var(--rouge)':'var(--bleu)');
-    return '<tr class="jc-gap"><td class="fige jc-gap-label">Écart '+ech(lib)+'</td>'+cells+'<td class="n" style="font-weight:700;color:'+col+'">'+(tn?signe(arrondi(te)):'—')+'</td></tr>';
-  };
-
-  let corps='';
-  corps+=ligne("MONNAYEUR OUVERTURE",k=>journee(k).ouverture?nb(journee(k).ouverture.montant):0,"grp",false);
-  caisses.forEach(ca=>{
-    corps+=sep(ca.toUpperCase());
-    const ops=[...new Set(actifs.flatMap(k=>journee(k).comptages.filter(c=>c.caisse===ca).map(c=>(c.operateur||"Sans nom"))))].sort((a,b)=>a.localeCompare(b,"fr"));
-    ops.forEach(op=>{
-      corps+=ligneCaissier(ca,op);
-      [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
-        corps+=ligneModeCaissier(ca,op,lib,mode);
-        corps+=ligneEcartModeCaissier(ca,op,lib,mode);
-      });
-    });
-    if(journalDetail) [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
-      corps+=ligne("  "+lib+" — compté",k=>{
-        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
-          v+= mode==="tr"?nb(c.montantTR):(mode==="cv"?nb(c.montantCV):nb(c.cb)); });
-        return arrondi(v);
-      });
-      corps+=ligne("  "+lib+" — ticket Z",k=>{
-        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
-          v+= mode==="tr"?nb(c.trZ):(mode==="cv"?nb(c.cvZ):nb(c.cbZ)); });
-        return arrondi(v);
-      });
-    });
-    corps+=ligneEcart("  ÉCART "+ca,k=>{
-      let e=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ e+=ecartComptage(c).net; });
-      return arrondi(e);
-    });
-  });
-  corps+=sep("FERMETURE");
-  corps+=ligne("  Monnayeur fermeture",k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0,"",false);
-  corps+=ligne("  Retrait / remise",k=>nb(journee(k).retrait.montant));
-  corps+=ligne("  Espèces réelles",k=>bilan(k).especesReelles);
-  corps+=ligne("  Espèces ticket Z",k=>nb(journee(k).especesZ));
-  corps+=ligne("  CB saisi caisses",k=>bilan(k).cb);
-  corps+=ligne("  CB ticket Z",k=>bilan(k).cbZ);
-  corps+=ligne("  Télécollecte TPE",k=>bilan(k).tpe);
-  corps+=ligneEcart("  ÉCART TPE / CB saisi",k=>bilan(k).ecartTPE);
-  corps+=ligneEcart("  ÉCART CB GLOBAL",k=>arrondi(bilan(k).tpe-bilan(k).cbZ));
-  corps+=sep("CANAUX");
-  [["Click & Collect","cc"],["Borne","borne"],["Uber Eats","uber"],["Deliveroo","deliveroo"]].forEach(([l,k2])=>{
-    corps+=ligne("  "+l,k=>nb(journee(k).canaux[k2]));
-  });
-  corps+=sep("RÉSULTAT");
-  corps+=ligne("  CA RÉEL",k=>bilan(k).caReel,"grp");
-  corps+=ligne("  CA THÉORIQUE",k=>bilan(k).caTheo,"grp");
-  corps+='<tr class="ecart grp"><td class="fige">  MANQUANT RÉEL</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    const a=somme(c,k=>bilan(k).anormal);
-    return a>0.004?'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(a)+'</td>':'<td class="n" style="color:var(--vert)">0</td>';
-  }).join("")+'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(actifs.reduce((s,k)=>s+bilan(k).anormal,0))+'</td></tr>';
-  corps+='<tr class="ecart"><td class="fige">  EXCÉDENT NON-RENDU</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    const b=somme(c,k=>bilan(k).boni);
-    return '<td class="n" style="color:'+(b>0.004?"var(--bleu)":"var(--t3)")+'">'+(b>0.004?eur(b):"—")+'</td>';
-  }).join("")+'<td class="n" style="font-weight:700;color:var(--bleu)">'+eur(actifs.reduce((s,k)=>s+bilan(k).boni,0))+'</td></tr>';
-  corps+='<tr><td class="fige">  Nb titres TR / CV</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    let t=0,v=0; c.jours.forEach(k=>{ const b=bilan(k); t+=b.nTR; v+=b.nCV; });
-    return '<td class="n">'+(t||v?t+" / "+v:"—")+'</td>';
-  }).join("")+'<td class="n">'+actifs.reduce((s,k)=>s+bilan(k).nTR,0)+" / "+actifs.reduce((s,k)=>s+bilan(k).nCV,0)+'</td></tr>';
-
-  const totCA=actifs.reduce((s,k)=>s+bilan(k).caReel,0);
-  const totManq=actifs.reduce((s,k)=>s+bilan(k).anormal,0);
-  const nClo=actifs.filter(k=>journee(k).cloture).length;
-
-  return barrePeriode()+'<div class="stats">'+
-    stat("Journées renseignées",actifs.length,"","")+
-    stat("Chiffre d'affaires",eur(totCA),"","prim")+
-    stat("Manquant cumulé",eur(totManq),"",totManq>0?"ko":"ok")+
-    stat("Journées clôturées",nClo+" / "+actifs.length,"",nClo<actifs.length?"att":"ok")+
-  '</div>'+
-  '<div class="carte"><header><h2>Journal</h2>'+
-  '<div class="droite"><button class="btn neutre mini" data-act="journal-detail">'+
-  (journalDetail?"Masquer le détail":"Détail par mode")+'</button>'+
-  '<button class="btn neutre mini" data-act="export-csv">Exporter en CSV</button>'+
-  (peut("reglages")?'<button class="btn neutre mini" data-act="export-json">Sauvegarde</button>'+
-   '<button class="btn neutre mini" data-act="import-json">Restaurer</button>':"")+'</div></header>'+
-  (actifs.length?'<div class="grille-journal"><table class="journal">'+
-    '<thead>'+enTete+'</thead><tbody>'+corps+'</tbody></table></div>'
-   :'<div class="vide"><b>Aucune journée sur cette période</b></div>')+
-  '</div>'+
-  '<div class="carte"><header><h2>Détail des journées</h2></header>'+
-  (actifs.length?'<div class="tableau-scroll"><table><thead><tr><th>Date</th><th class="n">Caisses</th><th class="n">CA réel</th><th class="n">Manquant</th><th class="n">Excédent</th><th class="n">Photos</th><th>État</th><th></th></tr></thead><tbody>'+
-    actifs.slice().reverse().slice(0,60).map(k=>{
-      const d=journee(k), b=bilan(k), cc=controleComplet(k);
-      const et=d.cloture?'<span class="pil ok">Clôturée</span>':(cc.total&&cc.ok===cc.total?'<span class="pil att">À clôturer</span>':'<span class="pil neu">En cours</span>');
-      return '<tr><td><b>'+courteDate(k)+'</b></td>'+
-        '<td class="n">'+d.comptages.length+'</td><td class="n">'+eur(b.caReel)+'</td>'+
-        '<td class="n" style="font-weight:600;color:'+(b.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(b.anormal)+'</td>'+
-        '<td class="n" style="color:var(--bleu)">'+eur(b.boni)+'</td>'+
-        '<td class="n">'+cc.ok+"/"+cc.total+'</td><td>'+et+'</td>'+
-        '<td class="n"><button class="btn neutre mini" data-act="voir-jour" data-jour="'+k+'">Ouvrir</button></td></tr>';
-    }).join("")+'</tbody></table></div>':"")+'</div>'+
-  '<div class="carte"><header><h2>Historique détaillé des caisses</h2><p>Historique des saisies et corrections avec réel, théorique et écart par moyen de paiement.</p></header><div class="corps">'+historiqueJournalHTML(actifs)+'</div></div>';
+  /* Une seule logique métier Journal sur téléphone et ordinateur.
+     Le responsive gère seulement la présentation. */
+  return vueJournalMobile();
 }
 
 function vueAnalyse(){
@@ -3622,8 +3544,11 @@ async function agir(a,ds){
   }
   if(a==="mobile-nouveau-comptage"){ mobileRevueComptage=false; brouillon=neufComptage(); return peindreVue(); }
   if(a==="mobile-editer-comptage"){
-    const cible=(d.comptages||[]).find(c=>c.id===ds.id); if(!cible) return toast("Saisie introuvable.",true);
-    if(comptageVerrouille(cible)&&!estAdmin()) return toast("Cette caisse est vérifiée ou validée : modification réservée à l’administrateur.",true);
+    /* Relecture rapide avant édition : évite qu’un téléphone resté quelques secondes en retard
+       réouvre une caisse qui vient d’être vérifiée sur un autre appareil. */
+    if(syncActif){ try{ await tirerTout(); }catch(e){} }
+    const dd=journee(jour), cible=(dd.comptages||[]).find(c=>c.id===ds.id); if(!cible) return toast("Saisie introuvable.",true);
+    if(comptageVerrouille(cible)&&!estAdministrateur()) return toast("Cette caisse est vérifiée ou validée : modification réservée à l’administrateur.",true);
     mobileRevueComptage=false; brouillon=JSON.parse(JSON.stringify(cible)); return peindreVue();
   }
   if(a==="verifier-comptage"){
@@ -3633,9 +3558,13 @@ async function agir(a,ds){
   }
   if(a==="modifier-comptage-mobile"){ mobileRevueComptage=false; return peindreVue(); }
   if(a==="valider-comptage"){
-    if(d.cloture&&!estAdmin()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
-    const persiste=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
-    if(persiste&&comptageVerrouille(persiste)&&!estAdmin()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true);
+    /* Avant toute modification d’une saisie existante, on relit le serveur.
+       Ainsi une caisse vérifiée sur un autre appareil ne peut pas être réécrite avec un état local périmé. */
+    if(brouillon&&brouillon.id&&syncActif){ try{ await tirerTout(); }catch(e){} }
+    const dd=journeeEcr(jour);
+    if(dd.cloture&&!estAdministrateur()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
+    const persiste=brouillon&&brouillon.id?(dd.comptages||[]).find(c=>c.id===brouillon.id):null;
+    if(persiste&&comptageVerrouille(persiste)&&!estAdministrateur()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true);
     const pbs=problemesComptage(brouillon); if(pbs.length) return toast(pbs[0],true);
     const e=ecartComptage(brouillon);
     if(!brouillon.id){
@@ -3643,32 +3572,34 @@ async function agir(a,ds){
       (brouillon.justificatifs||[]).forEach(x=>{ x.cible=x.cible.replace(/:nouveau$/,":"+n); });
       brouillon.id=n; brouillon.at=maintenant(); brouillon.saisiPar=SESSION.nom;
       ajouterHistoriqueComptage(brouillon,"Saisie enregistrée",SESSION.nom,brouillon.at);
-      d.comptages.push(Object.assign({},brouillon));
+      dd.comptages.push(Object.assign({},brouillon));
       tracer("Comptage enregistré",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur+
         " · TR "+detailTR(brouillon).nb+" tit. · CV "+detailCV(brouillon).nb+" tit. · manquant "+eur(e.anormal)+
         (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     } else {
-      const i=d.comptages.findIndex(c=>c.id===brouillon.id);
-      const anc=d.comptages[i];
+      const i=dd.comptages.findIndex(c=>c.id===brouillon.id);
+      if(i<0) return toast("Cette saisie n’existe plus ou vient d’être supprimée.",true);
+      const anc=dd.comptages[i];
       const etaitVerrouille=comptageVerrouille(anc);
+      if(etaitVerrouille&&!estAdministrateur()) return toast("Cette caisse vient d’être vérifiée ou validée. Elle est désormais verrouillée.",true);
       const etaitValide=!!anc.valid;
       const maj=Object.assign({},brouillon,{modifiePar:SESSION.nom,modifieAt:maintenant()});
       delete maj.renvoi;
-      if(etaitVerrouille&&estAdmin()){
+      if(etaitVerrouille&&estAdministrateur()){
         if(anc.verif) maj.verif=anc.verif;
         if(anc.valid) maj.valid=anc.valid;
         maj.corrigeApresControle={par:SESSION.nom,at:maintenant(),statut:etaitValide?"valide":"verifie"};
       } else { delete maj.verif; delete maj.valid; }
       assurerHistoriqueInitial(anc);
       maj.historique=(anc.historique||[]).slice();
-      ajouterHistoriqueComptage(maj,etaitVerrouille&&estAdmin()?"Correction administrateur après contrôle":"Modification enregistrée",SESSION.nom,maj.modifieAt);
+      ajouterHistoriqueComptage(maj,etaitVerrouille&&estAdministrateur()?"Correction administrateur après contrôle":"Modification enregistrée",SESSION.nom,maj.modifieAt);
       if(anc.renvoi){
         const m=MESSAGES.find(x=>x.comptageId===anc.id&&!x.resolu);
         if(m){ m.resolu=true; m.resoluLe=maintenant(); ecrire(CLES.m,MESSAGES); }
-        pointsControle(jour).forEach(p=>{ if(d.controles[p.id]&&d.controles[p.id].etat==="refuse") delete d.controles[p.id]; });
+        pointsControle(jour).forEach(p=>{ if(dd.controles[p.id]&&dd.controles[p.id].etat==="refuse") delete dd.controles[p.id]; });
       }
-      d.comptages[i]=maj;
-      tracer(etaitVerrouille&&estAdmin()?"Correction administrateur après contrôle":"Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
+      dd.comptages[i]=maj;
+      tracer(etaitVerrouille&&estAdministrateur()?"Correction administrateur après contrôle":"Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
         (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     }
     const ancienneCaisse=brouillon.caisse, ancienService=brouillon.service;
@@ -3678,28 +3609,37 @@ async function agir(a,ds){
     brouillon.service=ancienService;
     await sauver();
     if(surMobile()) return retourAccueilMobile(e.anormal===0?"Caisse enregistrée.":"Caisse enregistrée · manquant "+eur(e.anormal)+".");
-    toast(e.anormal===0?"Enregistré. Caisse suivante.":"Enregistré avec "+eur(e.anormal)+" de manquant. Caisse suivante.");
-    return peindre();
+    toast(e.anormal===0?"Enregistré.":"Enregistré avec "+eur(e.anormal)+" de manquant.");
+    brouillon=null;
+    return aller("tableau");
   }
-  if(a==="voir-comptage"){ const c=d.comptages.find(c=>c.id===ds.id); if(!c) return; if(comptageVerrouille(c)&&!estAdmin()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true); brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage"); }
+  if(a==="voir-comptage"){
+    if(syncActif){ try{ await tirerTout(); }catch(e){} }
+    const dd=journee(jour), c=(dd.comptages||[]).find(c=>c.id===ds.id); if(!c) return;
+    if(comptageVerrouille(c)&&!estAdministrateur()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true);
+    brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage");
+  }
   if(a==="annuler-comptage"){ mobileRevueComptage=false; brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
   if(a==="supprimer-comptage"){
-    const cible=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
-    const autorise=surMobile()?!!cible&&(estAdmin()||(!comptageVerrouille(cible)&&peut("saisir"))):(!!cible&&(estAdmin()||(!comptageVerrouille(cible)&&peut("supprimer"))));
-    if(!autorise) return toast(comptageVerrouille(cible)?"Cette caisse est vérifiée ou validée : suppression réservée à l’administrateur.":"Droit « Supprimer un comptage » non accordé.",true);
+    if(brouillon&&brouillon.id&&syncActif){ try{ await tirerTout(); }catch(e){} }
+    const dd=journeeEcr(jour);
+    const cible=brouillon&&brouillon.id?(dd.comptages||[]).find(c=>c.id===brouillon.id):null;
+    const autorise=surMobile()?!!cible&&(estAdministrateur()||(!comptageVerrouille(cible)&&peut("saisir"))):(!!cible&&(estAdministrateur()||(!comptageVerrouille(cible)&&peut("supprimer"))));
+    if(!autorise) return toast(cible&&comptageVerrouille(cible)?"Cette caisse est vérifiée ou validée : suppression réservée à l’administrateur.":"Droit « Supprimer un comptage » non accordé.",true);
     if(!confirm("Supprimer cette saisie de caisse ?")) return;
     assurerHistoriqueInitial(cible);
     const supprimeAt=maintenant(), versions=(cible.historique||[]).slice();
     versions.push(snapshotComptage(cible,"Saisie supprimée",SESSION.nom,supprimeAt));
-    if(!Array.isArray(d.historiqueSupprimes)) d.historiqueSupprimes=[];
-    versions.forEach((vh,vi)=>d.historiqueSupprimes.push(Object.assign({},vh,{supprime:vi===versions.length-1,archiveSupprime:true,supprimeAt,supprimePar:SESSION.nom})));
-    if(d.historiqueSupprimes.length>300) d.historiqueSupprimes.splice(0,d.historiqueSupprimes.length-300);
-    d.comptages=d.comptages.filter(c=>c.id!==brouillon.id);
+    if(!Array.isArray(dd.historiqueSupprimes)) dd.historiqueSupprimes=[];
+    versions.forEach((vh,vi)=>dd.historiqueSupprimes.push(Object.assign({},vh,{supprime:vi===versions.length-1,archiveSupprime:true,supprimeAt,supprimePar:SESSION.nom})));
+    if(dd.historiqueSupprimes.length>300) dd.historiqueSupprimes.splice(0,dd.historiqueSupprimes.length-300);
+    dd.comptages=dd.comptages.filter(c=>c.id!==brouillon.id);
     tracer("Comptage supprimé",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur);
     mobileRevueComptage=false; brouillon=null; await sauver();
     if(surMobile()) return retourAccueilMobile("Saisie supprimée.");
     toast("Comptage supprimé."); return aller("tableau");
   }
+
   if(a==="verifier-fermeture"){
     memoriserFormulaireAvantDepot();
     const f=brouillonFerm, montant=nb(f.montant);
@@ -3714,7 +3654,7 @@ async function agir(a,ds){
   }
   if(a==="modifier-fermeture-mobile"){ mobileRevueFermeture=false; return peindreVue(); }
   if(a==="enregistrer-fermeture"){
-    if(d.cloture&&!estAdmin()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
+    if(d.cloture&&!estAdministrateur()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
     const correctionApresCloture=!!d.cloture;
     const f=brouillonFerm;
     const montant=nb(f.montant);
