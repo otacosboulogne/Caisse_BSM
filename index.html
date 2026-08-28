@@ -587,6 +587,7 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
 }
 
 /* V11 — rapprochement CB global + journal détaillé + historique des révisions */
+/* V16 — verrouillage définitif de la fermeture après confirmation du récapitulatif */
 .mobile-recap-cb{margin-top:9px;padding:10px 11px;border:1px solid var(--bord);border-radius:10px;background:var(--canvas);font-size:11px}
 .mobile-recap-cb .r{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
 .mobile-recap-cb .r span{color:var(--t2)} .mobile-recap-cb .r b{font-weight:700;text-align:right}
@@ -995,7 +996,7 @@ const DROITS=[
 ];
 const DROITS_DEFAUT={
   "Équipier":["saisir","fermer","photos"],
-  "Manager":["saisir","fermer","photos","corriger","pointer","verifier","supprimer","stock","analyse","audit"],
+  "Manager":["saisir","fermer","photos","corriger","pointer","verifier","supprimer","stock","journal","analyse","audit"],
   "Administrateur":DROITS.map(d=>d.c)
 };
 function droitsDe(c){
@@ -1122,6 +1123,10 @@ function estAdmin(){ return peut("valider"); }
 /* Les corrections d’une caisse déjà contrôlée sont réservées au rôle Administrateur,
    même si un autre compte reçoit ponctuellement le droit de valider. */
 function estAdministrateur(){ return !!(SESSION&&SESSION.role==="Administrateur"); }
+function fermetureVerrouillee(d){ return !!(d&&d.fermeture); }
+function peutModifierFermeture(d){ return estAdministrateur()||!fermetureVerrouillee(d); }
+function ciblesPhotosFermeture(){ return ["inv-soir","z-global","tpe1"].concat(P.deuxTPE?["tpe2"]:[]); }
+function photosFermetureCompletes(d){ return ciblesPhotosFermeture().every(k=>docsDe(d.justificatifs,k).length>0); }
 function nomsEquipe(){
   const s=new Set(P.equipiers||[]);
   COMPTES.filter(c=>c.actif!==false).forEach(c=>s.add(c.nom));
@@ -2364,6 +2369,24 @@ function majFermetureMobile(){
 function vueFermetureMobile(){
   const d=journee(jour);
   if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(d.fermeture&&!estAdministrateur()){
+    const ff=d.fermeture, rap=rapprochementFermeture({
+      montant:ff.montant, par:ff.par, especesZ:d.especesZ||0, apport:d.apport||0, tpe1:d.tpe1||0, tpe2:d.tpe2||0,
+      motif:d.motifFermeture||"", retrait:Object.assign({montant:0,bordereau:"",par:"",controlePar:""},d.retrait),
+      canaux:Object.assign({cc:0,borne:0,uber:0,deliveroo:0},d.canaux)
+    });
+    return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+      '<div class="mobile-status ok"><b>Fermeture confirmée et verrouillée ✓</b><br>'+eur(ff.montant)+' · '+ech(ff.confirmePar||ff.par||"—")+' · '+heureCourte(ff.confirmeAt||ff.at)+'</div>'+
+      '<div class="mobile-review-list" style="margin-top:11px">'+
+        ligneRevueMobile('Monnayeur fermeture',eur(nb(ff.montant)))+
+        ligneRevueMobile('Espèces ticket Z',eur(nb(d.especesZ)))+
+        ligneRevueMobile('Télécollecte TPE',eur(arrondi(nb(d.tpe1)+nb(d.tpe2))))+
+        ligneRevueMobile('Écart net après compensation',signe(rap.net)+' €',Math.abs(rap.net)>0.004?'warn':'ok')+
+      '</div>'+
+      '<div class="mobile-status att">Après confirmation, un équipier ou un manager ne peut plus modifier la fermeture. Seul un administrateur peut la corriger.</div>'+
+      '<div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div>'+
+    '</div></div></div>';
+  }
   if(d.cloture&&!estAdministrateur()) return '<div class="mobile-form"><div class="mobile-status ok">Journée clôturée par '+ech(d.cloture.par||"—")+'.</div><div class="mobile-status att">Les données sont verrouillées. Seul un administrateur peut les corriger.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
   if(!brouillonFerm) brouillonFerm={
     montant:d.fermeture?d.fermeture.montant:"", par:d.fermeture?d.fermeture.par:SESSION.nom,
@@ -2374,7 +2397,7 @@ function vueFermetureMobile(){
   const attenteControle=pbs.filter(x=>/validation|validée|validé|caisse\(s\)|pièce\(s\)/i.test(x));
   const rap=rapprochementFermeture(f), ecartJour=rap.pretGlobal&&rap.aCommenter;
   const peutClore=!d.cloture&&d.fermeture&&pbs.length===0&&peut("cloturer");
-  const photosCibles=["inv-soir","z-global","tpe1"].concat(P.deuxTPE?["tpe2"]:[]);
+  const photosCibles=ciblesPhotosFermeture();
   const nbPhotos=photosCibles.filter(k=>docsDe(d.justificatifs,k).length).length;
 
   if(mobileRevueFermeture){
@@ -2395,13 +2418,14 @@ function vueFermetureMobile(){
       blocRapprochementMobile(f)+
       (String(f.motif||'').trim()?'<div class="mobile-status"><b>Commentaire :</b> '+ech(String(f.motif).trim())+'</div>':'')+
       (peut("remises")&&(nb(f.apport)||nb(f.retrait.montant))?'<div class="mobile-status"><b>Mouvement de fonds :</b> apport '+eur(nb(f.apport))+' · retrait '+eur(nb(f.retrait.montant))+'</div>':'')+
-      '<div class="mobile-actions-sticky"><button class="btn" data-act="enregistrer-fermeture">'+(d.cloture&&estAdministrateur()?'Confirmer la correction':(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer'))+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier la saisie</button></div>'+
+      '<label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #D0D5DD;border-radius:11px;background:#F9FAFB;margin:12px 0 2px"><input type="checkbox" id="f-confirm-lock" style="width:20px;height:20px;flex:none;margin-top:1px"><span style="font-size:12px;line-height:1.45;color:#344054"><b>Je confirme avoir vérifié la fermeture.</b><br>Après cette confirmation, la fermeture sera verrouillée pour les équipiers et managers. Seul un administrateur pourra la corriger.</span></label>'+
+      '<div class="mobile-actions-sticky"><button class="btn" id="f-confirm-btn" data-act="enregistrer-fermeture" disabled>'+(d.cloture&&estAdministrateur()?'Confirmer la correction':(d.fermeture?'Confirmer la correction administrateur':'Confirmer et verrouiller'))+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier la saisie</button></div>'+
     '</div></div></div>';
   }
 
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
     (d.cloture&&estAdministrateur()?'<div class="mobile-admin-note">Journée clôturée : vous êtes en mode correction administrateur. Toute modification est tracée.</div>':'')+
-    (d.fermeture&&!d.cloture?'<div class="mobile-status ok">Fermeture déjà enregistrée. Vous pouvez encore la modifier tant que la journée n’est pas clôturée.</div>':'')+
+    (d.fermeture&&!d.cloture&&estAdministrateur()?'<div class="mobile-admin-note">Fermeture verrouillée : correction administrateur. Toute modification sera tracée.</div>':'')+
     '<div class="mobile-section-title">Monnayeur</div>'+
     '<label class="champ"><span>Total à la fermeture</span><input type="text" inputmode="decimal" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00"></label>'+
     zoneDepotMobile("inv-soir","Photo du monnayeur",d.justificatifs,true)+
@@ -2437,6 +2461,20 @@ function vueFermeture(){
   const d=journee(jour);
   if(!d.ouverture) return '<div class="carte"><div class="vide"><b>La journée n\'est pas ouverte</b>'+
     '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
+  if(d.fermeture&&!estAdministrateur()){
+    const ff=d.fermeture, rap=rapprochementFermeture({
+      montant:ff.montant, par:ff.par, especesZ:d.especesZ||0, apport:d.apport||0, tpe1:d.tpe1||0, tpe2:d.tpe2||0,
+      motif:d.motifFermeture||"", retrait:Object.assign({montant:0,bordereau:"",par:"",controlePar:""},d.retrait),
+      canaux:Object.assign({cc:0,borne:0,uber:0,deliveroo:0},d.canaux)
+    });
+    return '<div class="banniere ok"><span class="sym">🔒</span><div><b>Fermeture confirmée et verrouillée</b><p>Confirmée par '+ech(ff.confirmePar||ff.par||"—")+' · '+heureCourte(ff.confirmeAt||ff.at)+'. Seul un administrateur peut la corriger.</p></div></div>'+
+      '<div class="stats">'+
+        stat("Monnayeur fermeture",eur(nb(ff.montant)),"","")+
+        stat("Espèces ticket Z",eur(nb(d.especesZ)),"","")+
+        stat("Télécollecte TPE",eur(arrondi(nb(d.tpe1)+nb(d.tpe2))),"","")+
+        stat("Écart net compensé",signe(rap.net)+" €","TR + CV + CB + espèces",Math.abs(rap.net)>0.004?"att":"ok")+
+      '</div>';
+  }
   if(!brouillonFerm) brouillonFerm={
     montant:d.fermeture?d.fermeture.montant:"", par:d.fermeture?d.fermeture.par:SESSION.nom,
     especesZ:d.especesZ||"", apport:d.apport||"", tpe1:d.tpe1||"", tpe2:d.tpe2||"", motif:d.motifFermeture||"",
@@ -2466,7 +2504,8 @@ function vueFermeture(){
       '</tbody></table></div>'+
       '<div class="banniere '+(rap.aCommenter?"att":"ok")+'" style="margin-top:14px"><span class="sym">'+(rap.aCommenter?"!":"✓")+'</span><div><b>Rapprochement global : '+signe(rap.net)+' €</b><p>CB global '+signe(rap.cbGlobal)+' € · espèces '+signe(rap.especes)+' € · TR '+signe(rap.tr)+' € · CV '+signe(rap.cv)+' €</p></div></div>'+
       (String(f.motif||"").trim()?'<div class="banniere info" style="margin-top:12px"><span class="sym">i</span><div><b>Commentaire</b><p>'+ech(String(f.motif).trim())+'</p></div></div>':'')+
-      '<div class="actions" style="margin-top:16px"><button class="btn" data-act="enregistrer-fermeture">'+(d.fermeture?'Confirmer la mise à jour':'Confirmer et enregistrer')+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier</button></div>'+
+      '<label style="display:flex;gap:10px;align-items:flex-start;padding:13px 14px;border:1px solid var(--bord-fort);border-radius:10px;background:#F9FAFB;margin-top:14px"><input type="checkbox" id="f-confirm-lock" style="width:19px;height:19px;flex:none;margin-top:1px"><span style="font-size:13px;line-height:1.5"><b>Je confirme avoir vérifié la fermeture.</b><br><span class="aide">Après confirmation, équipiers et managers ne pourront plus la modifier. Seul un administrateur pourra effectuer une correction.</span></span></label>'+
+      '<div class="actions" style="margin-top:16px"><button class="btn" id="f-confirm-btn" data-act="enregistrer-fermeture" disabled>'+(d.fermeture?'Confirmer la correction administrateur':'Confirmer et verrouiller')+'</button><button class="btn neutre" data-act="modifier-fermeture-mobile">Modifier</button></div>'+
       '</div></div>';
   }
 
@@ -3263,6 +3302,7 @@ function surSaisie(e){
 
 function surChangement(e){
   const el=e.target, id=el.id;
+  if(id==="f-confirm-lock"){ const b=document.getElementById("f-confirm-btn"); if(b) b.disabled=!el.checked; return; }
   if(id==="s-role"){ const w=document.getElementById("w-code"); if(w) w.style.display=el.value==="Administrateur"?"flex":"none"; return; }
   if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; brouillonOuv=null; mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false; if(surMobile()) mobileAccueil=true; return peindre(); }
   if(id==="s-du"){ filtreDu=el.value; return peindreVue(); }
@@ -3641,6 +3681,7 @@ async function agir(a,ds){
   }
 
   if(a==="verifier-fermeture"){
+    if(d.fermeture&&!estAdministrateur()) return toast("Fermeture déjà confirmée : elle est verrouillée. Seul un administrateur peut la corriger.",true);
     memoriserFormulaireAvantDepot();
     const f=brouillonFerm, montant=nb(f.montant);
     if(String(f.montant==null?"":f.montant).trim()==="") return toast("Saisissez le total du monnayeur.",true);
@@ -3648,21 +3689,29 @@ async function agir(a,ds){
     if(!f.par) return toast("Indiquez qui a fait la fermeture.",true);
     if(String(f.tpe1==null?"":f.tpe1).trim()==="") return toast("Saisissez la télécollecte du TPE 1.",true);
     if(P.deuxTPE&&String(f.tpe2==null?"":f.tpe2).trim()==="") return toast("Saisissez la télécollecte du TPE 2.",true);
+    if(!photosFermetureCompletes(d)) return toast("Ajoutez toutes les photos de fermeture avant de passer au récapitulatif.",true);
     const r=rapprochementFermeture(f);
     if(r.pretGlobal&&r.aCommenter&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart, la compensation ou le contrôle CB.",true);
     mobileRevueFermeture=true; return peindreVue();
   }
-  if(a==="modifier-fermeture-mobile"){ mobileRevueFermeture=false; return peindreVue(); }
+  if(a==="modifier-fermeture-mobile"){
+    if(d.fermeture&&!estAdministrateur()) return toast("Fermeture verrouillée : modification réservée à l’administrateur.",true);
+    mobileRevueFermeture=false; return peindreVue();
+  }
   if(a==="enregistrer-fermeture"){
+    if(d.fermeture&&!estAdministrateur()) return toast("Fermeture déjà confirmée : modification réservée à l’administrateur.",true);
     if(d.cloture&&!estAdministrateur()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
-    const correctionApresCloture=!!d.cloture;
+    const confirme=document.getElementById("f-confirm-lock");
+    if(!confirme||!confirme.checked) return toast("Cochez la confirmation après avoir vérifié le récapitulatif.",true);
+    const correctionApresCloture=!!d.cloture, correctionAdmin=!!d.fermeture&&estAdministrateur();
     const f=brouillonFerm;
     const montant=nb(f.montant);
     if(!montant) return toast("Saisissez le total du monnayeur.",true);
     if(!f.par) return toast("Indiquez qui a fait la fermeture.",true);
     const rapSauve=rapprochementFermeture(f);
     if(rapSauve.pretGlobal&&rapSauve.aCommenter&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart, la compensation ou le contrôle CB avant d’enregistrer.",true);
-    d.fermeture={montant,par:f.par,at:maintenant()};
+    const atFerm=maintenant();
+    d.fermeture={montant,par:f.par,at:atFerm,verrouille:true,confirmePar:SESSION.nom,confirmeAt:atFerm};
     d.especesZ=nb(f.especesZ); d.tpe1=nb(f.tpe1); d.tpe2=nb(f.tpe2);
     if(peut("remises")){
       d.apport=nb(f.apport);
@@ -3670,17 +3719,22 @@ async function agir(a,ds){
     }
     d.canaux={cc:nb(f.canaux.cc),borne:nb(f.canaux.borne),uber:nb(f.canaux.uber),deliveroo:nb(f.canaux.deliveroo)};
     d.motifFermeture=String(f.motif||"").trim();
-    tracer(correctionApresCloture?"Correction administrateur de fermeture":"Fermeture enregistrée",courteDate(jour)+" · monnayeur "+eur(montant)+" · "+f.par+
-      (nb(f.retrait.montant)>0?" · retrait "+eur(f.retrait.montant)+" bord. "+(f.retrait.bordereau||"MANQUANT"):""));
+    tracer((correctionApresCloture||correctionAdmin)?"Correction administrateur de fermeture":"Fermeture confirmée et verrouillée",courteDate(jour)+" · monnayeur "+eur(montant)+" · "+f.par+
+      (nb(f.retrait.montant)>0?" · retrait "+eur(nb(f.retrait.montant))+" bord. "+(f.retrait.bordereau||"MANQUANT"):""));
     mobileRevueFermeture=false; await sauver();
-    if(surMobile()) return retourAccueilMobile(correctionApresCloture?"Correction administrateur enregistrée.":"Fermeture enregistrée.");
-    toast(correctionApresCloture?"Correction administrateur enregistrée.":"Fermeture enregistrée."); return peindre();
+    if(surMobile()) return retourAccueilMobile((correctionApresCloture||correctionAdmin)?"Correction administrateur enregistrée.":"Fermeture confirmée et verrouillée.");
+    toast((correctionApresCloture||correctionAdmin)?"Correction administrateur enregistrée.":"Fermeture confirmée et verrouillée."); return peindre();
   }
   if(a==="cloturer"){
     if(d.cloture) return toast("La journée est déjà clôturée.",true);
     if(!peut("cloturer")) return toast("Droit « Clôturer la journée » non accordé.",true);
     if(!toutValide(jour)) return toast(surMobile()?"Fermeture enregistrée. Le contrôle des caisses doit être finalisé sur ordinateur.":"Toutes les caisses doivent être validées avant la clôture.",true);
-    const f=brouillonFerm, b=bilan(jour);
+    const f=brouillonFerm||{
+      montant:d.fermeture?d.fermeture.montant:"", par:d.fermeture?d.fermeture.par:SESSION.nom,
+      especesZ:d.especesZ||"", apport:d.apport||"", tpe1:d.tpe1||"", tpe2:d.tpe2||"", motif:d.motifFermeture||"",
+      retrait:Object.assign({montant:"",bordereau:"",par:"",controlePar:""},d.retrait),
+      canaux:Object.assign({cc:"",borne:"",uber:"",deliveroo:""},d.canaux)
+    }, b=bilan(jour);
     const pbs=problemesFermeture(f,d.fermeture?nb(d.fermeture.montant):0);
     if(pbs.length) return toast(pbs[0],true);
     d.cloture={par:SESSION.nom,at:maintenant()}; d.statut="cloture";
