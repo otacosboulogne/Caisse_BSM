@@ -2778,6 +2778,30 @@ function vueJournalMobile(){
   };
 
   const ligneSimpleReel=(nom,reelFn,cl)=>lignePaire(nom,()=>0,reelFn,cl);
+  // Fermeture et Canaux : une seule cellule par journée (pas de découpage Théorique / Réel).
+  // La cellule occupe les deux sous-colonnes de la journée pour garder l'alignement du tableau.
+  const ligneUneColonneJour=(nom,fn,cl)=>{
+    let total=0,has=false;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return '<td colspan="2" class="n pale j-gap-pair">—</td>';
+      const v=somme(c.jours,fn); total+=v; has=true;
+      return '<td colspan="2" class="n j-gap-pair">'+(Math.abs(v)>0.004?eur(v):'0,00 €')+'</td>';
+    }).join('');
+    return '<tr class="'+(cl||'')+'"><td class="fige">'+nom+'</td>'+cells+
+      '<td colspan="2" class="n j-gap-pair j-gap-total">'+(has?eur(arrondi(total)):'—')+'</td></tr>';
+  };
+  const ligneEcartUneColonneJour=(nom,fn,cl)=>{
+    let total=0,has=false;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return '<td colspan="2" class="n pale j-gap-pair">—</td>';
+      const e=somme(c.jours,fn); total+=e; has=true;
+      const h=Math.abs(e)<=0.004?'<span class="j-zero">0,00 €</span>':'<span class="'+(e<0?'j-neg':'j-pos')+'">'+signe(e)+' €</span>';
+      return '<td colspan="2" class="n j-gap-pair">'+h+'</td>';
+    }).join('');
+    const ht=!has?'—':(Math.abs(total)<=0.004?'<span class="j-zero">0,00 €</span>':'<span class="'+(total<0?'j-neg':'j-pos')+'">'+signe(arrondi(total))+' €</span>');
+    return '<tr class="ecart '+(cl||'')+'"><td class="fige">'+nom+'</td>'+cells+
+      '<td colspan="2" class="n j-gap-pair j-gap-total">'+ht+'</td></tr>';
+  };
   const ligneGapPaire=(nom,theoFn,reelFn,absFn,cl)=>{
     let nTot=0,aTot=0,has=false;
     const cells=cols.map(c=>{
@@ -2808,19 +2832,21 @@ function vueJournalMobile(){
   });
 
   corps+=sep('FERMETURE');
-  corps+=lignePaire('  Monnayeur fermeture',k=>{
-    const d=journee(k); if(!d.ouverture) return 0;
-    return arrondi(nb(d.ouverture.montant)+nb(d.apport)-nb(d.retrait&&d.retrait.montant)+nb(d.especesZ));
-  },k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0);
-  corps+=lignePaire('  Espèces',k=>nb(journee(k).especesZ),k=>bilan(k).especesReelles);
-  corps+=lignePaire('  Carte bancaire globale',k=>bilan(k).cbZ,k=>bilan(k).tpe,'grp');
-  corps+=lignePaire('  Contrôle CB caisses / TPE',k=>bilan(k).cb,k=>bilan(k).tpe);
-  corps+=ligneGapPaire('  ÉCART CB GLOBAL',k=>bilan(k).cbZ,k=>bilan(k).tpe,null,'grp');
-  corps+=ligneSimpleReel('  Retrait / remise',k=>nb(journee(k).retrait.montant));
+  // Ici, une seule valeur par journée : aucune sous-colonne Théorique / Réel.
+  corps+=ligneUneColonneJour('  Monnayeur fermeture',k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0);
+  corps+=ligneUneColonneJour('  Retrait / remise',k=>nb(journee(k).retrait.montant));
+  corps+=ligneUneColonneJour('  Espèces réelles',k=>bilan(k).especesReelles);
+  corps+=ligneUneColonneJour('  Espèces ticket Z',k=>nb(journee(k).especesZ));
+  corps+=ligneUneColonneJour('  CB saisi caisses',k=>bilan(k).cb);
+  corps+=ligneUneColonneJour('  CB ticket Z',k=>bilan(k).cbZ);
+  corps+=ligneUneColonneJour('  Télécollecte TPE',k=>bilan(k).tpe,'grp');
+  corps+=ligneEcartUneColonneJour('  ÉCART TPE / CB saisi',k=>arrondi(bilan(k).tpe-bilan(k).cb));
+  corps+=ligneEcartUneColonneJour('  ÉCART CB GLOBAL',k=>arrondi(bilan(k).tpe-bilan(k).cbZ),'grp');
 
   corps+=sep('CANAUX');
+  // Les canaux sont des montants saisis : une seule colonne par journée suffit.
   [['Click & Collect','cc'],['Borne','borne'],['Uber Eats','uber'],['Deliveroo','deliveroo']].forEach(([l,k2])=>{
-    corps+=ligneSimpleReel('  '+l,k=>nb(journee(k).canaux[k2]));
+    corps+=ligneUneColonneJour('  '+l,k=>nb(journee(k).canaux[k2]));
   });
 
   corps+=sep('RÉSULTAT');
@@ -2839,7 +2865,7 @@ function vueJournalMobile(){
     stat('Manquant cumulé',eur(totManq),'',totManq>0?'ko':'ok')+
     stat('Journées clôturées',nClo+' / '+actifs.length,'',nClo<actifs.length?'att':'ok')+
   '</div>'+ 
-  '<div class="carte"><header><h2>Journal</h2><p>Chaque journée est séparée en Théorique / Réel. L’écart compensé de chaque équipier additionne TR + chèques-vacances + carte bancaire.</p>'+ 
+  '<div class="carte"><header><h2>Journal</h2><p>Les caisses sont séparées en Théorique / Réel. Fermeture et Canaux affichent une seule valeur par journée. L’écart compensé de chaque équipier additionne TR + chèques-vacances + carte bancaire.</p>'+ 
   '<div class="droite"><button class="btn neutre mini" data-act="export-csv">Exporter en CSV</button>'+ 
   (peut('reglages')?'<button class="btn neutre mini" data-act="export-json">Sauvegarde</button><button class="btn neutre mini" data-act="import-json">Restaurer</button>':'')+'</div></header>'+ 
   (actifs.length?'<div class="grille-journal"><table class="journal journal-paires"><thead>'+enTete+'</thead><tbody>'+corps+'</tbody></table></div>':'<div class="vide"><b>Aucune journée sur cette période</b></div>')+
