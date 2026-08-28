@@ -1068,6 +1068,23 @@ const QUESTIONS=[
 let P=JSON.parse(JSON.stringify(PARAMS_DEFAUT));
 let COMPTES=[], J={}, AUDIT=[], REMISES=[], MESSAGES=[];
 let SESSION=null, dernierGeste=Date.now();
+const CLE_SESSION_ONGLET="caisse:session-onglet:v1";
+function memoriserSessionOnglet(){
+  try{
+    if(SESSION) sessionStorage.setItem(CLE_SESSION_ONGLET,JSON.stringify({id:SESSION.id,at:Date.now()}));
+    else sessionStorage.removeItem(CLE_SESSION_ONGLET);
+  }catch(e){}
+}
+function restaurerSessionOnglet(){
+  if(SESSION) return true;
+  try{
+    const brut=sessionStorage.getItem(CLE_SESSION_ONGLET); if(!brut) return false;
+    const x=JSON.parse(brut), c=COMPTES.find(v=>v.id===x.id&&v.actif!==false);
+    if(!c){ sessionStorage.removeItem(CLE_SESSION_ONGLET); return false; }
+    SESSION={id:c.id,nom:c.nom,email:c.email,role:c.role,depuis:maintenant()};
+    dernierGeste=Date.now(); return true;
+  }catch(e){ return false; }
+}
 let vue="tableau", jour=isoAujourdhui();
 let brouillon=null, brouillonFerm=null, brouillonRemise=null, brouillonOuv=null;
 let cibleDepot=null, modale=null;
@@ -1083,7 +1100,16 @@ let lienDrive={classeur:"",dossier:""};
 let dernierLien="";
 
 function isoAujourdhui(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
-function decale(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function dateISOValide(iso){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||""));
+  if(!m) return false;
+  const y=+m[1],mo=+m[2],j=+m[3],d=new Date(y,mo-1,j,12,0,0);
+  return d.getFullYear()===y&&d.getMonth()===mo-1&&d.getDate()===j;
+}
+function decale(iso,n){
+  if(!dateISOValide(iso)) iso=isoAujourdhui();
+  const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10);
+}
 function jolieDate(iso){
   if(!iso) return "—";
   const d=new Date(iso+"T12:00:00");
@@ -1196,6 +1222,7 @@ function responsableService(service){
 }
 function ouvrirSession(c){
   SESSION={id:c.id, nom:c.nom, email:c.email, role:c.role, depuis:maintenant()};
+  memoriserSessionOnglet();
   c.dernierAcces=maintenant(); ecrire(CLES.c,COMPTES);
   dernierGeste=Date.now(); ecranAuth="connexion"; authErr=""; authOk="";
   vue = (!surMobile()&&droitsDe(c).indexOf("verifier")>=0) ? "validation" : "tableau";
@@ -1206,7 +1233,7 @@ function ouvrirSession(c){
 }
 function fermerSession(auto){
   if(SESSION) tracer("Déconnexion", SESSION.nom+(auto?" · verrouillage automatique":""));
-  SESSION=null; brouillon=null; brouillonFerm=null; brouillonRemise=null; modale=null;
+  SESSION=null; memoriserSessionOnglet(); brouillon=null; brouillonFerm=null; brouillonRemise=null; modale=null;
   ecranAuth="connexion"; authErr=auto?"Session fermée après inactivité. Reconnectez-vous.":""; authOk="";
   peindre();
 }
@@ -3358,7 +3385,9 @@ function surClic(e){
   if(!t||t.disabled) return;
   const j=t.dataset||{};
   if(t.id==="j-prec"||t.id==="j-suiv"){
-    jour=decale(jour,t.id==="j-prec"?-1:1); brouillon=null; brouillonFerm=null; return peindre();
+    const nv=decale(jour,t.id==="j-prec"?-1:1);
+    const el=document.getElementById("j-date"); if(el) el.value=nv;
+    return changerDatePrincipale(el||{value:nv});
   }
   if(t.id==="m-home") return retourAccueilMobile();
   if(t.id==="deco") return fermerSession(false);
@@ -3448,11 +3477,33 @@ function surSaisie(e){
   }
 }
 
+function changerDatePrincipale(el){
+  const nv=String(el&&el.value||"").trim();
+  if(!dateISOValide(nv)){
+    if(el) el.value=jour;
+    toast("Date invalide. Choisissez une date dans le calendrier.",true);
+    return;
+  }
+  if(nv===jour) return;
+  jour=nv; brouillon=null; brouillonFerm=null; brouillonOuv=null;
+  mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false;
+  validationOuverteId=""; pieceActive=""; indexValid=0;
+  if(surMobile()){
+    mobileAccueil=true;
+    const lab=el&&el.closest?el.closest(".mobile-date-pill"):null;
+    const sp=lab?lab.querySelector("span"):null; if(sp) sp.textContent="📅 "+dateMobile(jour);
+  }
+  /* Ne pas reconstruire toute la coque de l'application à la fermeture du picker de date.
+     C'était le point fragile qui pouvait donner l'impression d'une déconnexion/reset sur Safari/iPhone. */
+  peindreVue();
+  dernierGeste=Date.now();
+}
+
 function surChangement(e){
   const el=e.target, id=el.id;
   if(id==="f-confirm-lock"){ const b=document.getElementById("f-confirm-btn"); if(b) b.disabled=!el.checked; return; }
   if(id==="s-role"){ const w=document.getElementById("w-code"); if(w) w.style.display=el.value==="Administrateur"?"flex":"none"; return; }
-  if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; brouillonOuv=null; mobileRevueInventaire=false; mobileRevueComptage=false; mobileRevueFermeture=false; if(surMobile()) mobileAccueil=true; return peindre(); }
+  if(id==="j-date") return changerDatePrincipale(el);
   if(id==="s-du"){ filtreDu=el.value; return peindreVue(); }
   if(id==="s-au"){ filtreAu=el.value; return peindreVue(); }
   if(id==="r-libre") return basculerInscription(el.checked);
@@ -4233,10 +4284,11 @@ document.getElementById("entree-restaure").addEventListener("change",e=>{
   const loc=await lire("caisse:serveur",null);
   if(loc&&loc.url) cfgServeur=loc;
   await chargerLocal();
+  restaurerSessionOnglet();
   if(COMPTES.length){ ecranAuth="connexion"; peindre(); }
   else if(!cfgServeur.url){ ecranAuth="base"; peindre(); }
   if(cfgServeur.url){
-    try{ await tirerTout(); syncActif=true; }
+    try{ await tirerTout(); syncActif=true; if(!SESSION) restaurerSessionOnglet(); }
     catch(e){
       syncActif=false; syncEtat="erreur"; syncErreur=e.message;
       if(!COMPTES.length){ ecranAuth="base"; authErr="Base injoignable : "+e.message; }
