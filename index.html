@@ -365,6 +365,47 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .periode .aide{width:100%;margin-left:0!important}
   .grille-journal,.tableau-scroll{max-width:100%;overscroll-behavior-x:contain}
   table.journal{min-width:max-content}
+
+  /* Interface mobile allégée */
+  .topbar{min-height:48px;padding-top:max(6px,env(safe-area-inset-top));padding-bottom:6px}
+  .topbar .moi-mobile{display:none!important}
+  .topbar h1{flex:1;font-size:16px;white-space:nowrap}
+  .topbar .dates{gap:0}
+  .topbar .dates button{display:none!important}
+  .topbar input[type=date]{width:126px;border:0;background:transparent;box-shadow:none;padding:5px 2px;text-align:right}
+  .sync{margin-left:0;font-size:11px;padding:4px 7px;white-space:nowrap}
+  .contenu{padding:9px 10px 18px}
+  .mobile-home{max-width:560px;margin:0 auto}
+  .mobile-home .jour-mobile{font-size:12px;color:var(--t2);margin:2px 2px 12px}
+  .mobile-menu{display:grid;gap:9px}
+  .mobile-menu button{width:100%;min-height:68px;background:var(--surface);border:1px solid var(--bord);border-radius:13px;box-shadow:var(--ombre);padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--t1);font:inherit}
+  .mobile-menu button:active{transform:scale(.99)}
+  .mobile-menu .mi{width:40px;height:40px;border-radius:11px;background:var(--prim-tint);color:var(--prim);display:grid;place-items:center;font-size:19px;flex:none}
+  .mobile-menu .ml{min-width:0;flex:1}
+  .mobile-menu .ml b{display:block;font-size:15px}
+  .mobile-menu .ml span{display:block;color:var(--t2);font-size:12px;margin-top:2px}
+  .mobile-menu .chev{color:var(--t3);font-size:22px}
+  .mobile-home .deco-mobile{margin:16px auto 4px;display:flex;justify-content:center}
+  .mobile-form{max-width:560px;margin:0 auto}
+  .mobile-form .carte{box-shadow:none;margin-bottom:9px;border-radius:11px}
+  .mobile-form .carte>header{padding:10px 12px}
+  .mobile-form .carte>header h2{font-size:14px}
+  .mobile-form .carte .corps{padding:10px 12px}
+  .mobile-form .champ{gap:4px}
+  .mobile-form .champ span{font-size:12px}
+  .mobile-form input,.mobile-form select,.mobile-form textarea{padding:9px 10px!important}
+  .mobile-form textarea{min-height:78px}
+  .mobile-form .actions{gap:8px;margin-top:10px!important}
+  .mobile-form .actions .btn{flex:1}
+  .mobile-paire{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mobile-triple{display:grid;grid-template-columns:76px 1fr 1fr;gap:8px}
+  .mobile-mini-note{font-size:11.5px;color:var(--t2);margin-top:7px}
+  .mobile-form details{background:var(--surface);border:1px solid var(--bord);border-radius:11px;margin-bottom:9px}
+  .mobile-form details>summary{padding:12px;font-weight:600;cursor:pointer}
+  .mobile-form details>.corps{padding:0 12px 12px}
+  .mobile-form .depot{padding:10px;margin-top:8px}
+  .mobile-form .depot p{font-size:11.5px}
+  .mobile-form .preuve{width:100%}
 }
 @media(max-width:380px){
   .rail nav{padding-left:4px;padding-right:4px;gap:2px}
@@ -377,6 +418,82 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   .g2.serre,.g4.serre{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+/* ===== Mobile V3 — interface épurée iPhone / Android ===== */
+@media (max-width:900px), (hover:none) and (pointer:coarse){
+  html,body{min-height:100%;height:auto;overflow-x:hidden;background:#F5F6F8}
+  body{overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .app-mobile{display:block!important;height:auto!important;min-height:100dvh;background:#F5F6F8}
+  .app-mobile .zone{display:block;min-height:100dvh;overflow:visible!important}
+  .app-mobile .contenu{display:block;overflow:visible!important;min-height:auto;padding:14px 14px calc(30px + env(safe-area-inset-bottom));background:#F5F6F8}
+
+  .mobile-appbar{position:sticky;top:0;z-index:120;background:rgba(255,255,255,.96);-webkit-backdrop-filter:saturate(180%) blur(18px);backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid #E4E7EC;padding:max(10px,env(safe-area-inset-top)) 14px 10px}
+  .mobile-appbar-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;min-height:40px}
+  .mobile-back{border:0;background:#F2F4F7;color:#344054;border-radius:10px;min-width:42px;height:40px;padding:0 11px;font:600 13px/1 system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;gap:4px}
+  .mobile-back:active{transform:scale(.98)}
+  .mobile-app-title{min-width:0}
+  .mobile-app-title b{display:block;color:#101828;font-size:17px;line-height:1.15;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-app-title small{display:block;color:#98A2B3;font-size:10.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-appbar .sync{margin:0!important;width:34px;height:34px;padding:0!important;border-radius:10px;justify-content:center;gap:0;border-width:1px}
+  .mobile-appbar .sync i{width:8px;height:8px}
+  .mobile-appbar .sync .sync-texte{display:none!important}
+  .mobile-date-pill{position:relative;margin-top:8px;height:34px;border:1px solid #EAECF0;background:#F9FAFB;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#475467;font-size:12.5px;font-weight:600;overflow:hidden}
+  .mobile-date-pill input{position:absolute;inset:0;width:100%!important;height:100%;opacity:0;cursor:pointer;padding:0!important;border:0!important}
+
+  .mobile-home{max-width:520px;margin:0 auto;padding-top:2px}
+  .mobile-home .jour-mobile{display:none}
+  .mobile-home-intro{padding:4px 2px 13px}
+  .mobile-home-intro b{display:block;font-size:21px;color:#101828;letter-spacing:-.02em}
+  .mobile-home-intro span{display:block;color:#667085;font-size:12.5px;margin-top:4px}
+  .mobile-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mobile-menu button{min-height:104px!important;border:1px solid #EAECF0!important;border-radius:15px!important;box-shadow:0 2px 8px rgba(16,24,40,.05)!important;padding:14px!important;display:block!important;position:relative;background:#fff!important}
+  .mobile-menu .mi{width:38px!important;height:38px!important;border-radius:10px!important;margin-bottom:11px;font-size:17px!important}
+  .mobile-menu .ml b{font-size:15px!important;color:#101828}
+  .mobile-menu .ml span{font-size:11.5px!important;line-height:1.3;margin-top:4px!important;color:#667085!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mobile-menu .chev{position:absolute;right:12px;top:13px;font-size:18px!important;color:#D0D5DD!important}
+  .mobile-home .deco-mobile{margin:18px 0 0!important}
+  .mobile-home .deco-mobile .btn{border:0;background:transparent;box-shadow:none;color:#667085;min-height:38px}
+
+  .mobile-form{max-width:520px;margin:0 auto}
+  .mobile-form .carte,.mobile-sheet{background:#fff;border:1px solid #EAECF0;border-radius:15px;box-shadow:0 2px 8px rgba(16,24,40,.045);margin:0 0 10px;overflow:hidden}
+  .mobile-form .carte>header{padding:12px 14px;border-bottom:1px solid #F2F4F7}
+  .mobile-form .carte>header h2{font-size:14px;color:#101828}
+  .mobile-form .carte .corps,.mobile-sheet-body{padding:14px}
+  .mobile-form label.champ{gap:5px}
+  .mobile-form label.champ>span{font-size:11.5px;color:#667085;font-weight:600}
+  .mobile-form input,.mobile-form select,.mobile-form textarea{min-height:44px;padding:10px 11px!important;border-radius:10px!important;border-color:#D0D5DD!important;background:#fff!important;color:#101828;font-size:16px!important;box-shadow:none!important}
+  .mobile-form textarea{min-height:76px!important;resize:vertical}
+  .mobile-paire{grid-template-columns:1fr 1fr;gap:9px}
+  .mobile-triple{grid-template-columns:56px 1fr 1fr;gap:7px}
+  .mobile-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.055em;color:#98A2B3;margin:15px 0 8px}
+  .mobile-section-title:first-child{margin-top:0}
+  .mobile-divider{height:1px;background:#F2F4F7;margin:14px 0}
+  .mobile-piece{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #F2F4F7;margin-top:11px}
+  .mobile-piece b{display:block;font-size:12.5px;color:#344054}
+  .mobile-piece span{display:block;font-size:11px;color:#98A2B3;margin-top:2px}
+  .mobile-piece.ok span{color:#07874F}
+  .mobile-piece .btn{min-height:38px!important;padding:7px 10px!important;white-space:nowrap}
+  .mobile-form details{border:1px solid #EAECF0!important;border-radius:13px!important;background:#fff!important;margin-bottom:10px!important;box-shadow:none!important}
+  .mobile-form details>summary{padding:12px 14px!important;color:#475467;font-size:13px}
+  .mobile-form details>.corps{padding:2px 14px 14px!important}
+  .mobile-actions-sticky{position:sticky;bottom:0;z-index:40;background:linear-gradient(to top,#F5F6F8 72%,rgba(245,246,248,0));padding:14px 0 calc(8px + env(safe-area-inset-bottom));margin-top:4px}
+  .mobile-actions-sticky .btn{width:100%;min-height:48px;justify-content:center;border-radius:11px;font-size:15px}
+  .mobile-actions-sticky .btn+ .btn{margin-top:8px}
+  .mobile-status{border-radius:11px;padding:10px 12px;background:#F9FAFB;border:1px solid #EAECF0;font-size:12px;color:#475467;line-height:1.4;margin-bottom:10px}
+  .mobile-status.ok{background:#ECFDF3;border-color:#ABEFC6;color:#067647}
+  .mobile-status.att{background:#FFFAEB;border-color:#FEDF89;color:#93370D}
+  .mobile-inline-error{font-size:12px;color:#B42318;background:#FEF3F2;border:1px solid #FECDCA;padding:9px 10px;border-radius:9px;margin-top:10px}
+
+  /* Le shell desktop et la barre basse ne doivent jamais apparaître sur téléphone. */
+  .app-mobile .rail,.app-mobile .topbar{display:none!important}
+}
+@media (max-width:390px){
+  .mobile-menu{grid-template-columns:1fr 1fr;gap:8px}
+  .mobile-menu button{min-height:98px!important;padding:12px!important}
+  .mobile-app-title b{font-size:16px}
+  .mobile-paire{grid-template-columns:1fr}
+}
 
 </style>
 
@@ -515,7 +632,7 @@ function resteAEnvoyer(){
 function planifier(){
   if(!syncActif) return;
   clearTimeout(minuteur);
-  minuteur=setTimeout(vider,700);
+  minuteur=setTimeout(vider,surMobile()?35:180);
   majPastilleSync();
 }
 function majPastilleSync(){
@@ -541,14 +658,23 @@ async function vider(){
   enAttente={journal:false, listes:{}, audit:[], params:false, photos:[]};
   joursModifies.clear();
   try{
+    /* Les données texte partent avant les photos : elles apparaissent immédiatement sur les autres appareils. */
+    if(ops.length){
+      const r=await appelServeur({action:"lot",operations:ops});
+      syncVersion=r.version; versionSoi=r.version;
+    }
     for(const ph of photos){
       const r=await appelServeur({action:"photo",id:ph.id,donnee:ph.dataUrl,meta:ph.meta});
       if(r.driveId) marquerDrive(ph.id,r.driveId,r.lien);
       syncVersion=r.version; versionSoi=r.version;
     }
-    if(ops.length){
-      const r=await appelServeur({action:"lot",operations:ops});
-      syncVersion=r.version; versionSoi=r.version;
+    /* Après l’envoi des photos, renvoyer seulement les journées déjà poussées pour y associer les liens Drive. */
+    if(photos.length){
+      const jo=ops.filter(o=>o.type==="journal");
+      if(jo.length){
+        const r=await appelServeur({action:"lot",operations:jo});
+        syncVersion=r.version; versionSoi=r.version;
+      }
     }
     syncEtat="ok"; syncErreur="";
   }catch(e){
@@ -556,7 +682,7 @@ async function vider(){
     if(ops.some(o=>o.type==="journal")) enAttente.journal=true;
     ops.filter(o=>o.type==="liste").forEach(o=>enAttente.listes[o.nom]=1);
     enAttente.photos=photos.concat(enAttente.photos);
-    setTimeout(planifier,4000);
+    setTimeout(planifier,1500);
   }
   envoiEnCours=false; majPastilleSync();
   if(resteAEnvoyer()) planifier();
@@ -589,7 +715,7 @@ async function verifierMaj(){
     } else { if(j.version>syncVersion) syncVersion=j.version; syncEtat="ok"; syncErreur=""; }
   }catch(e){ syncEtat="erreur"; syncErreur=e.message; }
 }
-setInterval(verifierMaj,20000);
+setInterval(verifierMaj,10000);
 if(window.matchMedia){
   const mq=window.matchMedia("(max-width:860px)");
   const relancer=()=>{ if(SESSION) peindre(); };
@@ -621,7 +747,7 @@ function ecrireLocalDiffere(cle,val){
     const paquet=Object.assign({},attenteLocale);
     for(const k in attenteLocale) delete attenteLocale[k];
     Object.keys(paquet).forEach(k=>ecrireLocal(k,paquet[k]));
-  },600);
+  },60);
   persistanceOK=aStockage||!!coffreLocal;
   return true;
 }
@@ -816,9 +942,10 @@ async function preparerFichier(f){
     c.getContext("2d").drawImage(img,0,0,c.width,c.height);
     return c.toDataURL("image/jpeg",q);
   };
-  let g=dessine(1700,.74);
-  if(g.length>LIMITE_DOC) g=dessine(1250,.62);
-  if(g.length>LIMITE_DOC) g=dessine(950,.5);
+  const mob=surMobile();
+  let g=dessine(mob?1150:1700,mob?.60:.74);
+  if(g.length>LIMITE_DOC) g=dessine(mob?900:1250,mob?.52:.62);
+  if(g.length>LIMITE_DOC) g=dessine(mob?800:950,mob?.48:.5);
   return {dataUrl:g, type:"image/jpeg", vignette:dessine(110,.45), taille:g.length};
 }
 async function rangerDoc(f,cible,libelle){
@@ -1181,12 +1308,28 @@ const ONGLETS=[
   {g:"Pilotage",     id:"reglages",  t:"Paramètres",      i:"⚙", d:"reglages"}
 ];
 const VUES_MOBILE=["tableau","comptage","fermeture","journal"];
-function surMobile(){ return !!(window.matchMedia&&window.matchMedia("(max-width:860px)").matches); }
+function surMobile(){
+  const ua=navigator.userAgent||"";
+  const uaMobile=/Android|iPhone|iPod|IEMobile|Mobile/i.test(ua);
+  const ecranCompact=(navigator.maxTouchPoints||0)>0&&window.screen&&Math.min(window.screen.width||9999,window.screen.height||9999)<=900;
+  const media=!!(window.matchMedia&&window.matchMedia("(max-width:900px)").matches);
+  return !!(uaMobile||ecranCompact||media);
+}
 const TITRES={tableau:"Tableau de bord", comptage:"Saisie caisse", fermeture:"Fermeture de journée",
   validation:"Contrôle des caisses", messages:"Messages", remises:"Remises aux émetteurs", stock:"Stock de titres",
   journal:"Journal", analyse:"Analyse", audit:"Traçabilité", utilisateurs:"Accès et équipe", reglages:"Paramètres"};
-const TITRES_MOBILE={tableau:"Inventaire", comptage:"Caisse", fermeture:"Fermeture", journal:"Journal"};
+const TITRES_MOBILE={tableau:"Menu", comptage:"Caisse", fermeture:"Fermeture", journal:"Journal"};
+let mobileAccueil=true;
+function titreMobileActuel(){
+  if(vue==="tableau") return mobileAccueil?"Menu":"Inventaire";
+  return TITRES_MOBILE[vue]||TITRES[vue]||"";
+}
 
+function dateMobile(iso){
+  if(!iso) return "—";
+  const p=String(iso).split("-"), mois=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  return (p[2]||"")+" "+(mois[(parseInt(p[1],10)||1)-1]||"")+" "+(p[0]||"");
+}
 function peindre(){
   const rac=document.getElementById("racine");
   if(!SESSION){
@@ -1194,8 +1337,36 @@ function peindre(){
   }
   const mob=surMobile();
   if(mob&&VUES_MOBILE.indexOf(vue)<0) vue="tableau";
-  const onglets=ONGLETS.filter(o=>!mob||VUES_MOBILE.indexOf(o.id)>=0);
   const nVal=peut("verifier")?fileComptages(estAdmin()?"verifie":"saisi").length:0, nMsg=nonLus(SESSION.nom);
+  const plein = vue==="validation";
+  const sig=[vue,SESSION.nom,SESSION.role,jour,nVal,nMsg,syncActif,syncEtat,persistanceOK,compteOuvert,journalDetail,mob,periode,mobileAccueil].join("|");
+
+  if(mob){
+    const accueil=vue==="tableau"&&mobileAccueil;
+    const titre=titreMobileActuel();
+    const statut=syncActif?(syncEtat==="ok"?"ok":"ko"):(persistanceOK?"off":"ko");
+    const syncLabel=syncActif?(syncEtat==="ok"?"Synchronisé":"Hors ligne"):(persistanceOK?"Enregistré localement":"Erreur d'enregistrement");
+    if(sig===signatureCoque&&document.getElementById("vue")){
+      peindreVue();
+      if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+      brancher();
+      return;
+    }
+    rac.innerHTML='<div class="app-mobile"><div class="zone">'+
+      '<div class="mobile-appbar"><div class="mobile-appbar-main">'+
+        (accueil?'<span style="width:42px"></span>':'<button class="mobile-back" id="m-home" aria-label="Retour au menu">‹ <span>Menu</span></button>')+
+        '<div class="mobile-app-title"><b>'+ech(titre)+'</b><small>O\'TACOS Boulogne-sur-Mer</small></div>'+
+        '<span class="sync '+statut+'" title="'+ech(syncErreur||syncLabel)+'" aria-label="'+ech(syncLabel)+'"><i></i><span class="sync-texte">'+ech(syncLabel)+'</span></span>'+
+      '</div><label class="mobile-date-pill"><span>📅 '+ech(dateMobile(jour))+'</span><input type="date" id="j-date" value="'+jour+'" aria-label="Changer la date"></label></div>'+
+      '<main class="contenu'+(plein?" plein":"")+'" id="vue" tabindex="-1"></main></div></div>';
+    signatureCoque=sig;
+    peindreVue();
+    if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+    brancher();
+    return;
+  }
+
+  const onglets=ONGLETS;
   let grp="";
   const nav=onglets.map(o=>{
     let e="";
@@ -1204,13 +1375,9 @@ function peindre(){
     let pip="";
     if(o.id==="validation"&&nVal>0) pip='<span class="pip">'+nVal+'</span>';
     if(o.id==="messages"&&nMsg>0) pip='<span class="pip">'+nMsg+'</span>';
-    const libelleOnglet=mob?(TITRES_MOBILE[o.id]||o.t):o.t;
-    return e+'<button data-vue="'+o.id+'"'+(vue===o.id?' aria-current="page"':'')+(bloque?" disabled":"")+'>'+
-      '<span class="ic">'+o.i+'</span>'+libelleOnglet+(bloque?'<span class="pip calme">🔒</span>':pip)+'</button>';
+    return e+'<button data-vue="'+o.id+'"'+(vue===o.id?' aria-current="page"':'')+(bloque?" disabled":"")+'>'+ '<span class="ic">'+o.i+'</span>'+o.t+(bloque?'<span class="pip calme">🔒</span>':pip)+'</button>';
   }).join("");
 
-  const plein = vue==="validation";
-  const sig=[vue,SESSION.nom,SESSION.role,jour,nVal,nMsg,syncActif,syncEtat,persistanceOK,compteOuvert,journalDetail,mob,periode].join("|");
   if(sig===signatureCoque&&document.getElementById("vue")){
     document.querySelector(".contenu").className="contenu"+(plein?" plein":"");
     peindreVue();
@@ -1224,7 +1391,7 @@ function peindre(){
     '<div class="pied"><div class="compte-mini"><div class="avatar">'+ech(initiales(SESSION.nom))+'</div>'+
     '<div class="id"><b>'+ech(SESSION.nom)+'</b><span>'+ech(SESSION.role)+'</span></div>'+
     '<button class="btn neutre mini" id="deco">Sortir</button></div></div></div>'+
-    '<div class="zone"><div class="topbar"><h1>'+ech((mob?TITRES_MOBILE[vue]:null)||TITRES[vue]||"")+'</h1>'+
+    '<div class="zone"><div class="topbar"><h1>'+ech(TITRES[vue]||"")+'</h1>'+
       '<span class="moi-mobile"><span class="avatar">'+ech(initiales(SESSION.nom))+'</span>'+
       '<button class="btn neutre mini" id="deco">Sortir</button></span>'+
       '<span class="sync '+(syncActif?(syncEtat==="ok"?"ok":"ko"):(persistanceOK?"off":"ko"))+'" title="'+ech(syncErreur||"")+'">'+
@@ -1264,7 +1431,16 @@ function toast(msg,estKo){
   const d=document.createElement("div"); d.className="toast"+(estKo?" ko":""); d.textContent=msg;
   d.setAttribute("role","status"); document.body.appendChild(d); setTimeout(()=>d.remove(),4200);
 }
-function aller(v){ vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true}); }
+function aller(v){
+  if(surMobile()&&v==="tableau") mobileAccueil=true;
+  vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true});
+}
+function retourAccueilMobile(message){
+  mobileAccueil=true; vue="tableau"; brouillon=null; brouillonFerm=null; signatureCoque="";
+  peindre();
+  try{ window.scrollTo({top:0,left:0,behavior:"auto"}); }catch(e){ window.scrollTo(0,0); }
+  requestAnimationFrame(()=>{ if(message) toast(message); });
+}
 function bandeauPersistance(){
   if(syncActif||persistanceOK) return "";
   return '<div class="ruban"><b>Aucun enregistrement.</b> Les données de cet appareil disparaîtront à la fermeture. '+
@@ -1281,28 +1457,49 @@ function pil(etat){
     refuse:'<span class="pil ko"><i></i>Refusé</span>', manquant:'<span class="pil neu"><i></i>Sans pièce</span>'}[etat];
 }
 
+function vueAccueilMobile(){
+  const d=journee(jour);
+  const invPhoto=docsDe(d.justificatifs,"inv-matin").length;
+  const fermPhotos=["inv-soir","z-global","tpe1"].concat(P.deuxTPE?["tpe2"]:[]).filter(c=>docsDe(d.justificatifs,c).length).length;
+  const fermTotal=P.deuxTPE?4:3;
+  const invEtat=d.ouverture?(invPhoto?"Terminé · photo OK":"Montant saisi · photo à ajouter"):"À faire";
+  const nbC=(d.comptages||[]).length;
+  const caisseEtat=nbC?(nbC+" caisse"+(nbC>1?"s":"")+" enregistrée"+(nbC>1?"s":"")):"À saisir";
+  const fermEtat=d.cloture?"Journée clôturée":(d.fermeture?("Enregistrée · "+fermPhotos+"/"+fermTotal+" photos"):("À faire · "+fermPhotos+"/"+fermTotal+" photos"));
+  return '<div class="mobile-home">'+
+    '<div class="mobile-home-intro"><b>Bonjour '+ech((SESSION.nom||"").split(" ")[0]||"")+'</b><span>Choisissez une action. Une fois enregistrée, vous revenez automatiquement ici.</span></div>'+
+    '<div class="mobile-menu">'+
+      '<button data-act="mobile-inventaire"><span class="mi">▣</span><span class="ml"><b>Inventaire</b><span>'+ech(invEtat)+'</span></span><span class="chev">›</span></button>'+
+      '<button data-vue="comptage"'+(d.cloture?' disabled':'')+'><span class="mi">✎</span><span class="ml"><b>Caisse</b><span>'+ech(caisseEtat)+'</span></span><span class="chev">›</span></button>'+
+      '<button data-vue="fermeture"><span class="mi">⊟</span><span class="ml"><b>Fermeture</b><span>'+ech(fermEtat)+'</span></span><span class="chev">›</span></button>'+
+      '<button data-vue="journal"><span class="mi">⌗</span><span class="ml"><b>Journal</b><span>Consulter les saisies</span></span><span class="chev">›</span></button>'+
+    '</div>'+
+    '<div class="deco-mobile"><button class="btn neutre mini" id="deco">Se déconnecter</button></div>'+
+  '</div>';
+}
+function zoneDepotMobile(cible,libelle,liste,oblige){
+  const docs=docsDe(liste,cible), ok=docs.length>0;
+  return '<div class="mobile-piece '+(ok?'ok':'')+'"><div><b>'+ech(libelle)+'</b><span>'+(ok?'Photo ajoutée ✓':(oblige?'Photo obligatoire':'Photo facultative'))+'</span></div>'+
+    '<button class="btn neutre mini" data-depot="'+ech(cible)+'" data-lib="'+ech(libelle)+'">📷 '+(ok?'Ajouter':'Photo')+'</button></div>';
+}
 function vueInventaireMobile(){
-  const d=journee(jour), veille=fermetureVeille(jour);
-  let h='<div class="carte"><header><h2>Inventaire du monnayeur</h2></header><div class="corps">';
+  const d=journee(jour), veille=fermetureVeille(jour), docs=docsDe(d.justificatifs,"inv-matin");
+  let h='<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">';
   if(d.ouverture){
-    h+='<div class="rangee" style="justify-content:space-between"><div><div class="eyebrow">Fond à l\'ouverture</div>'+
-      '<div class="mono" style="font-size:27px;font-weight:700;letter-spacing:-.02em">'+eur(d.ouverture.montant)+'</div>'+
-      '<p class="aide" style="margin-top:4px">Par '+ech(d.ouverture.par||"—")+' · '+heureCourte(d.ouverture.at)+'</p></div></div>'+
-      zoneDepot("inv-matin","Photo inventaire monnayeur — ouverture",d.justificatifs,true);
+    h+='<div class="mobile-status ok">Inventaire enregistré · '+eur(d.ouverture.montant)+' · '+ech(d.ouverture.par||"—")+'</div>'+zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
+      '<div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Terminer</button></div>';
   } else {
-    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Montant repris de la fermeture de la veille : '+eur(veille)+'</p>':"")+
-      '<div class="grille">'+
-      '<label class="champ"><span>Montant du monnayeur</span><input type="number" step="0.01" inputmode="decimal" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"'+(veille!==null?" readonly":"")+' placeholder="0,00"></label>'+
-      '<label class="champ"><span>Inventaire fait par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
-      '<button class="btn large" data-act="ouvrir">Enregistrer l\'inventaire</button>'+
-      '</div>';
+    h+=(veille!==null?'<div class="mobile-status">Montant repris automatiquement de la fermeture précédente : <b>'+eur(veille)+'</b></div>':"")+
+      '<label class="champ"><span>Montant du monnayeur</span><input type="number" step="0.01" inputmode="decimal" id="ouv-montant" value="'+(veille===null?"":veille)+'"'+(veille!==null?' readonly':'')+' placeholder="0,00"></label>'+ 
+      '<label class="champ" style="margin-top:10px"><span>Inventaire fait par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+ 
+      zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
+      '<div class="mobile-actions-sticky"><button class="btn" data-act="ouvrir">Enregistrer et terminer</button></div>';
   }
-  h+='</div></div>';
+  h+='</div></div></div>';
   return h;
 }
-
 function vueTableau(){
-  if(surMobile()) return vueInventaireMobile();
+  if(surMobile()) return mobileAccueil?vueAccueilMobile():vueInventaireMobile();
   const d=journee(jour), b=bilan(jour), veille=fermetureVeille(jour), cc=controleComplet(jour);
   const mesMsg=messagesPour(SESSION.nom).filter(m=>!m.resolu);
   let h='';
@@ -1583,7 +1780,37 @@ function neufComptage(){
     operateur:SESSION?SESSION.nom:"", h1:"", h2:"",
     nbTR:"", montantTR:"", trZ:"", nbCV:"", montantCV:"", cvZ:"", cb:"", cbZ:"", motif:""};
 }
+function vueComptageMobile(){
+  const d=journee(jour);
+  if(d.cloture) return '<div class="mobile-form"><div class="mobile-status att">Cette journée est déjà clôturée.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(!brouillon) brouillon=neufComptage();
+  const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0;
+  return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+    '<div class="mobile-section-title">Service</div><div class="mobile-paire">'+
+      '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label>'+ 
+      '<label class="champ"><span>Service</span><select id="c-service">'+P.services.map(x=>'<option'+(c.service===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label></div>'+ 
+    '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Début</span><input type="time" id="c-h1" value="'+ech(c.h1)+'"></label><label class="champ"><span>Fin</span><input type="time" id="c-h2" value="'+ech(c.h2)+'"></label></div>'+ 
+    '<label class="champ" style="margin-top:9px"><span>Tenue par</span>'+selNoms("c-op",c.operateur)+'</label>'+ 
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Titres-restaurant</div>'+ 
+    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbTR" value="'+ech(c.nbTR)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="number" step="0.01" inputmode="decimal" id="c-montantTR" value="'+ech(c.montantTR)+'" placeholder="0,00"></label></div>'+ 
+    '<label class="champ" style="margin-top:9px"><span>Montant TR au rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-trZ" value="'+ech(c.trZ)+'" placeholder="0,00"></label>'+ 
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Chèques-vacances</div>'+ 
+    '<div class="mobile-paire"><label class="champ"><span>Nombre</span><input type="number" min="0" step="1" inputmode="numeric" id="c-nbCV" value="'+ech(c.nbCV)+'" placeholder="0"></label><label class="champ"><span>Montant compté</span><input type="number" step="0.01" inputmode="decimal" id="c-montantCV" value="'+ech(c.montantCV)+'" placeholder="0,00"></label></div>'+ 
+    '<label class="champ" style="margin-top:9px"><span>Montant CV au rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-cvZ" value="'+ech(c.cvZ)+'" placeholder="0,00"></label>'+ 
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Carte bancaire</div><div class="mobile-paire">'+
+      '<label class="champ"><span>Encaissé</span><input type="number" step="0.01" inputmode="decimal" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+ 
+      '<label class="champ"><span>Rapport Z</span><input type="number" step="0.01" inputmode="decimal" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label></div>'+ 
+    (motifNec?'<div class="mobile-divider"></div><label class="champ"><span>Justification de l’écart</span><textarea id="c-motif" placeholder="Expliquez l’écart">'+ech(c.motif)+'</textarea></label>':'<input type="hidden" id="c-motif" value="'+ech(c.motif)+'">')+
+    (pbs.length?'<div class="mobile-inline-error">'+ech(pbs[0])+'</div>':'')+
+    '<div class="mobile-actions-sticky"><button class="btn" data-act="valider-comptage"'+(pbs.length?' disabled':'')+'>Enregistrer et terminer</button></div>'+ 
+  '</div></div></div>';
+}
 function vueComptage(){
+  if(surMobile()) return vueComptageMobile();
   const d=journee(jour);
   if(d.cloture) return '<div class="carte"><div class="vide"><b>Journée clôturée</b>Plus aucun comptage ne peut être ajouté au '+courteDate(jour)+".</div></div>";
   if(!d.ouverture) return '<div class="carte"><div class="vide"><b>Ouvrez d\'abord la journée</b>'+
@@ -1669,7 +1896,48 @@ function vignette(d,sup){
     (d.lien?' · <a href="'+ech(d.lien)+'" target="_blank" rel="noopener">Drive</a>':"")+'</span></div></div>';
 }
 
+function vueFermetureMobile(){
+  const d=journee(jour);
+  if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(d.cloture) return '<div class="mobile-form"><div class="mobile-status ok">Journée clôturée par '+ech(d.cloture.par||"—")+'.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(!brouillonFerm) brouillonFerm={
+    montant:d.fermeture?d.fermeture.montant:"", par:d.fermeture?d.fermeture.par:SESSION.nom,
+    especesZ:d.especesZ||"", apport:d.apport||"", tpe1:d.tpe1||"", tpe2:d.tpe2||"",
+    retrait:Object.assign({montant:"",bordereau:"",par:"",controlePar:""},d.retrait),
+    canaux:Object.assign({cc:"",borne:"",uber:"",deliveroo:""},d.canaux)};
+  const f=brouillonFerm, pbs=problemesFermeture(f,nb(f.montant));
+  const attenteControle=pbs.filter(x=>/validation|validée|validé|caisse\(s\)|pièce\(s\)/i.test(x));
+  const peutClore=d.fermeture&&pbs.length===0&&peut("cloturer");
+  return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
+    (d.fermeture?'<div class="mobile-status ok">Fermeture enregistrée. Les données sont synchronisées automatiquement.</div>':'')+
+    '<div class="mobile-section-title">Monnayeur</div>'+ 
+    '<label class="champ"><span>Total à la fermeture</span><input type="number" step="0.01" inputmode="decimal" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00"></label>'+ 
+    zoneDepotMobile("inv-soir","Photo du monnayeur",d.justificatifs,true)+
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Ticket Z</div>'+ 
+    '<label class="champ"><span>Espèces au ticket Z</span><input type="number" step="0.01" inputmode="decimal" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+ 
+    zoneDepotMobile("z-global","Photo du ticket Z",d.justificatifs,true)+
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">TPE</div>'+ 
+    '<label class="champ"><span>TPE 1</span><input type="number" step="0.01" inputmode="decimal" id="f-tpe1" value="'+ech(f.tpe1)+'" placeholder="0,00"></label>'+ 
+    zoneDepotMobile("tpe1","Photo télécollecte TPE 1",d.justificatifs,true)+
+    (P.deuxTPE?'<label class="champ" style="margin-top:10px"><span>TPE 2</span><input type="number" step="0.01" inputmode="decimal" id="f-tpe2" value="'+ech(f.tpe2)+'" placeholder="0,00"></label>'+zoneDepotMobile("tpe2","Photo télécollecte TPE 2",d.justificatifs,true):'')+
+
+    '<details><summary>Autres montants</summary><div class="corps">'+
+      (peut("remises")?'<div class="mobile-paire"><label class="champ"><span>Apport</span><input type="number" step="0.01" inputmode="decimal" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label><label class="champ"><span>Retrait</span><input type="number" step="0.01" inputmode="decimal" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label></div><label class="champ" style="margin-top:9px"><span>N° bordereau</span><input type="text" id="f-bord" value="'+ech(f.retrait.bordereau)+'"></label><label class="champ" style="margin-top:9px"><span>Retrait fait par</span>'+selNoms("f-par",f.retrait.par,true)+'</label>':'')+
+      '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Click & Collect</span><input type="number" step="0.01" inputmode="decimal" id="f-cc" value="'+ech(f.canaux.cc)+'" placeholder="0,00"></label><label class="champ"><span>Borne</span><input type="number" step="0.01" inputmode="decimal" id="f-borne" value="'+ech(f.canaux.borne)+'" placeholder="0,00"></label></div>'+ 
+      '<div class="mobile-paire" style="margin-top:9px"><label class="champ"><span>Uber Eats</span><input type="number" step="0.01" inputmode="decimal" id="f-uber" value="'+ech(f.canaux.uber)+'" placeholder="0,00"></label><label class="champ"><span>Deliveroo</span><input type="number" step="0.01" inputmode="decimal" id="f-deliveroo" value="'+ech(f.canaux.deliveroo)+'" placeholder="0,00"></label></div>'+ 
+    '</div></details>'+ 
+    '<label class="champ"><span>Fermeture faite par</span>'+selNoms("f-fermepar",f.par)+'</label>'+ 
+    (d.fermeture&&attenteControle.length?'<div class="mobile-status att" style="margin-top:11px">Fermeture enregistrée. Le contrôle final reste à faire sur ordinateur.</div>':'')+
+    '<div class="mobile-actions-sticky">'+
+      (!d.fermeture?'<button class="btn" data-act="enregistrer-fermeture">Enregistrer et terminer</button>':'<button class="btn" data-act="enregistrer-fermeture">Mettre à jour et terminer</button>')+
+      (peutClore?'<button class="btn vert" data-act="cloturer">Clôturer la journée</button>':'')+
+    '</div>'+ 
+  '</div></div></div>';
+}
 function vueFermeture(){
+  if(surMobile()) return vueFermetureMobile();
   const d=journee(jour);
   if(!d.ouverture) return '<div class="carte"><div class="vide"><b>La journée n\'est pas ouverte</b>'+
     '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
@@ -2240,7 +2508,7 @@ const CHAMPS_RM={"rm-type":"type","rm-emetteur":"emetteur","rm-date":"dateEnvoi"
   "rm-nb":"nbTitres","rm-montant":"montant","rm-comm":"commission"};
 const SELECTEURS="[data-vue],[data-act],[data-caisse],[data-piece-ok],[data-piece-ko],[data-piece],"+
   "[data-filtre],[data-nav],[data-zoom],[data-rot],[data-depot],[data-doc],[data-jeter],"+
-  "#j-prec,#j-suiv,#deco,#b-connexion,#b-installer,#b-inscrire,#b-oubli1,#b-oubli2,#b-base,"+
+  "#j-prec,#j-suiv,#m-home,#deco,#b-connexion,#b-installer,#b-inscrire,#b-oubli1,#b-oubli2,#b-base,"+
   "#a-inscription,#a-installer,#a-oubli,#a-retour,#a-local";
 
 function surClic(e){
@@ -2250,8 +2518,10 @@ function surClic(e){
   if(t.id==="j-prec"||t.id==="j-suiv"){
     jour=decale(jour,t.id==="j-prec"?-1:1); brouillon=null; brouillonFerm=null; return peindre();
   }
+  if(t.id==="m-home") return retourAccueilMobile();
   if(t.id==="deco") return fermerSession(false);
   if(j.vue!==undefined){
+    if(surMobile()&&j.vue!=="tableau") mobileAccueil=false;
     if(j.vue==="comptage"&&vue!=="comptage") brouillon=null;
     if(j.vue==="fermeture"&&vue!=="fermeture") brouillonFerm=null;
     return aller(j.vue);
@@ -2330,7 +2600,7 @@ function surSaisie(e){
 function surChangement(e){
   const el=e.target, id=el.id;
   if(id==="s-role"){ const w=document.getElementById("w-code"); if(w) w.style.display=el.value==="Administrateur"?"flex":"none"; return; }
-  if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; return peindre(); }
+  if(id==="j-date"){ jour=el.value||isoAujourdhui(); brouillon=null; brouillonFerm=null; if(surMobile()) mobileAccueil=true; return peindre(); }
   if(id==="s-du"){ filtreDu=el.value; return peindreVue(); }
   if(id==="s-au"){ filtreAu=el.value; return peindreVue(); }
   if(id==="r-libre") return basculerInscription(el.checked);
@@ -2538,13 +2808,16 @@ async function retirerPreuve(id){
 
 async function agir(a,ds){
   const d=journeeEcr(jour);
+  if(a==="mobile-inventaire"){ mobileAccueil=false; return peindre(); }
   if(a==="ouvrir"){
     const m=v("ouv-montant"), par=v("ouv-par");
     if(m==="") return toast("Saisissez le montant du monnayeur.",true);
     if(!par) return toast("Indiquez qui ouvre la journée.",true);
     d.ouverture={montant:nb(m),par,at:maintenant()}; d.statut="ouvert";
     tracer("Ouverture",courteDate(jour)+" · "+eur(m)+" · "+par);
-    await sauver(); toast("Journée ouverte."); return peindre();
+    await sauver();
+    if(surMobile()) return retourAccueilMobile("Inventaire enregistré.");
+    toast("Journée ouverte."); return peindre();
   }
   if(a==="corriger-ouverture"){
     if(!peut("corriger")) return toast("Droit « Corriger une ouverture » non accordé.",true);
@@ -2585,11 +2858,12 @@ async function agir(a,ds){
     brouillon.caisse=P.caisses[(idx+1)%P.caisses.length]||ancienneCaisse;
     brouillon.service=ancienService;
     await sauver();
+    if(surMobile()) return retourAccueilMobile(e.anormal===0?"Caisse enregistrée.":"Caisse enregistrée · manquant "+eur(e.anormal)+".");
     toast(e.anormal===0?"Enregistré. Caisse suivante.":"Enregistré avec "+eur(e.anormal)+" de manquant. Caisse suivante.");
     return peindre();
   }
   if(a==="voir-comptage"){ brouillon=JSON.parse(JSON.stringify(d.comptages.find(c=>c.id===ds.id))); return aller("comptage"); }
-  if(a==="annuler-comptage"){ brouillon=null; return aller("tableau"); }
+  if(a==="annuler-comptage"){ brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
   if(a==="supprimer-comptage"){
     if(!peut("supprimer")) return toast("Droit « Supprimer un comptage » non accordé.",true);
     if(!confirm("Supprimer ce comptage ?")) return;
@@ -2611,17 +2885,21 @@ async function agir(a,ds){
     d.canaux={cc:nb(f.canaux.cc),borne:nb(f.canaux.borne),uber:nb(f.canaux.uber),deliveroo:nb(f.canaux.deliveroo)};
     tracer("Fermeture enregistrée",courteDate(jour)+" · monnayeur "+eur(montant)+" · "+f.par+
       (nb(f.retrait.montant)>0?" · retrait "+eur(f.retrait.montant)+" bord. "+(f.retrait.bordereau||"MANQUANT"):""));
-    await sauver(); toast("Fermeture enregistrée."); return peindre();
+    await sauver();
+    if(surMobile()) return retourAccueilMobile("Fermeture enregistrée.");
+    toast("Fermeture enregistrée."); return peindre();
   }
   if(a==="cloturer"){
     if(!peut("cloturer")) return toast("Droit « Clôturer la journée » non accordé.",true);
-    if(!toutValide(jour)) return toast("Toutes les caisses doivent être validées avant la clôture.",true);
+    if(!toutValide(jour)) return toast(surMobile()?"Fermeture enregistrée. Le contrôle des caisses doit être finalisé sur ordinateur.":"Toutes les caisses doivent être validées avant la clôture.",true);
     const f=brouillonFerm, b=bilan(jour);
     const pbs=problemesFermeture(f,d.fermeture?nb(d.fermeture.montant):0);
     if(pbs.length) return toast(pbs[0],true);
     d.cloture={par:SESSION.nom,at:maintenant()}; d.statut="cloture";
     tracer("Journée clôturée",courteDate(jour)+" · CA "+eur(b.caReel)+" · manquant "+eur(b.anormal)+" · excédent "+eur(b.boni));
-    brouillonFerm=null; await sauver(); toast("Journée clôturée."); return aller("tableau");
+    brouillonFerm=null; await sauver();
+    if(surMobile()) return retourAccueilMobile("Journée clôturée.");
+    toast("Journée clôturée."); return aller("tableau");
   }
   if(a==="periode"){ periode=ds.p; return peindreVue(); }
   if(a==="journal-detail"){ journalDetail=!journalDetail; return peindreVue(); }
