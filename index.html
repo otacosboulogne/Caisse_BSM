@@ -924,8 +924,13 @@ async function vider(){
 }
 function marquerDrive(id,driveId,lien){
   const poser=l=>(l||[]).forEach(x=>{ if(x.id===id){ x.driveId=driveId; x.lien=lien; } });
-  Object.keys(J).forEach(k=>{ poser(J[k].justificatifs); });
+  Object.keys(J).forEach(k=>{
+    poser(J[k].justificatifs);
+    (J[k].comptages||[]).forEach(c=>poser(c.justificatifs));
+  });
+  REMISES.forEach(r=>poser(r.justificatifs));
   if(brouillon) poser(brouillon.justificatifs);
+  if(brouillonRemise) poser(brouillonRemise.justificatifs);
 }
 function pousser(cle,val){
   if(!syncActif) return;
@@ -1239,9 +1244,11 @@ async function preparerFichier(f){
     return c.toDataURL("image/jpeg",q);
   };
   const mob=surMobile();
-  let g=dessine(mob?1150:1700,mob?.60:.74);
-  if(g.length>LIMITE_DOC) g=dessine(mob?900:1250,mob?.52:.62);
-  if(g.length>LIMITE_DOC) g=dessine(mob?800:950,mob?.48:.5);
+  /* Les justificatifs sont des tickets : 1200 px côté long suffit pour lire les montants
+     et l'OCR, tout en évitant de bloquer le téléphone avec des images de plusieurs Mo. */
+  let g=dessine(mob?1200:1600,mob?.62:.72);
+  if(g.length>LIMITE_DOC) g=dessine(mob?1000:1250,mob?.56:.62);
+  if(g.length>LIMITE_DOC) g=dessine(mob?850:1000,mob?.50:.54);
   return {dataUrl:g, type:"image/jpeg", vignette:dessine(110,.45), taille:g.length};
 }
 async function rangerDoc(f,cible,libelle){
@@ -2042,7 +2049,7 @@ function vueValidationDetailDesktop(item){
   else if(etape==='verifie') pied='<div class="controle-panneau-foot"><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button>'+(estAdmin()?'<button class="btn vert" data-caisse="valider">Valider la caisse</button>':'<span class="aide">En attente de validation administrateur.</span>')+'</div>';
   else pied='<div class="controle-panneau-foot"><button class="btn neutre" data-act="controle-modifier" data-id="'+c.id+'">Modifier</button><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button><button class="btn vert" data-caisse="verifier"'+(pret?'':' disabled')+'>'+(estAdmin()?'Vérifier et valider':'Vérifier')+'</button></div>';
   return '<div class="controle-detail"><div class="controle-piece"><div class="controle-piece-bar"><button class="btn-retour" data-act="fermer-controle">← Liste</button><span>'+ech(c.operateur||'—')+' · '+ech(c.caisse)+'</span><span class="esp"></span><button class="btn-ocr" data-act="ocr-piece">OCR · lire la pièce</button><button data-zoom="-1">−</button><button data-zoom="0">100 %</button><button data-zoom="1">+</button><button data-rot="1">⟳</button></div><div class="valid-vue" id="visu"><p class="rien">Chargement de la pièce…</p></div></div>'+ 
-    '<div class="controle-panneau"><div class="controle-panneau-head"><div class="ligne-haut"><div><h3>'+ech(c.operateur||'Sans nom')+'</h3><p><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(c.h1||'—')+' → '+ech(c.h2||'—')+'<br>'+jolieDate(iso)+(resp?'<br>Responsable de service : <b>'+ech(resp)+'</b>':'<br><span style="color:var(--ambre)">Aucun responsable de service affecté</span>')+'</p></div>'+pilEtape(etape)+'</div></div><div class="controle-panneau-body">'+rappro+pcs+motif+'</div>'+pied+'</div></div>';
+    '<div class="controle-panneau"><div class="controle-panneau-head"><div class="ligne-haut"><div><h3>'+ech(c.operateur||'Sans nom')+'</h3><p><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(c.h1||'—')+' → '+ech(c.h2||'—')+'<br>'+jolieDate(iso)+(resp?'<br>Responsable de service : <b>'+ech(resp)+'</b>':'<br><span style="color:var(--ambre)">Aucun responsable de service affecté</span>')+'</p></div>'+pilEtape(etape)+'</div></div><div class="controle-panneau-body">'+rapproche+pcs+motif+'</div>'+pied+'</div></div>';
 }
 
 function vueValidationClassique(){
@@ -2372,8 +2379,8 @@ function vueComptage(){
   blocTitres("CV","Chèques-vacances","nbCV","montantCV","cvZ",c,v)+
 
   '<div class="carte"><header><h2>Carte bancaire</h2></header><div class="corps"><div class="grille g3">'+
-    '<label class="champ"><span>Total encaissé sur la caisse</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+
-    '<label class="champ"><span>CB au rapport Z</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>Total encaissé sur la caisse</span><input type="text" inputmode="decimal" class="eur" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>CB au rapport Z</span><input type="text" inputmode="decimal" class="eur" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label>'+
     stat("Écart carte bancaire",signe(e.cb)+" €","",Math.abs(e.cb)>0.004?"ko":"ok")+
   '</div></div></div>'+
 
@@ -2402,8 +2409,8 @@ function blocTitres(pfx,titre,kNb,kMt,kZ,c,calc){
   return '<div class="carte"><header><h2>'+titre+'</h2></header><div class="corps">'+
   '<div class="grille g3">'+
     '<label class="champ"><span>Nombre de titres</span><input type="number" min="0" step="1" inputmode="numeric" class="eur" id="c-'+kNb+'" value="'+ech(c[kNb])+'" placeholder="0" style="font-size:19px;padding:12px"></label>'+
-    '<label class="champ"><span>Montant total compté</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="c-'+kMt+'" value="'+ech(c[kMt])+'" placeholder="0,00" style="font-size:19px;padding:12px"></label>'+
-    '<label class="champ"><span>Montant au rapport Z</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="c-'+kZ+'" value="'+ech(c[kZ])+'" placeholder="0,00" style="font-size:19px;padding:12px"></label>'+
+    '<label class="champ"><span>Montant total compté</span><input type="text" inputmode="decimal" class="eur" id="c-'+kMt+'" value="'+ech(c[kMt])+'" placeholder="0,00" style="font-size:19px;padding:12px"></label>'+
+    '<label class="champ"><span>Montant au rapport Z</span><input type="text" inputmode="decimal" class="eur" id="c-'+kZ+'" value="'+ech(c[kZ])+'" placeholder="0,00" style="font-size:19px;padding:12px"></label>'+
   '</div>'+
   '<div class="stats" style="margin-top:14px;margin-bottom:0">'+
     stat("Titres comptés",calc.nb,"unités","")+
@@ -2648,7 +2655,7 @@ function vueFermeture(){
 
   return '<div class="carte"><header><h2>Monnayeur à la fermeture</h2></header><div class="corps">'+
   '<div class="grille g3">'+
-    '<label class="champ"><span>Total du monnayeur</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00" style="font-size:19px;padding:13px"></label>'+
+    '<label class="champ"><span>Total du monnayeur</span><input type="text" inputmode="decimal" class="eur" id="f-montant" value="'+ech(f.montant)+'" placeholder="0,00" style="font-size:19px;padding:13px"></label>'+
     stat("Ouverture du jour",eur(d.ouverture.montant),"Verrouillé","")+
     stat("Variation",signe(montant-nb(d.ouverture.montant))+" €","Fermeture moins ouverture","")+
   '</div>'+
@@ -2656,8 +2663,8 @@ function vueFermeture(){
 
   '<div class="carte"><header><h2>Télécollecte des terminaux</h2></header><div class="corps">'+
   '<div class="grille g3">'+
-    '<label class="champ"><span>TPE 1</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-tpe1" value="'+ech(f.tpe1)+'" placeholder="0,00"></label>'+
-    (P.deuxTPE?'<label class="champ"><span>TPE 2</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-tpe2" value="'+ech(f.tpe2)+'" placeholder="0,00"></label>':'<div></div>')+
+    '<label class="champ"><span>TPE 1</span><input type="text" inputmode="decimal" class="eur" id="f-tpe1" value="'+ech(f.tpe1)+'" placeholder="0,00"></label>'+
+    (P.deuxTPE?'<label class="champ"><span>TPE 2</span><input type="text" inputmode="decimal" class="eur" id="f-tpe2" value="'+ech(f.tpe2)+'" placeholder="0,00"></label>':'<div></div>')+
     stat("Écart TPE / caisses",signe(ecTPE)+" €",eur(tpe)+" contre "+eur(b.cb),Math.abs(ecTPE)>0.004?"ko":"ok")+
   '</div>'+
   zoneDepot("tpe1","Télécollecte TPE 1",d.justificatifs,true)+
@@ -2665,7 +2672,7 @@ function vueFermeture(){
 
   '<div class="carte"><header><h2>Ticket Z global</h2></header><div class="corps">'+
   '<div class="grille g3">'+
-    '<label class="champ"><span>Espèces au ticket Z</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+
+    '<label class="champ"><span>Espèces au ticket Z</span><input type="text" inputmode="decimal" class="eur" id="f-especesz" value="'+ech(f.especesZ)+'" placeholder="0,00"></label>'+
     stat("Espèces réellement encaissées",eur(esp),"")+
     stat("Écart espèces",signe(ec)+" €","",Math.abs(ec)>0.004?"ko":"ok")+
   '</div>'+
@@ -2674,8 +2681,8 @@ function vueFermeture(){
   '<div class="carte"><header><h2>Mouvements de fonds</h2>'+(estAdmin()?'':'<p>Réservé à l\'administrateur</p>')+'</header><div class="corps">'+
   (peut("remises")
    ? '<div class="grille g4">'+
-     '<label class="champ"><span>Apport de fonds (+)</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label>'+
-     '<label class="champ"><span>Retrait / banque (−)</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label>'+
+     '<label class="champ"><span>Apport de fonds (+)</span><input type="text" inputmode="decimal" class="eur" id="f-apport" value="'+ech(f.apport)+'" placeholder="0,00"></label>'+
+     '<label class="champ"><span>Retrait / banque (−)</span><input type="text" inputmode="decimal" class="eur" id="f-retrait" value="'+ech(f.retrait.montant)+'" placeholder="0,00"></label>'+
      '<label class="champ'+(nb(f.retrait.montant)>0&&!f.retrait.bordereau?" invalide":"")+'"><span>N° de bordereau</span><input type="text" id="f-bord" value="'+ech(f.retrait.bordereau)+'" placeholder="BRD-2026-0142"></label>'+
      '<label class="champ"><span>Retrait fait par</span>'+selNoms("f-par",f.retrait.par,true)+'</label>'+
      '</div>'
@@ -2685,7 +2692,7 @@ function vueFermeture(){
 
   '<div class="carte"><header><h2>Canaux externes</h2></header><div class="corps"><div class="grille g4">'+
     [["cc","Click &amp; Collect"],["borne","Borne"],["uber","Uber Eats"],["deliveroo","Deliveroo"]].map(([k,l])=>
-      '<label class="champ"><span>'+l+'</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="f-'+k+'" value="'+ech(f.canaux[k])+'" placeholder="0,00"></label>').join("")+
+      '<label class="champ"><span>'+l+'</span><input type="text" inputmode="decimal" class="eur" id="f-'+k+'" value="'+ech(f.canaux[k])+'" placeholder="0,00"></label>').join("")+
   '</div></div></div>'+
 
   '<div class="carte"><header><h2>Rapprochement de la journée</h2><p>Écarts cumulés réel − ticket Z</p></header><div class="corps"><div class="grille g4">'+
@@ -2857,8 +2864,8 @@ function vueRemises(){
     '<label class="champ"><span>Date d\'envoi</span><input type="date" id="rm-date" value="'+r.dateEnvoi+'"></label>'+
     '<label class="champ"><span>N° de bordereau</span><input type="text" id="rm-bord" value="'+ech(r.bordereau)+'"></label>'+
     '<label class="champ"><span>Nombre de titres</span><input type="number" min="0" step="1" class="eur" id="rm-nb" value="'+ech(r.nbTitres)+'"></label>'+
-    '<label class="champ"><span>Montant facial</span><input type="number" step="0.01" class="eur" id="rm-montant" value="'+ech(r.montant)+'"></label>'+
-    '<label class="champ"><span>Commission annoncée</span><input type="number" step="0.01" class="eur" id="rm-comm" value="'+ech(r.commission)+'"></label>'+
+    '<label class="champ"><span>Montant facial</span><input type="text" inputmode="decimal" class="eur" id="rm-montant" value="'+ech(r.montant)+'"></label>'+
+    '<label class="champ"><span>Commission annoncée</span><input type="text" inputmode="decimal" class="eur" id="rm-comm" value="'+ech(r.commission)+'"></label>'+
     '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ajout-remise">Enregistrer</button></div>'+
   '</div>'+zoneDepot("remise:nouvelle","Bordereau d'envoi",r.justificatifs||[],true)+'</div></div>';
   h+='<div class="carte"><header><h2>Remises suivies</h2><p>'+REMISES.length+' au total</p></header>';
@@ -3699,7 +3706,13 @@ document.getElementById("entree-fichier").addEventListener("change", async e=>{
       tracer("Pièce jointe",cibleDepot.libelle+" · "+courteDate(jour)+" · empreinte "+meta.empreinte);
     }catch(err){ toast(err.message||"Impossible de traiter ce fichier.",true); }
   }
-  cibleDepot=null; toast("Pièce(s) jointe(s)."); peindre();
+  cibleDepot=null;
+  toast("Pièce(s) jointe(s).");
+  /* Une pièce jointe ne doit pas reconstruire toute l'application : on rafraîchit
+     seulement la vue active. Cela conserve le brouillon et réduit fortement le délai
+     ressenti sur iPhone/Android et dans le contrôle desktop. */
+  peindreVue();
+  if(vue==="validation"&&(surMobile()||validationOuverteId)) chargerVisu(true);
 });
 async function retirerPreuve(id){
   if(!confirm("Retirer cette pièce ? La suppression reste dans la traçabilité.")) return;
