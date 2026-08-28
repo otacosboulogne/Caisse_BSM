@@ -585,6 +585,76 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
   table.journal .jc-cell .pos{color:var(--bleu);font-weight:700}
   table.journal .jc-cell .zero{color:var(--vert);font-weight:700}
 }
+
+/* V11 — rapprochement CB global + journal détaillé + historique des révisions */
+.mobile-recap-cb{margin-top:9px;padding:10px 11px;border:1px solid var(--bord);border-radius:10px;background:var(--canvas);font-size:11px}
+.mobile-recap-cb .r{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.mobile-recap-cb .r span{color:var(--t2)} .mobile-recap-cb .r b{font-weight:700;text-align:right}
+.mobile-recap-cb .r.important{border-top:1px dashed var(--bord);margin-top:4px;padding-top:7px}
+.mobile-recap-cb .gap{color:var(--rouge)} .mobile-recap-cb .ok{color:var(--vert)}
+table.journal tr.jc-person td{background:#F8F9FC;font-weight:700}
+table.journal tr.jc-person .fige{background:#F2F4F8}
+table.journal tr.jc-mode td{font-size:10.5px}
+table.journal tr.jc-gap td{background:#FFFCF5;font-size:10px}
+table.journal tr.jc-gap .fige{background:#FFF8EA}
+table.journal .jc-mode-label{padding-left:24px!important;color:var(--t2);font-weight:600}
+table.journal .jc-gap-label{padding-left:34px!important;color:var(--t2)}
+table.journal .jc-rt{line-height:1.15;min-width:96px}
+table.journal .jc-rt b{display:block;font-size:10px}
+table.journal .jc-rt small{display:block;color:var(--t3);font-size:8.5px;margin-top:2px}
+.jh-wrap{margin-top:14px}
+.jh-item{border:1px solid var(--bord);border-radius:11px;background:var(--surface);margin-bottom:8px;overflow:hidden}
+.jh-item>summary{list-style:none;cursor:pointer;padding:11px 12px;display:flex;align-items:center;gap:10px}
+.jh-item>summary::-webkit-details-marker{display:none}
+.jh-sum{min-width:0;flex:1}.jh-sum b{display:block;font-size:12.5px}.jh-sum span{display:block;font-size:10.5px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jh-state{font-size:9.5px;font-weight:700;padding:4px 7px;border-radius:999px;background:var(--canvas);white-space:nowrap}
+.jh-state.ok{color:var(--vert)} .jh-state.att{color:#9A6700}.jh-state.ko{color:var(--rouge)}
+.jh-body{border-top:1px solid var(--bord);padding:11px 12px}
+.jh-pay{display:grid;grid-template-columns:1.25fr repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--bord);border-radius:9px;overflow:hidden;font-size:10px}
+.jh-pay>div{padding:7px 6px;border-bottom:1px solid var(--bord);background:var(--surface)}
+.jh-pay>div:nth-last-child(-n+4){border-bottom:0}
+.jh-pay .h{background:var(--canvas);font-weight:700;color:var(--t2)}
+.jh-pay .n{text-align:right}.jh-pay .neg{color:var(--rouge);font-weight:700}.jh-pay .pos{color:var(--bleu);font-weight:700}.jh-pay .zero{color:var(--vert);font-weight:700}
+.jh-meta{margin-top:9px;display:grid;gap:5px;font-size:10.5px;color:var(--t2)}
+.jh-meta b{color:var(--t1)}
+.jh-note{margin-top:9px;padding:8px 9px;border-radius:8px;background:#FFF9EC;border:1px solid #F4D995;font-size:10.5px;color:#775B12}
+@media(max-width:900px){
+  .jh-wrap{margin-top:10px}
+  .jh-item>summary{padding:10px 11px}
+  .jh-pay{font-size:9.5px}
+}
+
+
+/* V12 — Journal mobile : chaque journée = Théorique / Réel, avec écart compensé par équipier */
+@media(max-width:900px){
+  table.journal-paires{font-size:10px;min-width:max-content}
+  table.journal-paires .j-day-head{text-align:center!important;min-width:144px;padding:5px 6px!important;background:var(--canvas)}
+  table.journal-paires .j-total-head{background:#EEF0F8}
+  table.journal-paires .j-sub-head th{top:31px!important;text-align:center!important;font-size:8.5px!important;letter-spacing:.02em;text-transform:uppercase;color:var(--t3);min-width:72px;padding:4px 5px!important;background:#F8F9FB}
+  table.journal-paires .j-pair-head th{top:0!important;height:31px}
+  table.journal-paires thead .fige{top:0!important;vertical-align:middle;min-width:142px!important}
+  table.journal-paires .j-subcell{min-width:72px;padding:6px 6px!important}
+  table.journal-paires .j-closed{display:inline-block;margin-left:4px;color:var(--vert);font-size:9px}
+  table.journal-paires .jc-person-band{text-align:left;color:var(--t3);font-size:9px;font-weight:600;background:#F8F9FC}
+  table.journal-paires tr.jc-person td{border-top:2px solid var(--bord-fort)}
+  table.journal-paires .jc-mode-label{padding-left:20px!important}
+  table.journal-paires tr.jc-total td{background:#F5F7FB;font-weight:700}
+  table.journal-paires tr.jc-total .fige{background:#EEF1F7}
+  table.journal-paires .jc-total-label{padding-left:20px!important;color:var(--t1)}
+  table.journal-paires .j-total-theo{color:var(--t2);font-weight:700}
+  table.journal-paires .j-total-real{color:var(--t1);font-weight:800}
+  table.journal-paires .j-gap-pair{text-align:center!important;min-width:144px;font-weight:800;padding:7px 6px!important}
+  table.journal-paires .j-gap-total{background:#FFF5DE}
+  table.journal-paires .jc-gap-global .fige{padding-left:20px!important}
+  table.journal-paires .jc-gap-global .fige b{display:block;color:var(--t1);font-size:10px}
+  table.journal-paires .jc-gap-global .fige small{display:block;color:var(--t3);font-size:8.5px;margin-top:1px}
+  table.journal-paires .j-comp-ok{color:#8A5B00;font-weight:800}
+  table.journal-paires .j-zero{color:var(--vert);font-weight:800}
+  table.journal-paires .j-neg{color:var(--rouge);font-weight:800}
+  table.journal-paires .j-pos{color:var(--bleu);font-weight:800}
+  .grille-journal{scrollbar-gutter:stable;touch-action:pan-x pan-y}
+}
+
 </style>
 
 <div id="racine"><div class="demarrage"><div class="marque-logo"></div><p>Chargement…</p></div></div>
@@ -1131,10 +1201,37 @@ function detailCV(c){
 }
 function ecartComptage(c){
   const t=detailTR(c), v=detailCV(c), cb=arrondi(nb(c.cb)-nb(c.cbZ));
-  const anormal=arrondi((t.ecart<0?-t.ecart:0)+(v.ecart<0?-v.ecart:0)+Math.abs(cb));
-  const boni=arrondi((t.ecart>0?t.ecart:0)+(v.ecart>0?v.ecart:0));
+  /* Règle unique pour tous les moyens de paiement :
+     réel - théorique > 0 = excédent ; réel - théorique < 0 = manquant. */
+  const ecarts=[t.ecart,v.ecart,cb];
+  const anormal=arrondi(ecarts.reduce((s,e)=>s+(e<0?-e:0),0));
+  const boni=arrondi(ecarts.reduce((s,e)=>s+(e>0?e:0),0));
   return {tr:t.ecart, cv:v.ecart, cb, boni, anormal, net:arrondi(t.ecart+v.ecart+cb),
-    abs:arrondi(Math.abs(t.ecart)+Math.abs(v.ecart)+Math.abs(cb))};
+    abs:arrondi(ecarts.reduce((s,e)=>s+Math.abs(e),0))};
+}
+function comptageVerrouille(c){
+  const e=etapeComptage(c);
+  return e==="verifie"||e==="valide";
+}
+function snapshotComptage(c,action,par,at){
+  const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
+  return {vid:uid(), comptageId:c.id||"", action:action||"État enregistré", par:par||"", at:at||maintenant(),
+    caisse:c.caisse||"", service:c.service||"", operateur:c.operateur||"", h1:c.h1||"", h2:c.h2||"",
+    nbTR:ent(c.nbTR), montantTR:arrondi(nb(c.montantTR)), trZ:arrondi(nb(c.trZ)),
+    nbCV:ent(c.nbCV), montantCV:arrondi(nb(c.montantCV)), cvZ:arrondi(nb(c.cvZ)),
+    cb:arrondi(nb(c.cb)), cbZ:arrondi(nb(c.cbZ)), motif:String(c.motif||""),
+    reel:arrondi(t.physique+v.physique+nb(c.cb)), theo:arrondi(t.z+v.z+nb(c.cbZ)), ecart:e.net,
+    etape:etapeComptage(c)};
+}
+function ajouterHistoriqueComptage(c,action,par,at){
+  const h=Array.isArray(c.historique)?c.historique.slice():[];
+  h.push(snapshotComptage(c,action,par,at));
+  if(h.length>60) h.splice(0,h.length-60);
+  c.historique=h;
+}
+function assurerHistoriqueInitial(c){
+  if(Array.isArray(c.historique)&&c.historique.length) return;
+  c.historique=[snapshotComptage(c,"Saisie initiale",c.saisiPar||c.operateur||"",c.at||maintenant())];
 }
 let gen=0;
 const _b={}, _p={}, _c={};
@@ -1165,7 +1262,9 @@ function calcBilan(iso){
     nTR,nCV,canaux:arrondi(cx), tpe, ecartTPE:arrondi(tpe-cb),
     caReel:arrondi(tr+cv+cb+especesReelles+cx), caTheo:arrondi(trZ+cvZ+cbZ+nb(d.especesZ)+cx),
     ecartCaisses:arrondi(abs), ecartNet:arrondi(net+ecartEspeces),
-    anormal:arrondi(anormal+Math.abs(ecartEspeces)), boni:arrondi(boni),
+    /* Même règle pour les espèces : positif = excédent, négatif = manquant. */
+    anormal:arrondi(anormal+(ecartEspeces<0?-ecartEspeces:0)),
+    boni:arrondi(boni+(ecartEspeces>0?ecartEspeces:0)),
     aJustifier:arrondi(Math.abs(ecartEspeces)+abs)};
 }
 function fermetureVeille(iso){ const v=J[decale(iso,-1)]; return v&&v.fermeture?nb(v.fermeture.montant):null; }
@@ -1665,8 +1764,8 @@ function vueInventaireMobile(){
     '</div></div></div>';
   }
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-    (veille!==null?'<div class="mobile-status">Montant repris automatiquement de la fermeture précédente : <b>'+eur(veille)+'</b></div>':"")+
-    '<label class="champ"><span>Montant du monnayeur</span><input type="text" inputmode="decimal" id="ouv-montant" value="'+ech(o.montant)+'"'+(veille!==null?' readonly':'')+' placeholder="0,00"></label>'+
+    (veille!==null?'<div class="mobile-status">Montant proposé depuis la fermeture précédente : <b>'+eur(veille)+'</b> · vous pouvez le modifier</div>':"")+
+    '<label class="champ"><span>Montant du monnayeur</span><input type="text" inputmode="decimal" id="ouv-montant" value="'+ech(o.montant)+'" placeholder="0,00"></label>'+
     '<label class="champ" style="margin-top:10px"><span>Inventaire fait par</span>'+selNoms("ouv-par",o.par)+'</label>'+
     zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
     '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-inventaire">Vérifier ma saisie</button><button class="btn neutre" data-vue="tableau">Annuler</button></div>'+
@@ -1701,9 +1800,9 @@ function vueTableau(){
       (d.cloture||!peut("corriger")?"":'<button class="btn neutre mini" data-act="corriger-ouverture">Corriger</button>')+'</div>'+
       zoneDepot("inv-matin","Inventaire monnayeur — matin",d.justificatifs,true);
   } else {
-    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Repris de la fermeture de la veille : '+eur(veille)+'</p>':"")+
+    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Proposé depuis la fermeture de la veille : '+eur(veille)+' · modifiable</p>':"")+
       '<div class="grille g3"><label class="champ"><span>Montant à l\'ouverture</span>'+
-      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"'+(veille!==null?" readonly":"")+'></label>'+
+      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"></label>'+
       '<label class="champ"><span>Ouvert par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
       '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ouvrir">Ouvrir la journée</button></div></div>';
   }
@@ -1719,7 +1818,7 @@ function vueTableau(){
         '<td class="n">'+t.nb+' tit. · '+eur(t.physique)+'</td><td class="n">'+v.nb+' tit. · '+eur(v.physique)+'</td>'+
         '<td class="n" style="font-weight:600;color:'+(e.anormal>0?"var(--rouge)":"var(--t2)")+'">'+eur(e.anormal)+'</td>'+
         '<td>'+pilEtape(etapeComptage(c))+'</td>'+
-        '<td class="n">'+((d.cloture&&!estAdmin())?"":'<button class="btn neutre mini" data-act="voir-comptage" data-id="'+c.id+'">Ouvrir</button>')+'</td></tr>';
+        '<td class="n">'+((d.cloture&&!estAdmin())?"":((comptageVerrouille(c)&&!estAdmin())?'<span title="Verrouillé">🔒</span>':'<button class="btn neutre mini" data-act="voir-comptage" data-id="'+c.id+'">Ouvrir</button>'))+'</td></tr>';
     }).join("")+'</tbody></table></div>';
   h+='</div>';
 
@@ -1960,10 +2059,10 @@ function vueComptageMobile(){
   if(!d.ouverture) return '<div class="mobile-form"><div class="mobile-status att">Faites d’abord l’inventaire d’ouverture.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
 
   /* Quand il existe déjà des caisses, on affiche d’abord une liste compacte.
-     Cela permet de corriger n’importe quelle saisie jusqu’à validation. */
+     Cela permet de corriger une saisie uniquement avant sa vérification. */
   if(!brouillon && (d.comptages||[]).length){
     const lignes=(d.comptages||[]).map(c=>{
-      const et=etapeComptage(c), verrou=et==="valide"&&!estAdmin();
+      const et=etapeComptage(c), verrou=comptageVerrouille(c)&&!estAdmin();
       const ec=ecartComptage(c);
       return '<div class="mobile-day-row"><div class="mdr-main"><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b><span>'+ech(c.operateur||"—")+' · écart net '+signe(ec.net)+' €</span></div>'+ 
         '<span class="mdr-state '+(et==="valide"?'ok':(et==="verifie"?'att':''))+'">'+ech(ETAPES[et].l)+'</span>'+ 
@@ -1978,15 +2077,15 @@ function vueComptageMobile(){
 
   if(!brouillon) brouillon=neufComptage();
   const existant=brouillon.id?(d.comptages||[]).find(x=>x.id===brouillon.id):null;
-  if(existant&&etapeComptage(existant)==="valide"&&!estAdmin())
-    return '<div class="mobile-form"><div class="mobile-status att">Cette caisse a été validée. Seul un administrateur peut maintenant la modifier.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
+  if(existant&&comptageVerrouille(existant)&&!estAdmin())
+    return '<div class="mobile-form"><div class="mobile-status att">Cette caisse a été vérifiée ou validée. Elle est maintenant verrouillée ; seul un administrateur peut la corriger.</div><div class="mobile-actions-sticky"><button class="btn" data-vue="tableau">Retour au menu</button></div></div>';
 
   const c=brouillon, e=ecartComptage(c), pbs=problemesComptage(c), motifNec=e.abs>0.004;
   const t=detailTR(c), cvd=detailCV(c), enc=arrondi(t.physique+cvd.physique+nb(c.cb)), ztot=arrondi(t.z+cvd.z+nb(c.cbZ));
   if(mobileRevueComptage){
-    const peutSupprimer=!!existant&&(estAdmin()||etapeComptage(existant)!=="valide");
+    const peutSupprimer=!!existant&&(estAdmin()||!comptageVerrouille(existant));
     return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-      '<div class="mobile-review-title"><b>Vérifiez la caisse</b><span>Contrôlez les montants avant l’enregistrement. Vous pourrez encore modifier la caisse tant qu’elle n’est pas validée.</span></div>'+
+      '<div class="mobile-review-title"><b>Vérifiez la caisse</b><span>Contrôlez les montants avant l’enregistrement. Après confirmation elle reste modifiable jusqu’à sa vérification par le contrôle.</span></div>'+
       '<div class="mobile-review-list">'+
         ligneRevueMobile('Caisse / service',ech(c.caisse)+' · '+ech(c.service))+
         ligneRevueMobile('Caissier',ech(c.operateur||'—'))+
@@ -2007,7 +2106,7 @@ function vueComptageMobile(){
   const etatEcart=motifNec?"À justifier":"Aucun écart";
   const classeValeur=n=>Math.abs(n)>0.004?"gap":"";
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-    (existant&&etapeComptage(existant)==="valide"&&estAdmin()?'<div class="mobile-admin-note">Caisse validée : modification réservée à l’administrateur. La validation sera conservée et la correction tracée.</div>':'')+
+    (existant&&comptageVerrouille(existant)&&estAdmin()?'<div class="mobile-admin-note">Caisse vérifiée/validée : correction réservée à l’administrateur. Le statut de contrôle sera conservé et la correction tracée.</div>':'')+
     (d.cloture&&estAdmin()?'<div class="mobile-admin-note">Journée clôturée : correction administrateur.</div>':'')+
     '<div class="mobile-section-title">Service</div><div class="mobile-paire">'+
       '<label class="champ"><span>Caisse</span><select id="c-caisse">'+P.caisses.map(x=>'<option'+(c.caisse===x?' selected':'')+'>'+ech(x)+'</option>').join('')+'</select></label>'+ 
@@ -2042,7 +2141,7 @@ function vueComptageMobile(){
       '<small id="c-motif-help">'+(motifNec?'Ajoutez une explication : l’écart sera enregistré avec ce commentaire.':'En cas d’écart, ce commentaire permettra d’enregistrer la caisse sans rester bloqué.')+'</small></label>'+ 
     (pbs.length&&!(pbs.length===1&&motifNec&&!String(c.motif).trim())?'<div class="mobile-inline-error" id="mobile-erreur">'+ech(pbs[0])+'</div>':'<div class="mobile-inline-error" id="mobile-erreur" style="display:none"></div>')+
     '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-comptage"'+(pbs.length?' disabled':'')+'>'+(existant?'Vérifier les modifications':'Vérifier ma saisie')+'</button><button class="btn neutre" data-vue="tableau">Annuler</button>'+
-      (existant&&(estAdmin()||etapeComptage(existant)!=="valide")?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
+      (existant&&(estAdmin()||!comptageVerrouille(existant))?'<div class="mobile-delete-zone"><button class="btn" data-act="supprimer-comptage">Supprimer cette saisie</button></div>':'')+
     '</div>'+ 
   '</div></div></div>';
 }
@@ -2054,7 +2153,7 @@ function vueComptage(){
     '<div class="actions" style="justify-content:center;margin-top:14px"><button class="btn" data-vue="tableau">Aller à l\'ouverture</button></div></div></div>';
   if(!brouillon) brouillon=neufComptage();
   const existant=brouillon.id?(d.comptages||[]).find(x=>x.id===brouillon.id):null;
-  if(existant&&etapeComptage(existant)==="valide"&&!estAdmin()) return '<div class="carte"><div class="vide"><b>Caisse validée</b>Seul un administrateur peut désormais la modifier.</div></div>';
+  if(existant&&comptageVerrouille(existant)&&!estAdmin()) return '<div class="carte"><div class="vide"><b>Caisse verrouillée</b>Après vérification ou validation, seul un administrateur peut désormais la modifier.</div></div>';
   const c=brouillon, t=detailTR(c), v=detailCV(c), e=ecartComptage(c), pbs=problemesComptage(c);
 
   return '<div class="carte"><header><h2>Votre rapport Z</h2></header><div class="corps">'+
@@ -2080,8 +2179,8 @@ function vueComptage(){
   '<div class="carte"><header><h2>Justification</h2></header><div class="corps">'+
   '<label class="champ'+(e.abs>0&&!c.motif?" invalide":"")+'"><span>Motif de l\'écart'+(e.abs>0?" — obligatoire":" — facultatif")+'</span>'+
   '<textarea id="c-motif" placeholder="'+(e.abs>0?"":"")+'">'+ech(c.motif)+'</textarea></label>'+
-  (e.boni>0?'<div class="banniere info" style="margin-top:11px"><span class="sym">i</span><div><b>'+eur(e.boni)+' d\'excédent sur titres</b><p>Cohérent avec le non-rendu de monnaie. Écrivez-le : cet excédent doit être constaté, pas subi.</p></div></div>':"")+
-  (e.anormal>0?'<div class="banniere ko" style="margin-top:11px"><span class="sym">✕</span><div><b>'+eur(e.anormal)+' de manquant</b><p>Un manquant ne s\'explique pas par le non-rendu. Recomptez avant d\'enregistrer.</p></div></div>':"")+
+  (e.boni>0?'<div class="banniere info" style="margin-top:11px"><span class="sym">i</span><div><b>'+eur(e.boni)+' d\'excédent non-rendu</b><p>Le réel est supérieur au théorique sur un ou plusieurs moyens de paiement. Cet excédent est conservé dans le suivi.</p></div></div>':"")+
+  (e.anormal>0?'<div class="banniere ko" style="margin-top:11px"><span class="sym">✕</span><div><b>'+eur(e.anormal)+' de manquant</b><p>Le réel est inférieur au théorique sur un ou plusieurs moyens de paiement. Recomptez ou justifiez avant d\'enregistrer.</p></div></div>':"")+
   '</div></div>'+
 
   '<div class="actions" style="margin-bottom:20px">'+
@@ -2137,41 +2236,62 @@ function vignette(d,sup){
 
 function rapprochementFermeture(f){
   const d=journee(jour);
-  let tr=0,cv=0,cb=0;
-  (d.comptages||[]).forEach(c=>{ const e=ecartComptage(c); tr+=e.tr; cv+=e.cv; cb+=e.cb; });
-  tr=arrondi(tr); cv=arrondi(cv); cb=arrondi(cb);
+  let tr=0,cv=0;
+  (d.comptages||[]).forEach(c=>{ const e=ecartComptage(c); tr+=e.tr; cv+=e.cv; });
+  tr=arrondi(tr); cv=arrondi(cv);
+
+  /* Carte bancaire : le rapprochement final utilise la télécollecte du soir face au
+     cumul CB théorique (tickets Z). On conserve aussi le contrôle intermédiaire
+     entre les montants CB saisis sur les caisses et la télécollecte. */
+  const cbSaisi=arrondi((d.comptages||[]).reduce((a,c)=>a+nb(c.cb),0));
+  const cbZ=arrondi((d.comptages||[]).reduce((a,c)=>a+nb(c.cbZ),0));
+  const cbSaisiEcart=arrondi(cbSaisi-cbZ);
+  const tpe=arrondi(nb(f.tpe1)+nb(f.tpe2));
+  const pretTPE=String(f.tpe1==null?"":f.tpe1).trim()!=="" && (!P.deuxTPE||String(f.tpe2==null?"":f.tpe2).trim()!=="");
+  const ecartTPE=pretTPE?arrondi(tpe-cbSaisi):0;
+  const cbGlobal=pretTPE?arrondi(tpe-cbZ):cbSaisiEcart;
+
   const pretEspeces=String(f.montant==null?"":f.montant).trim()!=="" && String(f.especesZ==null?"":f.especesZ).trim()!=="";
   const especesReelles=pretEspeces?arrondi(nb(f.montant)-(d.ouverture?nb(d.ouverture.montant):0)-nb(f.apport)+nb(f.retrait&&f.retrait.montant)):0;
   const especes=pretEspeces?arrondi(especesReelles-nb(f.especesZ)):0;
-  const net=arrondi(tr+cv+cb+especes);
-  const abs=arrondi(Math.abs(tr)+Math.abs(cv)+Math.abs(cb)+Math.abs(especes));
-  const tpe=arrondi(nb(f.tpe1)+nb(f.tpe2));
-  const cbReel=arrondi((d.comptages||[]).reduce((a,c)=>a+nb(c.cb),0));
-  const ecartTPE=arrondi(tpe-cbReel);
-  return {tr,cv,cb,especes,net,abs,especesReelles,tpe,cbReel,ecartTPE,pretEspeces};
+  const pretGlobal=pretEspeces&&pretTPE;
+  const net=arrondi(tr+cv+cbGlobal+especes);
+  const abs=arrondi(Math.abs(tr)+Math.abs(cv)+Math.abs(cbGlobal)+Math.abs(especes));
+  const controleCB=pretTPE?Math.abs(ecartTPE):0;
+  const aCommenter=abs>0.004||controleCB>0.004;
+  return {tr,cv,cb:cbGlobal,cbGlobal,cbSaisi,cbZ,cbSaisiEcart,especes,net,abs,controleCB,aCommenter,especesReelles,tpe,
+    cbReel:cbSaisi,ecartTPE,pretEspeces,pretTPE,pretGlobal};
 }
 function blocRapprochementMobile(f){
   const r=rapprochementFermeture(f);
-  const has=r.pretEspeces&&r.abs>0.004, comp=has&&Math.abs(r.net)<=0.004;
-  const cl=r.pretEspeces?(has?(comp?' compense':' ecart'):''):'';
-  const badge=!r.pretEspeces?'À compléter':(!has?'Équilibré':(comp?'Compensé':'Écart '+signe(r.net)+' €'));
-  const note=!r.pretEspeces?'Saisissez le monnayeur de fermeture et les espèces du ticket Z pour calculer la compensation finale.':(!has?'Aucun écart sur les moyens de paiement.':(comp?'Les écarts se compensent entre moyens de paiement. Ajoutez un commentaire pour garder une trace claire.':'Le total de la journée reste déséquilibré de '+signe(r.net)+' €.'));
+  const ecPaiements=r.abs>0.004, cbMismatch=r.pretTPE&&r.controleCB>0.004, has=r.pretGlobal&&(ecPaiements||cbMismatch), comp=ecPaiements&&Math.abs(r.net)<=0.004;
+  const cl=r.pretGlobal?(has?(comp?' compense':' ecart'):''):'';
+  const badge=!r.pretGlobal?'À compléter':(!has?'Équilibré':(cbMismatch&&!ecPaiements?'CB à vérifier':(comp?'Compensé':'Écart '+signe(r.net)+' €')));
+  const note=!r.pretGlobal?'Complétez le monnayeur, les espèces Z et la télécollecte pour obtenir le rapprochement final.':(!has?'Tous les moyens de paiement sont rapprochés.':(cbMismatch&&!ecPaiements?'La télécollecte ne correspond pas au cumul CB saisi sur les caisses. Vérifiez ou commentez l’écart.':(comp?'Les écarts se compensent entre moyens de paiement. Ajoutez un commentaire pour garder une trace claire.':'Le total de la journée reste déséquilibré de '+signe(r.net)+' €.'+(cbMismatch?' La télécollecte diffère aussi du cumul CB saisi.':''))));
   const val=(id,l,n)=>'<div class="mobile-recap-item"><span>'+l+'</span><b id="'+id+'" class="'+(Math.abs(n)>0.004?'gap':'')+'">'+signe(n)+' €</b></div>';
+  const cbClass=Math.abs(r.ecartTPE)>0.004?'gap':'ok';
   return '<div class="mobile-recap'+cl+'" id="fermeture-recap"><div class="mobile-recap-head"><div><b>Rapprochement de la journée</b><small>Réel − ticket Z, tous les services cumulés</small></div><span class="mobile-recap-badge" id="fr-badge">'+badge+'</span></div>'+ 
-    '<div class="mobile-recap-grid">'+val('fr-tr','Titres-restaurant',r.tr)+val('fr-cv','Chèques-vacances',r.cv)+val('fr-cb','Carte bancaire',r.cb)+val('fr-esp','Espèces',r.especes)+'</div>'+ 
+    '<div class="mobile-recap-grid">'+val('fr-tr','Titres-restaurant',r.tr)+val('fr-cv','Chèques-vacances',r.cv)+val('fr-cb','Carte bancaire globale',r.cbGlobal)+val('fr-esp','Espèces',r.especes)+'</div>'+ 
+    '<div class="mobile-recap-cb"><div class="r"><span>CB saisi sur toutes les caisses</span><b id="fr-cb-saisi">'+eur(r.cbSaisi)+'</b></div>'+
+      '<div class="r"><span>CB théorique · tickets Z cumulés</span><b id="fr-cb-z">'+eur(r.cbZ)+'</b></div>'+
+      '<div class="r"><span>Télécollecte du soir</span><b id="fr-tpe">'+(r.pretTPE?eur(r.tpe):'À saisir')+'</b></div>'+
+      '<div class="r important"><span>TPE − CB saisi</span><b id="fr-tpe-ecart" class="'+cbClass+'">'+(r.pretTPE?signe(r.ecartTPE)+' €':'—')+'</b></div></div>'+
     '<div class="mobile-recap-net"><span>Écart net après compensation</span><b id="fr-net">'+signe(r.net)+' €</b></div>'+ 
-    '<div class="mobile-recap-note" id="fr-note">'+note+' Télécollecte / CB : '+signe(r.ecartTPE)+' €.</div></div>';
+    '<div class="mobile-recap-note" id="fr-note">'+note+'</div></div>';
 }
 function majFermetureMobile(){
   if(!surMobile()||!brouillonFerm) return;
-  const r=rapprochementFermeture(brouillonFerm), has=r.pretEspeces&&r.abs>0.004, comp=has&&Math.abs(r.net)<=0.004;
+  const r=rapprochementFermeture(brouillonFerm), ecPaiements=r.abs>0.004, cbMismatch=r.pretTPE&&r.controleCB>0.004, has=r.pretGlobal&&(ecPaiements||cbMismatch), comp=ecPaiements&&Math.abs(r.net)<=0.004;
   const box=document.getElementById('fermeture-recap'), badge=document.getElementById('fr-badge'), net=document.getElementById('fr-net'), note=document.getElementById('fr-note');
-  if(box) box.className='mobile-recap'+(r.pretEspeces?(has?(comp?' compense':' ecart'):''):'');
-  if(badge) badge.textContent=!r.pretEspeces?'À compléter':(!has?'Équilibré':(comp?'Compensé':'Écart '+signe(r.net)+' €'));
+  if(box) box.className='mobile-recap'+(r.pretGlobal?(has?(comp?' compense':' ecart'):''):'');
+  if(badge) badge.textContent=!r.pretGlobal?'À compléter':(!has?'Équilibré':(cbMismatch&&!ecPaiements?'CB à vérifier':(comp?'Compensé':'Écart '+signe(r.net)+' €')));
   const set=(id,n)=>{ const el=document.getElementById(id); if(el){ el.textContent=signe(n)+' €'; el.className=Math.abs(n)>0.004?'gap':''; } };
-  set('fr-tr',r.tr); set('fr-cv',r.cv); set('fr-cb',r.cb); set('fr-esp',r.especes);
+  set('fr-tr',r.tr); set('fr-cv',r.cv); set('fr-cb',r.cbGlobal); set('fr-esp',r.especes);
+  const cbS=document.getElementById('fr-cb-saisi'), cbZ=document.getElementById('fr-cb-z'), tp=document.getElementById('fr-tpe'), te=document.getElementById('fr-tpe-ecart');
+  if(cbS) cbS.textContent=eur(r.cbSaisi); if(cbZ) cbZ.textContent=eur(r.cbZ); if(tp) tp.textContent=r.pretTPE?eur(r.tpe):'À saisir';
+  if(te){ te.textContent=r.pretTPE?signe(r.ecartTPE)+' €':'—'; te.className=r.pretTPE?(Math.abs(r.ecartTPE)>0.004?'gap':'ok'):''; }
   if(net) net.textContent=signe(r.net)+' €';
-  if(note) note.textContent=(!r.pretEspeces?'Saisissez le monnayeur de fermeture et les espèces du ticket Z pour calculer la compensation finale.':(!has?'Aucun écart sur les moyens de paiement.':(comp?'Les écarts se compensent entre moyens de paiement. Ajoutez un commentaire pour garder une trace claire.':'Le total de la journée reste déséquilibré de '+signe(r.net)+' €.')))+' Télécollecte / CB : '+signe(r.ecartTPE)+' €.';
+  if(note) note.textContent=!r.pretGlobal?'Complétez le monnayeur, les espèces Z et la télécollecte pour obtenir le rapprochement final.':(!has?'Tous les moyens de paiement sont rapprochés.':(cbMismatch&&!ecPaiements?'La télécollecte ne correspond pas au cumul CB saisi sur les caisses. Vérifiez ou commentez l’écart.':(comp?'Les écarts se compensent entre moyens de paiement. Ajoutez un commentaire pour garder une trace claire.':'Le total de la journée reste déséquilibré de '+signe(r.net)+' €.'+(cbMismatch?' La télécollecte diffère aussi du cumul CB saisi.':''))));
   const lab=document.getElementById('f-motif-label'), help=document.getElementById('f-motif-help');
   if(lab) lab.textContent='Commentaire de fermeture'+(has?' — obligatoire':' — facultatif');
   if(help) help.textContent=has?'Expliquez l’écart ou la compensation observée entre les moyens de paiement.':'Aucun commentaire n’est nécessaire si la journée est équilibrée.';
@@ -2188,7 +2308,7 @@ function vueFermetureMobile(){
     canaux:Object.assign({cc:"",borne:"",uber:"",deliveroo:""},d.canaux)};
   const f=brouillonFerm, pbs=problemesFermeture(f,nb(f.montant));
   const attenteControle=pbs.filter(x=>/validation|validée|validé|caisse\(s\)|pièce\(s\)/i.test(x));
-  const rap=rapprochementFermeture(f), ecartJour=rap.pretEspeces&&rap.abs>0.004;
+  const rap=rapprochementFermeture(f), ecartJour=rap.pretGlobal&&rap.aCommenter;
   const peutClore=!d.cloture&&d.fermeture&&pbs.length===0&&peut("cloturer");
   const photosCibles=["inv-soir","z-global","tpe1"].concat(P.deuxTPE?["tpe2"]:[]);
   const nbPhotos=photosCibles.filter(k=>docsDe(d.justificatifs,k).length).length;
@@ -2312,10 +2432,15 @@ function vueFermeture(){
   '<div class="carte"><header><h2>Rapprochement de la journée</h2><p>Écarts cumulés réel − ticket Z</p></header><div class="corps"><div class="grille g4">'+
     stat("Titres-restaurant",signe(rap.tr)+" €","",Math.abs(rap.tr)>0.004?"att":"ok")+
     stat("Chèques-vacances",signe(rap.cv)+" €","",Math.abs(rap.cv)>0.004?"att":"ok")+
-    stat("Carte bancaire",signe(rap.cb)+" €","",Math.abs(rap.cb)>0.004?"att":"ok")+
+    stat("Carte bancaire globale",signe(rap.cbGlobal)+" €","Télécollecte − CB ticket Z",Math.abs(rap.cbGlobal)>0.004?"att":"ok")+
     stat("Espèces",signe(rap.especes)+" €","",Math.abs(rap.especes)>0.004?"att":"ok")+
-  '</div><div class="banniere '+(rap.abs<=0.004?"ok":(Math.abs(rap.net)<=0.004?"prim":"att"))+'" style="margin-top:14px"><span class="sym">'+(rap.abs<=0.004?"✓":"↔")+'</span><div><b>Écart net après compensation : '+signe(rap.net)+' €</b><p>'+(rap.abs<=0.004?"Journée équilibrée.":(Math.abs(rap.net)<=0.004?"Des écarts entre moyens de paiement se compensent.":"La journée reste déséquilibrée."))+'</p></div></div>'+
-  '<label class="champ" style="margin-top:14px"><span>Commentaire de fermeture'+(rap.abs>0.004?" — obligatoire":" — facultatif")+'</span><textarea id="f-motif">'+ech(f.motif||"")+'</textarea></label></div></div>'+
+  '</div><div class="grille g4" style="margin-top:12px">'+
+    stat("CB saisi caisses",eur(rap.cbSaisi),"Cumul de toutes les saisies","")+
+    stat("CB tickets Z",eur(rap.cbZ),"Cumul théorique","")+
+    stat("Télécollecte soir",rap.pretTPE?eur(rap.tpe):"À saisir","TPE 1 + TPE 2","")+
+    stat("TPE − CB saisi",rap.pretTPE?signe(rap.ecartTPE)+" €":"—","Contrôle du cumul",rap.pretTPE&&Math.abs(rap.ecartTPE)>0.004?"att":"ok")+
+  '</div><div class="banniere '+(rap.pretGlobal&&!rap.aCommenter?"ok":(rap.pretGlobal&&rap.abs>0.004&&Math.abs(rap.net)<=0.004?"prim":"att"))+'" style="margin-top:14px"><span class="sym">'+(rap.pretGlobal&&!rap.aCommenter?"✓":"↔")+'</span><div><b>Écart net après compensation : '+signe(rap.net)+' €</b><p>'+(!rap.pretGlobal?"Complétez espèces et télécollecte pour le rapprochement global.":(!rap.aCommenter?"Journée équilibrée.":(rap.abs<=0.004&&rap.controleCB>0.004?"La télécollecte ne correspond pas au cumul CB saisi sur les caisses.":(Math.abs(rap.net)<=0.004?"Des écarts entre moyens de paiement se compensent.":"La journée reste déséquilibrée."))))+'</p></div></div>'+
+  '<label class="champ" style="margin-top:14px"><span>Commentaire de fermeture'+(rap.aCommenter?" — obligatoire":" — facultatif")+'</span><textarea id="f-motif">'+ech(f.motif||"")+'</textarea></label></div></div>'+
 
   '<div class="carte"><header><h2>Clôture</h2></header><div class="corps">'+
   '<div class="banniere '+(cc.total&&cc.ok===cc.total?"ok":"att")+'"><span class="sym">'+(cc.total&&cc.ok===cc.total?"✓":"!")+'</span>'+
@@ -2339,7 +2464,7 @@ function problemesFermeture(f,montant){
   if(P.deuxTPE&&!nb(f.tpe2)) p.push("Saisissez la télécollecte du TPE 2.");
   if(nb(f.retrait.montant)>0&&!f.retrait.bordereau) p.push("Le n° de bordereau est obligatoire dès qu'il y a un retrait.");
   const rap=rapprochementFermeture(f);
-  if(rap.pretEspeces&&rap.abs>0.004&&!String(f.motif||"").trim()) p.push("Les écarts ou compensations de la journée doivent être commentés avant validation.");
+  if(rap.pretGlobal&&rap.aCommenter&&!String(f.motif||"").trim()) p.push("Les écarts, compensations ou incohérences CB de la journée doivent être commentés avant validation.");
   const sm=d.comptages.filter(c=>ecartComptage(c).abs>0&&!c.motif).length;
   if(sm) p.push(sm+" comptage(s) avec un écart non justifié.");
   if(cc.manquants.length) p.push(cc.manquants.length+" pièce(s) obligatoire(s) manquante(s).");
@@ -2512,144 +2637,214 @@ function colonnesJournal(){
   }
   return cols;
 }
+function valeursModeJournal(c,mode){
+  if(mode==="tr") return {reel:arrondi(nb(c.montantTR)),theo:arrondi(nb(c.trZ)),ecart:arrondi(nb(c.montantTR)-nb(c.trZ))};
+  if(mode==="cv") return {reel:arrondi(nb(c.montantCV)),theo:arrondi(nb(c.cvZ)),ecart:arrondi(nb(c.montantCV)-nb(c.cvZ))};
+  return {reel:arrondi(nb(c.cb)),theo:arrondi(nb(c.cbZ)),ecart:arrondi(nb(c.cb)-nb(c.cbZ))};
+}
+function historiqueJournalHTML(actifs){
+  const lignes=[];
+  const jours=[...new Set(actifs)].sort().reverse();
+  jours.forEach(k=>{
+    const d=journee(k);
+    (d.comptages||[]).forEach(c=>{
+      let hist=Array.isArray(c.historique)&&c.historique.length?c.historique.slice():[];
+      if(!hist.length){
+        const et=etapeComptage(c), lib=et==="valide"?"État actuel · Validée":(et==="verifie"?"État actuel · Vérifiée":(et==="renvoye"?"État actuel · Renvoyée":"État actuel · Saisie"));
+        const at=(c.valid&&c.valid.at)||(c.verif&&c.verif.at)||c.modifieAt||c.at||maintenant();
+        hist=[snapshotComptage(c,lib,(c.valid&&c.valid.par)||(c.verif&&c.verif.par)||c.modifiePar||c.saisiPar||c.operateur||"",at)];
+      }
+      hist.forEach(v=>lignes.push({jour:k,v,supprime:false}));
+    });
+    (d.historiqueSupprimes||[]).forEach(v=>lignes.push({jour:k,v,supprime:v.supprime===true}));
+  });
+  lignes.sort((a,b)=>String(b.v.at||"").localeCompare(String(a.v.at||"")));
+  if(!lignes.length) return '<div class="vide"><b>Aucun historique de caisse</b></div>';
+  const classeE=e=>Math.abs(e)<0.004?'zero':(e<0?'neg':'pos');
+  const etatLib=e=>e==="valide"?"Validée":(e==="verifie"?"Vérifiée":(e==="renvoye"?"Renvoyée":"Saisie"));
+  const etatCl=e=>e==="valide"?'ok':(e==="renvoye"?'ko':'att');
+  return '<div class="jh-wrap">'+lignes.slice(0,300).map(({jour:k,v,supprime})=>{
+    const tr={reel:nb(v.montantTR),theo:nb(v.trZ),ecart:arrondi(nb(v.montantTR)-nb(v.trZ))};
+    const cv={reel:nb(v.montantCV),theo:nb(v.cvZ),ecart:arrondi(nb(v.montantCV)-nb(v.cvZ))};
+    const cb={reel:nb(v.cb),theo:nb(v.cbZ),ecart:arrondi(nb(v.cb)-nb(v.cbZ))};
+    const reel=arrondi(tr.reel+cv.reel+cb.reel), theo=arrondi(tr.theo+cv.theo+cb.theo), ec=arrondi(reel-theo);
+    const statut=supprime?'Supprimée':etatLib(v.etape), scl=supprime?'ko':etatCl(v.etape);
+    const pay=(lib,x)=>'<div>'+lib+'</div><div class="n">'+eur(x.reel)+'</div><div class="n">'+eur(x.theo)+'</div><div class="n '+classeE(x.ecart)+'">'+signe(x.ecart)+' €</div>';
+    return '<details class="jh-item"><summary><div class="jh-sum"><b>'+ech(courteDate(k)+' · '+(v.operateur||'Sans nom'))+'</b><span>'+ech((v.caisse||'—')+' · '+(v.service||'—')+' · '+(v.h1||'--:--')+' → '+(v.h2||'--:--')+' · '+(v.action||'Historique'))+'</span></div><span class="jh-state '+scl+'">'+statut+'</span></summary>'+ 
+      '<div class="jh-body"><div class="jh-pay"><div class="h">Moyen</div><div class="h n">Réel</div><div class="h n">Théorique</div><div class="h n">Écart</div>'+pay('Titres-restaurant',tr)+pay('Chèques-vacances',cv)+pay('Carte bancaire',cb)+pay('TOTAL',{reel,theo,ecart:ec})+'</div>'+ 
+      '<div class="jh-meta"><div><b>Action :</b> '+ech(v.action||'—')+' · '+ech(v.par||'—')+' · '+heureCourte(v.at)+'</div><div><b>Référence :</b> '+ech(v.comptageId||'—')+'</div></div>'+ 
+      (String(v.motif||'').trim()?'<div class="jh-note"><b>Commentaire :</b> '+ech(String(v.motif).trim())+'</div>':'')+
+      (supprime?'<div class="jh-note"><b>Suppression :</b> '+ech(v.supprimePar||v.par||'—')+' · '+heureCourte(v.supprimeAt||v.at)+'</div>':'')+
+      '</div></details>';
+  }).join('')+'</div>';
+}
+
 function vueJournalMobile(){
   if(!peut("journal")) return '<div class="interdit"><div class="cad">🔒</div><b>Journal non autorisé</b><p class="aide">L’administrateur doit vous accorder le droit « Journal des journées ».</p></div>';
   const cols=colonnesJournal();
   const actifs=[]; cols.forEach(c=>c.jours.forEach(k=>actifs.push(k)));
   const caisses=P.caisses;
-  const somme=(col,fn)=>{ let t=0; col.jours.forEach(k=>t+=fn(k)); return arrondi(t); };
 
-  const enTete='<tr><th class="fige">Rubrique</th>'+cols.map(c=>
-    '<th class="n'+(c.vide?" pale":"")+'">'+c.t+'<div class="jsem">'+c.s+'</div>'+ 
-    (c.jours.length===1&&journee(c.jours[0]).cloture?'<div style="color:var(--vert);font-size:9px">✓</div>':"")+'</th>').join("")+
-    '<th class="n">Total</th></tr>';
-
-  const ligne=(nom,fn,cl,total)=>{
-    let som=0;
-    const cells=cols.map(c=>{
-      if(!c.jours.length) return '<td class="n pale">—</td>';
-      const v=somme(c,fn); som+=v;
-      return '<td class="n">'+(v?eur(v):"—")+'</td>';
-    }).join("");
-    return '<tr class="'+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
-      '<td class="n" style="font-weight:700">'+(total===false?"":eur(som))+'</td></tr>';
+  const somme=(jours,fn)=>{ let t=0; (jours||[]).forEach(k=>t+=fn(k)); return arrondi(t); };
+  const tousJours=actifs.slice();
+  const pairVide=()=>'<td class="n pale j-subcell">—</td><td class="n pale j-subcell">—</td>';
+  const pairMontant=(theo,reel,has=true,clTheo='',clReel='')=>{
+    if(!has) return pairVide();
+    return '<td class="n j-subcell '+clTheo+'">'+(Math.abs(theo)>0.004?eur(theo):'0,00 €')+'</td>'+ 
+           '<td class="n j-subcell '+clReel+'">'+(Math.abs(reel)>0.004?eur(reel):'0,00 €')+'</td>';
   };
-  const ligneEcart=(nom,fn,cl)=>{
-    let som=0;
-    const cells=cols.map(c=>{
-      if(!c.jours.length) return '<td class="n pale">—</td>';
-      const e=somme(c,fn); som+=e;
-      if(Math.abs(e)<0.004) return '<td class="n" style="color:var(--t3)">—</td>';
-      return '<td class="n" style="font-weight:700;color:'+(e<0?"var(--rouge)":"var(--bleu)")+'">'+signe(e)+'</td>';
-    }).join("");
-    return '<tr class="ecart '+(cl||"")+'"><td class="fige">'+nom+'</td>'+cells+
-      '<td class="n" style="font-weight:700">'+signe(som)+'</td></tr>';
+  const ecartHTML=(net,abs)=>{
+    const n=arrondi(net), a=arrondi(abs||0);
+    if(Math.abs(n)<=0.004 && a>0.004) return '<span class="j-comp-ok">0,00 € · compensé</span>';
+    if(Math.abs(n)<=0.004) return '<span class="j-zero">0,00 €</span>';
+    return '<span class="'+(n<0?'j-neg':'j-pos')+'">'+signe(n)+' €</span>';
   };
-  const sep=t=>'<tr class="sep"><td class="fige">'+ech(t)+'</td><td colspan="'+(cols.length+1)+'"></td></tr>';
 
-  const calcCaissier=(jours,ca,op)=>{
-    let reel=0,theo=0,ec=0,n=0;
-    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{
-      reel+=nb(c.montantTR)+nb(c.montantCV)+nb(c.cb);
-      theo+=nb(c.trZ)+nb(c.cvZ)+nb(c.cbZ);
-      ec+=ecartComptage(c).net;
-      n++;
+  const enTete='<tr class="j-pair-head"><th class="fige" rowspan="2">Rubrique</th>'+cols.map(c=>
+    '<th colspan="2" class="j-day-head'+(c.vide?' pale':'')+'">'+c.t+'<div class="jsem">'+c.s+'</div>'+ 
+    (c.jours.length===1&&journee(c.jours[0]).cloture?'<div class="j-closed">✓</div>':'')+'</th>').join('')+
+    '<th colspan="2" class="j-day-head j-total-head">Total</th></tr>'+ 
+    '<tr class="j-sub-head">'+cols.map(c=>'<th class="n'+(c.vide?' pale':'')+'">Théorique</th><th class="n'+(c.vide?' pale':'')+'">Réel</th>').join('')+
+    '<th class="n">Théorique</th><th class="n">Réel</th></tr>';
+
+  const sep=t=>'<tr class="sep"><td class="fige">'+ech(t)+'</td><td colspan="'+(cols.length*2+2)+'"></td></tr>';
+
+  const calcModeCaissier=(jours,ca,op,mode)=>{
+    let reel=0,theo=0,n=0;
+    (jours||[]).forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{
+      const x=valeursModeJournal(c,mode); reel+=x.reel; theo+=x.theo; n++;
     }));
-    return {reel:arrondi(reel),theo:arrondi(theo),ec:arrondi(ec),n};
+    reel=arrondi(reel); theo=arrondi(theo);
+    return {reel,theo,ec:arrondi(reel-theo),n};
   };
-  const celluleCaissier=x=>{
-    if(!x.n) return '<td class="n pale">—</td>';
-    const cl=Math.abs(x.ec)<0.004?'zero':(x.ec<0?'neg':'pos');
-    return '<td class="n jc-cell"><b>'+eur(x.reel)+'</b><small>Z '+eur(x.theo)+' · <span class="'+cl+'">Écart '+signe(x.ec)+' €</span></small></td>';
+  const calcCaissier=(jours,ca,op)=>{
+    const tr=calcModeCaissier(jours,ca,op,'tr');
+    const cv=calcModeCaissier(jours,ca,op,'cv');
+    const cb=calcModeCaissier(jours,ca,op,'cb');
+    const n=Math.max(tr.n,cv.n,cb.n);
+    const reel=arrondi(tr.reel+cv.reel+cb.reel), theo=arrondi(tr.theo+cv.theo+cb.theo);
+    return {reel,theo,net:arrondi(reel-theo),abs:arrondi(Math.abs(tr.ec)+Math.abs(cv.ec)+Math.abs(cb.ec)),n,tr,cv,cb};
   };
-  const ligneCaissier=(ca,op)=>{
-    let tot={reel:0,theo:0,ec:0,n:0};
+
+  const ligneModeCaissier=(ca,op,lib,mode)=>{
+    let totalReel=0,totalTheo=0,totalN=0;
+    const cells=cols.map(c=>{
+      const x=calcModeCaissier(c.jours,ca,op,mode);
+      totalReel+=x.reel; totalTheo+=x.theo; totalN+=x.n;
+      return pairMontant(x.theo,x.reel,!!x.n);
+    }).join('');
+    return '<tr class="jc-mode"><td class="fige jc-mode-label">'+ech(lib)+'</td>'+cells+pairMontant(arrondi(totalTheo),arrondi(totalReel),!!totalN)+'</tr>';
+  };
+
+  const ligneTotalCaissier=(ca,op)=>{
+    let total={reel:0,theo:0,n:0};
     const cells=cols.map(c=>{
       const x=calcCaissier(c.jours,ca,op);
-      tot.reel+=x.reel; tot.theo+=x.theo; tot.ec+=x.ec; tot.n+=x.n;
-      return celluleCaissier(x);
-    }).join("");
-    tot.reel=arrondi(tot.reel); tot.theo=arrondi(tot.theo); tot.ec=arrondi(tot.ec);
-    return '<tr class="jc-row"><td class="fige jc-label"><b>'+ech(op)+'</b><small>Encaissé · ticket Z · écart</small></td>'+cells+celluleCaissier(tot)+'</tr>';
+      total.reel+=x.reel; total.theo+=x.theo; total.n+=x.n;
+      return pairMontant(x.theo,x.reel,!!x.n,'j-total-theo','j-total-real');
+    }).join('');
+    return '<tr class="jc-total"><td class="fige jc-total-label">TOTAL PAIEMENTS</td>'+cells+pairMontant(arrondi(total.theo),arrondi(total.reel),!!total.n,'j-total-theo','j-total-real')+'</tr>';
+  };
+
+  const ligneEcartCompense=(ca,op)=>{
+    let totalNet=0,totalAbs=0,totalN=0;
+    const cells=cols.map(c=>{
+      const x=calcCaissier(c.jours,ca,op); totalNet+=x.net; totalAbs+=x.abs; totalN+=x.n;
+      if(!x.n) return '<td colspan="2" class="n pale j-gap-pair">—</td>';
+      return '<td colspan="2" class="n j-gap-pair">'+ecartHTML(x.net,x.abs)+'</td>';
+    }).join('');
+    return '<tr class="jc-gap jc-gap-global"><td class="fige jc-gap-label"><b>ÉCART COMPENSÉ</b><small>TR + CV + CB</small></td>'+cells+
+      '<td colspan="2" class="n j-gap-pair j-gap-total">'+(totalN?ecartHTML(arrondi(totalNet),arrondi(totalAbs)):'—')+'</td></tr>';
+  };
+
+  const lignePersonne=(ca,op)=>{
+    const cp=COMPTES.find(x=>x.nom===op), role=cp?cp.role:'Équipier';
+    return '<tr class="jc-person"><td class="fige jc-label"><b>'+ech(op)+'</b><small>'+ech(role)+'</small></td><td colspan="'+(cols.length*2+2)+'" class="jc-person-band">Détail des encaissements</td></tr>'+
+      ligneModeCaissier(ca,op,'Titres-restaurant','tr')+
+      ligneModeCaissier(ca,op,'Chèques-vacances','cv')+
+      ligneModeCaissier(ca,op,'Carte bancaire','cb')+
+      ligneTotalCaissier(ca,op)+
+      ligneEcartCompense(ca,op);
+  };
+
+  const lignePaire=(nom,theoFn,reelFn,cl)=>{
+    let tt=0,tr=0,hasTotal=false;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return pairVide();
+      const theo=somme(c.jours,theoFn), reel=somme(c.jours,reelFn); tt+=theo; tr+=reel; hasTotal=true;
+      return pairMontant(theo,reel,true);
+    }).join('');
+    return '<tr class="'+(cl||'')+'"><td class="fige">'+nom+'</td>'+cells+pairMontant(arrondi(tt),arrondi(tr),hasTotal)+'</tr>';
+  };
+
+  const ligneSimpleReel=(nom,reelFn,cl)=>lignePaire(nom,()=>0,reelFn,cl);
+  const ligneGapPaire=(nom,theoFn,reelFn,absFn,cl)=>{
+    let nTot=0,aTot=0,has=false;
+    const cells=cols.map(c=>{
+      if(!c.jours.length) return '<td colspan="2" class="n pale j-gap-pair">—</td>';
+      const theo=somme(c.jours,theoFn), reel=somme(c.jours,reelFn), n=arrondi(reel-theo);
+      const a=absFn?somme(c.jours,absFn):Math.abs(n); nTot+=n; aTot+=a; has=true;
+      return '<td colspan="2" class="n j-gap-pair">'+ecartHTML(n,a)+'</td>';
+    }).join('');
+    return '<tr class="ecart '+(cl||'')+'"><td class="fige">'+nom+'</td>'+cells+'<td colspan="2" class="n j-gap-pair j-gap-total">'+(has?ecartHTML(arrondi(nTot),arrondi(aTot)):'—')+'</td></tr>';
   };
 
   let corps='';
-  corps+=ligne("MONNAYEUR OUVERTURE",k=>journee(k).ouverture?nb(journee(k).ouverture.montant):0,"grp",false);
+  corps+=lignePaire('MONNAYEUR OUVERTURE',k=>{ const v=fermetureVeille(k); return v===null?0:v; },k=>journee(k).ouverture?nb(journee(k).ouverture.montant):0,'grp');
+
   caisses.forEach(ca=>{
     corps+=sep(ca.toUpperCase());
-
-    /* Détail nominatif directement dans le tableau, sans changer sa présentation générale. */
-    const ops=[...new Set(actifs.flatMap(k=>journee(k).comptages
-      .filter(c=>c.caisse===ca)
-      .map(c=>(c.operateur||"Sans nom"))))].sort((a,b)=>a.localeCompare(b,"fr"));
-    ops.forEach(op=>{ corps+=ligneCaissier(ca,op); });
-
-    if(journalDetail) [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
-      corps+=ligne("  "+lib+" — compté",k=>{
-        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
-          v+= mode==="tr"?nb(c.montantTR):(mode==="cv"?nb(c.montantCV):nb(c.cb)); });
-        return arrondi(v);
-      });
-      corps+=ligne("  "+lib+" — ticket Z",k=>{
-        let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
-          v+= mode==="tr"?nb(c.trZ):(mode==="cv"?nb(c.cvZ):nb(c.cbZ)); });
-        return arrondi(v);
-      });
-    });
-    corps+=ligneEcart("  ÉCART "+ca,k=>{
-      let e=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ e+=ecartComptage(c).net; });
-      return arrondi(e);
+    const ops=[...new Set(actifs.flatMap(k=>journee(k).comptages.filter(c=>c.caisse===ca).map(c=>(c.operateur||'Sans nom'))))].sort((a,b)=>a.localeCompare(b,'fr'));
+    if(!ops.length){
+      corps+='<tr><td class="fige jc-mode-label">Aucune saisie</td><td colspan="'+(cols.length*2+2)+'" class="pale">—</td></tr>';
+    } else ops.forEach(op=>{ corps+=lignePersonne(ca,op); });
+    corps+=ligneGapPaire('  ÉCART NET '+ca.toUpperCase(),k=>{
+      let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ const t=detailTR(c),cv=detailCV(c); v+=t.z+cv.z+nb(c.cbZ); }); return arrondi(v);
+    },k=>{
+      let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ const t=detailTR(c),cv=detailCV(c); v+=t.physique+cv.physique+nb(c.cb); }); return arrondi(v);
+    },k=>{
+      let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{ const e=ecartComptage(c); v+=Math.abs(e.tr)+Math.abs(e.cv)+Math.abs(e.cb); }); return arrondi(v);
     });
   });
-  corps+=sep("FERMETURE");
-  corps+=ligne("  Monnayeur fermeture",k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0,"",false);
-  corps+=ligne("  Retrait / remise",k=>nb(journee(k).retrait.montant));
-  corps+=ligne("  Espèces réelles",k=>bilan(k).especesReelles);
-  corps+=ligne("  Espèces ticket Z",k=>nb(journee(k).especesZ));
-  corps+=ligne("  Télécollecte TPE",k=>bilan(k).tpe);
-  corps+=sep("CANAUX");
-  [["Click & Collect","cc"],["Borne","borne"],["Uber Eats","uber"],["Deliveroo","deliveroo"]].forEach(([l,k2])=>{
-    corps+=ligne("  "+l,k=>nb(journee(k).canaux[k2]));
+
+  corps+=sep('FERMETURE');
+  corps+=lignePaire('  Monnayeur fermeture',k=>{
+    const d=journee(k); if(!d.ouverture) return 0;
+    return arrondi(nb(d.ouverture.montant)+nb(d.apport)-nb(d.retrait&&d.retrait.montant)+nb(d.especesZ));
+  },k=>journee(k).fermeture?nb(journee(k).fermeture.montant):0);
+  corps+=lignePaire('  Espèces',k=>nb(journee(k).especesZ),k=>bilan(k).especesReelles);
+  corps+=lignePaire('  Carte bancaire globale',k=>bilan(k).cbZ,k=>bilan(k).tpe,'grp');
+  corps+=lignePaire('  Contrôle CB caisses / TPE',k=>bilan(k).cb,k=>bilan(k).tpe);
+  corps+=ligneGapPaire('  ÉCART CB GLOBAL',k=>bilan(k).cbZ,k=>bilan(k).tpe,null,'grp');
+  corps+=ligneSimpleReel('  Retrait / remise',k=>nb(journee(k).retrait.montant));
+
+  corps+=sep('CANAUX');
+  [['Click & Collect','cc'],['Borne','borne'],['Uber Eats','uber'],['Deliveroo','deliveroo']].forEach(([l,k2])=>{
+    corps+=ligneSimpleReel('  '+l,k=>nb(journee(k).canaux[k2]));
   });
-  corps+=sep("RÉSULTAT");
-  corps+=ligne("  CA RÉEL",k=>bilan(k).caReel,"grp");
-  corps+=ligne("  CA THÉORIQUE",k=>bilan(k).caTheo,"grp");
-  corps+='<tr class="ecart grp"><td class="fige">  MANQUANT RÉEL</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    const a=somme(c,k=>bilan(k).anormal);
-    return a>0.004?'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(a)+'</td>':'<td class="n" style="color:var(--vert)">0</td>';
-  }).join("")+'<td class="n" style="font-weight:700;color:var(--rouge)">'+eur(actifs.reduce((s,k)=>s+bilan(k).anormal,0))+'</td></tr>';
-  corps+='<tr class="ecart"><td class="fige">  EXCÉDENT NON-RENDU</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    const b=somme(c,k=>bilan(k).boni);
-    return '<td class="n" style="color:'+(b>0.004?"var(--bleu)":"var(--t3)")+'">'+(b>0.004?eur(b):"—")+'</td>';
-  }).join("")+'<td class="n" style="font-weight:700;color:var(--bleu)">'+eur(actifs.reduce((s,k)=>s+bilan(k).boni,0))+'</td></tr>';
-  corps+='<tr><td class="fige">  Nb titres TR / CV</td>'+cols.map(c=>{
-    if(!c.jours.length) return '<td class="n pale">—</td>';
-    let t=0,v=0; c.jours.forEach(k=>{ const b=bilan(k); t+=b.nTR; v+=b.nCV; });
-    return '<td class="n">'+(t||v?t+" / "+v:"—")+'</td>';
-  }).join("")+'<td class="n">'+actifs.reduce((s,k)=>s+bilan(k).nTR,0)+" / "+actifs.reduce((s,k)=>s+bilan(k).nCV,0)+'</td></tr>';
+
+  corps+=sep('RÉSULTAT');
+  corps+=lignePaire('  CA TOTAL',k=>bilan(k).caTheo,k=>bilan(k).caReel,'grp');
+  corps+=ligneGapPaire('  ÉCART GLOBAL',k=>bilan(k).caTheo,k=>bilan(k).caReel,k=>bilan(k).aJustifier,'grp');
+  corps+=ligneSimpleReel('  Manquant constaté',k=>bilan(k).anormal,'ecart');
+  corps+=ligneSimpleReel('  Excédent non-rendu',k=>bilan(k).boni,'ecart');
 
   const totCA=actifs.reduce((s,k)=>s+bilan(k).caReel,0);
   const totManq=actifs.reduce((s,k)=>s+bilan(k).anormal,0);
   const nClo=actifs.filter(k=>journee(k).cloture).length;
 
   return barrePeriode()+'<div class="stats">'+
-    stat("Journées renseignées",actifs.length,"","")+
-    stat("Chiffre d'affaires",eur(totCA),"","prim")+
-    stat("Manquant cumulé",eur(totManq),"",totManq>0?"ko":"ok")+
-    stat("Journées clôturées",nClo+" / "+actifs.length,"",nClo<actifs.length?"att":"ok")+
+    stat('Journées renseignées',actifs.length,'','')+
+    stat("Chiffre d'affaires",eur(totCA),'','prim')+
+    stat('Manquant cumulé',eur(totManq),'',totManq>0?'ko':'ok')+
+    stat('Journées clôturées',nClo+' / '+actifs.length,'',nClo<actifs.length?'att':'ok')+
   '</div>'+ 
-  '<div class="carte"><header><h2>Journal</h2>'+ 
-  '<div class="droite"><button class="btn neutre mini" data-act="journal-detail">'+
-  (journalDetail?"Masquer le détail":"Détail par mode")+'</button>'+ 
-  '<button class="btn neutre mini" data-act="export-csv">Exporter en CSV</button>'+ 
-  (peut("reglages")?'<button class="btn neutre mini" data-act="export-json">Sauvegarde</button>'+ 
-   '<button class="btn neutre mini" data-act="import-json">Restaurer</button>':"")+'</div></header>'+ 
-  (actifs.length?'<div class="grille-journal"><table class="journal">'+
-    '<thead>'+enTete+'</thead><tbody>'+corps+'</tbody></table></div>'
-   :'<div class="vide"><b>Aucune journée sur cette période</b></div>')+
-  '</div>';
+  '<div class="carte"><header><h2>Journal</h2><p>Chaque journée est séparée en Théorique / Réel. L’écart compensé de chaque équipier additionne TR + chèques-vacances + carte bancaire.</p>'+ 
+  '<div class="droite"><button class="btn neutre mini" data-act="export-csv">Exporter en CSV</button>'+ 
+  (peut('reglages')?'<button class="btn neutre mini" data-act="export-json">Sauvegarde</button><button class="btn neutre mini" data-act="import-json">Restaurer</button>':'')+'</div></header>'+ 
+  (actifs.length?'<div class="grille-journal"><table class="journal journal-paires"><thead>'+enTete+'</thead><tbody>'+corps+'</tbody></table></div>':'<div class="vide"><b>Aucune journée sur cette période</b></div>')+
+  '</div>'+ 
+  '<div class="carte"><header><h2>Historique détaillé des caisses</h2><p>Saisies, corrections, vérifications, validations et suppressions conservées avec leurs montants.</p></header><div class="corps">'+historiqueJournalHTML(actifs)+'</div></div>';
 }
 
 function vueJournal(){
@@ -2688,10 +2883,53 @@ function vueJournal(){
   };
   const sep=t=>'<tr class="sep"><td class="fige">'+ech(t)+'</td><td colspan="'+(cols.length+1)+'"></td></tr>';
 
+  const calcCaissier=(jours,ca,op)=>{
+    let reel=0,theo=0,ec=0,n=0;
+    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{
+      const t=detailTR(c), v=detailCV(c); reel+=t.physique+v.physique+nb(c.cb); theo+=t.z+v.z+nb(c.cbZ); ec+=ecartComptage(c).net; n++;
+    }));
+    return {reel:arrondi(reel),theo:arrondi(theo),ec:arrondi(ec),n};
+  };
+  const calcModeCaissier=(jours,ca,op,mode)=>{
+    let reel=0,theo=0,n=0;
+    jours.forEach(k=>journee(k).comptages.filter(c=>c.caisse===ca&&(c.operateur||"Sans nom")===op).forEach(c=>{ const x=valeursModeJournal(c,mode); reel+=x.reel; theo+=x.theo; n++; }));
+    reel=arrondi(reel); theo=arrondi(theo); return {reel,theo,ec:arrondi(reel-theo),n};
+  };
+  const celluleCaissier=x=>{
+    if(!x.n) return '<td class="n pale">—</td>';
+    const cl=Math.abs(x.ec)<0.004?'zero':(x.ec<0?'neg':'pos');
+    return '<td class="n jc-cell"><b>'+eur(x.reel)+'</b><small>Théo '+eur(x.theo)+' · <span class="'+cl+'">Écart '+signe(x.ec)+' €</span></small></td>';
+  };
+  const ligneCaissier=(ca,op)=>{
+    let tot={reel:0,theo:0,ec:0,n:0};
+    const cells=cols.map(c=>{ const x=calcCaissier(c.jours,ca,op); tot.reel+=x.reel; tot.theo+=x.theo; tot.ec+=x.ec; tot.n+=x.n; return celluleCaissier(x); }).join('');
+    tot.reel=arrondi(tot.reel); tot.theo=arrondi(tot.theo); tot.ec=arrondi(tot.ec);
+    const cp=COMPTES.find(x=>x.nom===op), role=cp?cp.role:"Équipier"; return '<tr class="jc-person"><td class="fige jc-label"><b>'+ech(op)+'</b><small>'+ech(role)+' · total réel · théorique · écart</small></td>'+cells+celluleCaissier(tot)+'</tr>';
+  };
+  const ligneModeCaissier=(ca,op,lib,mode)=>{
+    let tr=0,tt=0,tn=0;
+    const cells=cols.map(c=>{ const x=calcModeCaissier(c.jours,ca,op,mode); tr+=x.reel; tt+=x.theo; tn+=x.n; if(!x.n) return '<td class="n pale">—</td>'; return '<td class="n jc-rt"><b>R '+eur(x.reel)+'</b><small>T '+eur(x.theo)+'</small></td>'; }).join('');
+    return '<tr class="jc-mode"><td class="fige jc-mode-label">'+ech(lib)+' · réel / théorique</td>'+cells+'<td class="n jc-rt">'+(tn?'<b>R '+eur(arrondi(tr))+'</b><small>T '+eur(arrondi(tt))+'</small>':'—')+'</td></tr>';
+  };
+  const ligneEcartModeCaissier=(ca,op,lib,mode)=>{
+    let te=0,tn=0;
+    const cells=cols.map(c=>{ const x=calcModeCaissier(c.jours,ca,op,mode); te+=x.ec; tn+=x.n; if(!x.n) return '<td class="n pale">—</td>'; const col=Math.abs(x.ec)<0.004?'var(--vert)':(x.ec<0?'var(--rouge)':'var(--bleu)'); return '<td class="n" style="font-weight:700;color:'+col+'">'+signe(x.ec)+'</td>'; }).join('');
+    const col=Math.abs(te)<0.004?'var(--vert)':(te<0?'var(--rouge)':'var(--bleu)');
+    return '<tr class="jc-gap"><td class="fige jc-gap-label">Écart '+ech(lib)+'</td>'+cells+'<td class="n" style="font-weight:700;color:'+col+'">'+(tn?signe(arrondi(te)):'—')+'</td></tr>';
+  };
+
   let corps='';
   corps+=ligne("MONNAYEUR OUVERTURE",k=>journee(k).ouverture?nb(journee(k).ouverture.montant):0,"grp",false);
   caisses.forEach(ca=>{
     corps+=sep(ca.toUpperCase());
+    const ops=[...new Set(actifs.flatMap(k=>journee(k).comptages.filter(c=>c.caisse===ca).map(c=>(c.operateur||"Sans nom"))))].sort((a,b)=>a.localeCompare(b,"fr"));
+    ops.forEach(op=>{
+      corps+=ligneCaissier(ca,op);
+      [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
+        corps+=ligneModeCaissier(ca,op,lib,mode);
+        corps+=ligneEcartModeCaissier(ca,op,lib,mode);
+      });
+    });
     if(journalDetail) [["Titres-restaurant","tr"],["Chèques-vacances","cv"],["Carte bancaire","cb"]].forEach(([lib,mode])=>{
       corps+=ligne("  "+lib+" — compté",k=>{
         let v=0; journee(k).comptages.filter(c=>c.caisse===ca).forEach(c=>{
@@ -2714,7 +2952,11 @@ function vueJournal(){
   corps+=ligne("  Retrait / remise",k=>nb(journee(k).retrait.montant));
   corps+=ligne("  Espèces réelles",k=>bilan(k).especesReelles);
   corps+=ligne("  Espèces ticket Z",k=>nb(journee(k).especesZ));
+  corps+=ligne("  CB saisi caisses",k=>bilan(k).cb);
+  corps+=ligne("  CB ticket Z",k=>bilan(k).cbZ);
   corps+=ligne("  Télécollecte TPE",k=>bilan(k).tpe);
+  corps+=ligneEcart("  ÉCART TPE / CB saisi",k=>bilan(k).ecartTPE);
+  corps+=ligneEcart("  ÉCART CB GLOBAL",k=>arrondi(bilan(k).tpe-bilan(k).cbZ));
   corps+=sep("CANAUX");
   [["Click & Collect","cc"],["Borne","borne"],["Uber Eats","uber"],["Deliveroo","deliveroo"]].forEach(([l,k2])=>{
     corps+=ligne("  "+l,k=>nb(journee(k).canaux[k2]));
@@ -2769,7 +3011,8 @@ function vueJournal(){
         '<td class="n" style="color:var(--bleu)">'+eur(b.boni)+'</td>'+
         '<td class="n">'+cc.ok+"/"+cc.total+'</td><td>'+et+'</td>'+
         '<td class="n"><button class="btn neutre mini" data-act="voir-jour" data-jour="'+k+'">Ouvrir</button></td></tr>';
-    }).join("")+'</tbody></table></div>':"")+'</div>';
+    }).join("")+'</tbody></table></div>':"")+'</div>'+
+  '<div class="carte"><header><h2>Historique détaillé des caisses</h2><p>Historique des saisies et corrections avec réel, théorique et écart par moyen de paiement.</p></header><div class="corps">'+historiqueJournalHTML(actifs)+'</div></div>';
 }
 
 function vueAnalyse(){
@@ -3210,12 +3453,15 @@ function actionCaisse(quoi){
 
   if(quoi==="verifier"){
     if(!pretAVerifier(item.jour,c)) return toast("Toutes les pièces obligatoires doivent être pointées conformes.",true);
+    assurerHistoriqueInitial(c);
     c.verif={par:SESSION.nom,at:maintenant()}; delete c.renvoi;
     if(estAdmin()){
       c.valid={par:SESSION.nom,at:maintenant()};
+      ajouterHistoriqueComptage(c,"Caisse vérifiée et validée",SESSION.nom,c.valid.at);
       tracer("Caisse vérifiée et validée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · manquant "+eur(e.anormal));
       toast("Caisse vérifiée et validée.");
     } else {
+      ajouterHistoriqueComptage(c,"Caisse vérifiée",SESSION.nom,c.verif.at);
       tracer("Caisse vérifiée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · transmise à l'administrateur");
       toast("Caisse vérifiée. Elle passe en attente de validation administrateur.");
     }
@@ -3225,14 +3471,18 @@ function actionCaisse(quoi){
     if(!peut("valider")) return toast("Droit « Valider après rapprochement » non accordé.",true);
     if(e.anormal>0&&!String(c.motif).trim())
       return toast("Manquant de "+eur(e.anormal)+" sans motif écrit.",true);
+    assurerHistoriqueInitial(c);
     c.valid={par:SESSION.nom,at:maintenant()};
+    ajouterHistoriqueComptage(c,"Caisse validée",SESSION.nom,c.valid.at);
     tracer("Caisse validée",courteDate(item.jour)+" · "+c.caisse+" · "+c.service+" · rapprochement conforme · manquant "+eur(e.anormal));
     sauver(); toast("Caisse validée."); return avancer();
   }
   if(quoi==="devalider"){
     if(!peut("valider")) return toast("Droit « Valider » non accordé.",true);
     const m=prompt("Motif de l'annulation de validation :",""); if(!m||!m.trim()) return toast("Annulation abandonnée.",true);
+    assurerHistoriqueInitial(c);
     delete c.valid;
+    ajouterHistoriqueComptage(c,"Validation annulée : "+m.trim(),SESSION.nom);
     tracer("Validation annulée",courteDate(item.jour)+" · "+c.caisse+" : "+m.trim());
     sauver(); toast("Validation annulée."); return peindre();
   }
@@ -3255,7 +3505,9 @@ function actionCaisse(quoi){
       if(en) en.onclick=async()=>{
         const pour=v("m-pour"), txt=v("m-texte").trim();
         if(!txt) return toast("Sans commentaire, la personne ne sait pas quoi corriger.",true);
+        assurerHistoriqueInitial(c);
         c.renvoi={par:SESSION.nom,at:maintenant(),note:txt,pour}; delete c.verif; delete c.valid;
+        ajouterHistoriqueComptage(c,"Caisse renvoyée : "+txt,SESSION.nom,c.renvoi.at);
         await sauver();
         await envoyerMessage({pour, sujet:c.caisse+" · "+c.service+" — "+courteDate(item.jour),
           jour:item.jour, pointId:"caisse:"+c.id, comptageId:c.id, texte:txt});
@@ -3345,7 +3597,7 @@ async function agir(a,ds){
   if(a==="mobile-nouveau-comptage"){ mobileRevueComptage=false; brouillon=neufComptage(); return peindreVue(); }
   if(a==="mobile-editer-comptage"){
     const cible=(d.comptages||[]).find(c=>c.id===ds.id); if(!cible) return toast("Saisie introuvable.",true);
-    if(etapeComptage(cible)==="valide"&&!estAdmin()) return toast("Cette caisse est validée : modification réservée à l’administrateur.",true);
+    if(comptageVerrouille(cible)&&!estAdmin()) return toast("Cette caisse est vérifiée ou validée : modification réservée à l’administrateur.",true);
     mobileRevueComptage=false; brouillon=JSON.parse(JSON.stringify(cible)); return peindreVue();
   }
   if(a==="verifier-comptage"){
@@ -3357,13 +3609,14 @@ async function agir(a,ds){
   if(a==="valider-comptage"){
     if(d.cloture&&!estAdmin()) return toast("Journée clôturée : modification réservée à l’administrateur.",true);
     const persiste=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
-    if(persiste&&etapeComptage(persiste)==="valide"&&!estAdmin()) return toast("Caisse validée : modification réservée à l’administrateur.",true);
+    if(persiste&&comptageVerrouille(persiste)&&!estAdmin()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true);
     const pbs=problemesComptage(brouillon); if(pbs.length) return toast(pbs[0],true);
     const e=ecartComptage(brouillon);
     if(!brouillon.id){
       const n=uid();
       (brouillon.justificatifs||[]).forEach(x=>{ x.cible=x.cible.replace(/:nouveau$/,":"+n); });
       brouillon.id=n; brouillon.at=maintenant(); brouillon.saisiPar=SESSION.nom;
+      ajouterHistoriqueComptage(brouillon,"Saisie enregistrée",SESSION.nom,brouillon.at);
       d.comptages.push(Object.assign({},brouillon));
       tracer("Comptage enregistré",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur+
         " · TR "+detailTR(brouillon).nb+" tit. · CV "+detailCV(brouillon).nb+" tit. · manquant "+eur(e.anormal)+
@@ -3371,21 +3624,25 @@ async function agir(a,ds){
     } else {
       const i=d.comptages.findIndex(c=>c.id===brouillon.id);
       const anc=d.comptages[i];
+      const etaitVerrouille=comptageVerrouille(anc);
       const etaitValide=!!anc.valid;
       const maj=Object.assign({},brouillon,{modifiePar:SESSION.nom,modifieAt:maintenant()});
       delete maj.renvoi;
-      if(etaitValide&&estAdmin()){
-        maj.valid=anc.valid;
+      if(etaitVerrouille&&estAdmin()){
         if(anc.verif) maj.verif=anc.verif;
-        maj.corrigeApresValidation={par:SESSION.nom,at:maintenant()};
+        if(anc.valid) maj.valid=anc.valid;
+        maj.corrigeApresControle={par:SESSION.nom,at:maintenant(),statut:etaitValide?"valide":"verifie"};
       } else { delete maj.verif; delete maj.valid; }
+      assurerHistoriqueInitial(anc);
+      maj.historique=(anc.historique||[]).slice();
+      ajouterHistoriqueComptage(maj,etaitVerrouille&&estAdmin()?"Correction administrateur après contrôle":"Modification enregistrée",SESSION.nom,maj.modifieAt);
       if(anc.renvoi){
         const m=MESSAGES.find(x=>x.comptageId===anc.id&&!x.resolu);
         if(m){ m.resolu=true; m.resoluLe=maintenant(); ecrire(CLES.m,MESSAGES); }
         pointsControle(jour).forEach(p=>{ if(d.controles[p.id]&&d.controles[p.id].etat==="refuse") delete d.controles[p.id]; });
       }
       d.comptages[i]=maj;
-      tracer(etaitValide&&estAdmin()?"Correction administrateur après validation":"Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
+      tracer(etaitVerrouille&&estAdmin()?"Correction administrateur après contrôle":"Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
         (e.abs>0.004?" · commentaire : "+String(brouillon.motif||"").trim():""));
     }
     const ancienneCaisse=brouillon.caisse, ancienService=brouillon.service;
@@ -3398,13 +3655,19 @@ async function agir(a,ds){
     toast(e.anormal===0?"Enregistré. Caisse suivante.":"Enregistré avec "+eur(e.anormal)+" de manquant. Caisse suivante.");
     return peindre();
   }
-  if(a==="voir-comptage"){ const c=d.comptages.find(c=>c.id===ds.id); if(!c) return; if(etapeComptage(c)==="valide"&&!estAdmin()) return toast("Caisse validée : modification réservée à l’administrateur.",true); brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage"); }
+  if(a==="voir-comptage"){ const c=d.comptages.find(c=>c.id===ds.id); if(!c) return; if(comptageVerrouille(c)&&!estAdmin()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true); brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage"); }
   if(a==="annuler-comptage"){ mobileRevueComptage=false; brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
   if(a==="supprimer-comptage"){
     const cible=brouillon&&brouillon.id?(d.comptages||[]).find(c=>c.id===brouillon.id):null;
-    const autorise=surMobile()?!!cible&&(estAdmin()||(etapeComptage(cible)!=="valide"&&peut("saisir"))):peut("supprimer");
-    if(!autorise) return toast(surMobile()?"Cette caisse est validée : suppression réservée à l’administrateur.":"Droit « Supprimer un comptage » non accordé.",true);
+    const autorise=surMobile()?!!cible&&(estAdmin()||(!comptageVerrouille(cible)&&peut("saisir"))):(!!cible&&(estAdmin()||(!comptageVerrouille(cible)&&peut("supprimer"))));
+    if(!autorise) return toast(comptageVerrouille(cible)?"Cette caisse est vérifiée ou validée : suppression réservée à l’administrateur.":"Droit « Supprimer un comptage » non accordé.",true);
     if(!confirm("Supprimer cette saisie de caisse ?")) return;
+    assurerHistoriqueInitial(cible);
+    const supprimeAt=maintenant(), versions=(cible.historique||[]).slice();
+    versions.push(snapshotComptage(cible,"Saisie supprimée",SESSION.nom,supprimeAt));
+    if(!Array.isArray(d.historiqueSupprimes)) d.historiqueSupprimes=[];
+    versions.forEach((vh,vi)=>d.historiqueSupprimes.push(Object.assign({},vh,{supprime:vi===versions.length-1,archiveSupprime:true,supprimeAt,supprimePar:SESSION.nom})));
+    if(d.historiqueSupprimes.length>300) d.historiqueSupprimes.splice(0,d.historiqueSupprimes.length-300);
     d.comptages=d.comptages.filter(c=>c.id!==brouillon.id);
     tracer("Comptage supprimé",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur);
     mobileRevueComptage=false; brouillon=null; await sauver();
@@ -3420,7 +3683,7 @@ async function agir(a,ds){
     if(String(f.tpe1==null?"":f.tpe1).trim()==="") return toast("Saisissez la télécollecte du TPE 1.",true);
     if(P.deuxTPE&&String(f.tpe2==null?"":f.tpe2).trim()==="") return toast("Saisissez la télécollecte du TPE 2.",true);
     const r=rapprochementFermeture(f);
-    if(r.pretEspeces&&r.abs>0.004&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart ou la compensation.",true);
+    if(r.pretGlobal&&r.aCommenter&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart, la compensation ou le contrôle CB.",true);
     mobileRevueFermeture=true; return peindreVue();
   }
   if(a==="modifier-fermeture-mobile"){ mobileRevueFermeture=false; return peindreVue(); }
@@ -3432,7 +3695,7 @@ async function agir(a,ds){
     if(!montant) return toast("Saisissez le total du monnayeur.",true);
     if(!f.par) return toast("Indiquez qui a fait la fermeture.",true);
     const rapSauve=rapprochementFermeture(f);
-    if(rapSauve.pretEspeces&&rapSauve.abs>0.004&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart ou la compensation avant d’enregistrer.",true);
+    if(rapSauve.pretGlobal&&rapSauve.aCommenter&&!String(f.motif||"").trim()) return toast("Ajoutez un commentaire sur l’écart, la compensation ou le contrôle CB avant d’enregistrer.",true);
     d.fermeture={montant,par:f.par,at:maintenant()};
     d.especesZ=nb(f.especesZ); d.tpe1=nb(f.tpe1); d.tpe2=nb(f.tpe2);
     if(peut("remises")){
