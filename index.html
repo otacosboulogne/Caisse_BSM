@@ -2449,6 +2449,10 @@ function problemesComptage(c){
   const p=[], e=ecartComptage(c), t=detailTR(c), v=detailCV(c);
   if(!c.operateur) p.push("Indiquez qui a tenu la caisse.");
   if(!c.h1||!c.h2) p.push("Renseignez les horaires du service.");
+  else {
+    const heureOK=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(String(x||""));
+    if(!heureOK(c.h1)||!heureOK(c.h2)) p.push("Vérifiez les horaires de début et de fin.");
+  }
   if(!docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length) p.push("Ajoutez la photo du ticket Z du salarié.");
   if(t.nb>0&&!nb(c.montantTR)) p.push("Saisissez le montant total des titres-restaurant.");
   if(nb(c.montantTR)>0&&!t.nb) p.push("Saisissez le nombre de titres-restaurant.");
@@ -3452,7 +3456,8 @@ function surSaisie(e){
   }
   if(brouillon&&CHAMPS_C[id]!==undefined){
     brouillon[CHAMPS_C[id]]=el.value;
-    if(el.tagName==="SELECT"||el.type==="time") return peindreVue();
+    /* Les champs heure ne doivent jamais reconstruire toute la vue pendant le sélecteur natif. */
+    if(el.tagName==="SELECT") return peindreVue();
     return majSaisie();
   }
   if(brouillonFerm&&CHAMPS_F[id]!==undefined){
@@ -3509,7 +3514,12 @@ function surChangement(e){
   if(id==="r-libre") return basculerInscription(el.checked);
   if(el.dataset&&el.dataset.droit!==undefined) return basculerDroit(el.dataset.cid,el.dataset.droit,el.checked);
   if(el.dataset&&el.dataset.roleI!==undefined) return changerRole(parseInt(el.dataset.roleI,10),el.value);
-  if(el.tagName==="SELECT"||el.type==="time"||el.type==="date") return surSaisie(e);
+  if(el.type==="time"&&brouillon&&CHAMPS_C[id]!==undefined){
+    brouillon[CHAMPS_C[id]]=el.value;
+    majSaisie();
+    return;
+  }
+  if(el.tagName==="SELECT"||el.type==="date") return surSaisie(e);
 }
 
 function surSortie(e){
