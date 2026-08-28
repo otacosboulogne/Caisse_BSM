@@ -278,6 +278,50 @@ table.journal tbody tr:hover .fige{background:var(--prim-tint)}
 .bulle .qui span{font-size:11px;color:var(--t3)}
 .bulle.refus{background:var(--rouge-tint);border-color:var(--rouge-bord)}
 .bulle.reponse{background:var(--prim-tint);border-color:var(--prim-bord);margin-left:14px}
+
+/* === V17 · Contrôle desktop : file claire + fenêtre de vérification à la demande === */
+@media(min-width:861px){
+  .controle-desktop{height:100%;overflow:auto;background:var(--canvas);padding:22px 24px 34px}
+  .controle-entete{max-width:1240px;margin:0 auto 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px}
+  .controle-entete h2{font-size:22px;letter-spacing:-.025em;margin-bottom:4px}
+  .controle-entete p{color:var(--t2);font-size:13.5px}
+  .controle-filtres{max-width:1240px;margin:0 auto 14px;display:flex;gap:7px;flex-wrap:wrap}
+  .controle-filtres button{border:1px solid var(--bord-fort);background:#fff;color:var(--t2);padding:8px 12px;border-radius:9px;font-size:12.5px;font-weight:650;box-shadow:var(--ombre)}
+  .controle-filtres button[aria-current="true"]{background:var(--prim-tint);border-color:var(--prim-bord);color:var(--prim)}
+  .controle-liste{max-width:1240px;margin:0 auto;background:#fff;border:1px solid var(--bord);border-radius:13px;box-shadow:var(--ombre);overflow:hidden}
+  .controle-liste-head,.controle-ligne{display:grid;grid-template-columns:minmax(230px,1.25fr) minmax(170px,.85fr) 145px 145px 118px;align-items:center;gap:14px}
+  .controle-liste-head{padding:9px 15px;background:#F9FAFB;border-bottom:1px solid var(--bord);color:var(--t3);font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.06em}
+  .controle-ligne{padding:13px 15px;border-bottom:1px solid var(--bord);transition:background .12s}
+  .controle-ligne:last-child{border-bottom:none}.controle-ligne:hover{background:#FCFCFD}
+  .controle-identite b{display:block;font-size:14px;color:var(--t1);margin-bottom:2px}.controle-identite span,.controle-meta{display:block;font-size:12px;color:var(--t2)}
+  .controle-ecart{font-variant-numeric:tabular-nums;font-weight:750;font-size:13px}.controle-ecart.neg{color:var(--rouge)}.controle-ecart.pos{color:var(--bleu)}.controle-ecart.zero{color:var(--vert)}
+  .controle-open{justify-self:end;min-width:102px;justify-content:center}
+  .controle-vide{padding:54px 20px;text-align:center;color:var(--t2)}
+
+  .controle-detail{height:100%;display:grid;grid-template-columns:minmax(0,1.25fr) 500px;background:#16110F}
+  .controle-piece{display:flex;min-width:0;flex-direction:column;background:#16110F}
+  .controle-piece-bar{height:52px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #332A26;color:#EAECF0;flex:none}
+  .controle-piece-bar .esp{margin-left:auto}.controle-piece-bar button{background:#332A26;color:#F2F4F7;border-radius:7px;padding:7px 10px;font-size:12px;font-weight:650}.controle-piece-bar button:hover{background:#493B35}
+  .controle-piece-bar .btn-retour{background:#fff;color:#344054;border:1px solid #D0D5DD}
+  .controle-piece-bar .btn-ocr{background:#FFF2E8;color:#9A3B00;border:1px solid #FFC08A}
+  .controle-detail .valid-vue{padding:22px}
+  .controle-panneau{background:#fff;border-left:1px solid var(--bord);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  .controle-panneau-head{padding:17px 19px 14px;border-bottom:1px solid var(--bord);flex:none}
+  .controle-panneau-head .ligne-haut{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.controle-panneau-head h3{font-size:17px;letter-spacing:-.015em}.controle-panneau-head p{font-size:12.5px;color:var(--t2);margin-top:4px;line-height:1.45}
+  .controle-panneau-body{flex:1;overflow:auto;padding:16px 19px 18px}
+  .controle-mini-title{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin:5px 0 8px}
+  .controle-rappro{width:100%;border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:15px}
+  .controle-rappro .cr-head,.controle-rappro .cr-row{display:grid;grid-template-columns:1.25fr .9fr .9fr .8fr;gap:9px;align-items:center}
+  .controle-rappro .cr-head{background:#F9FAFB;color:var(--t3);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px}
+  .controle-rappro .cr-row{padding:10px;border-top:1px solid var(--bord);font-size:12.5px}.controle-rappro .cr-row:first-of-type{border-top:none}.controle-rappro .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
+  .controle-rappro .ec{justify-self:end;border-radius:999px;padding:3px 7px;font-weight:750;font-size:11px}.controle-rappro .ec.ok{background:var(--vert-tint);color:var(--vert)}.controle-rappro .ec.neg{background:var(--rouge-tint);color:var(--rouge)}.controle-rappro .ec.pos{background:var(--bleu-tint);color:var(--bleu)}
+  .controle-net{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;background:#F9FAFB;margin:-4px 0 15px;font-size:12.5px}.controle-net b{font-size:15px;font-variant-numeric:tabular-nums}
+  .controle-pieces{border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:15px}.controle-piece-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-bottom:1px solid var(--bord)}.controle-piece-row:last-child{border-bottom:none}.controle-piece-row b{display:block;font-size:12.5px}.controle-piece-row small{color:var(--t2);font-size:11px}.controle-piece-actions{display:flex;gap:5px;align-items:center}.controle-piece-actions .btn{padding:5px 8px;min-height:30px;font-size:11px}
+  .controle-comment{padding:10px 11px;background:#F9FAFB;border:1px solid var(--bord);border-radius:9px;font-size:12px;line-height:1.45;margin-bottom:13px}
+  .controle-panneau-foot{border-top:1px solid var(--bord);padding:12px 14px;display:flex;gap:8px;align-items:center;background:#FCFCFD;flex:none}.controle-panneau-foot .btn{flex:1;justify-content:center}.controle-panneau-foot .btn.neutre{flex:0 0 auto}
+  .ocr-resultats{max-height:54vh;overflow:auto}.ocr-montants{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.ocr-montants span{padding:6px 9px;border-radius:8px;background:var(--prim-tint);color:var(--prim);font-weight:750;font-variant-numeric:tabular-nums}.ocr-brut{white-space:pre-wrap;font-family:var(--mono);font-size:11px;background:#F9FAFB;border:1px solid var(--bord);border-radius:8px;padding:10px;max-height:260px;overflow:auto;color:#344054}
+}
+
 @media(max-width:1000px){.valid{grid-template-columns:1fr;grid-template-rows:minmax(240px,42vh) 1fr}.valid-droite{border-left:none;border-top:1px solid var(--bord)}}
 
 .voile{position:fixed;inset:0;background:rgba(16,24,40,.9);z-index:300;display:flex;flex-direction:column;padding:14px}
@@ -972,6 +1016,7 @@ const PARAMS_DEFAUT={
   deuxTPE:true, emetteursTR:["Edenred","Pluxee (Sodexo)","Up Déjeuner","Bimpli / Apetiz","Swile"],
   delaiRembours:21, anneeTR:2026, verrouMinutes:20,
   inscriptionLibre:true,
+  responsablesService:{},
 
   equipiers:["Audrey","Fanny","Mathéo","Mory","Pape","Saïd","Usmane"]
 };
@@ -1023,6 +1068,8 @@ let brouillon=null, brouillonFerm=null, brouillonRemise=null, brouillonOuv=null;
 let cibleDepot=null, modale=null;
 let ecranAuth="connexion", authErr="", authOk="", authPre={}, modeLocalAccepte=false;
 let filtreValid="saisi", indexValid=0, zoomValid=1, rotValid=0, pieceActive="";
+let validationOuverteId="";
+let retourControleApresEdition=false;
 let filtreDu="", filtreAu="";
 let periode="mois";
 let journalDetail=false;
@@ -1134,6 +1181,13 @@ function nomsEquipe(){
 }
 function managersNoms(){
   return COMPTES.filter(c=>c.actif!==false&&droitsDe(c).indexOf("verifier")>=0).map(c=>c.nom).sort((a,b)=>a.localeCompare(b,"fr"));
+}
+function responsableService(service){
+  const map=P.responsablesService||{};
+  const nom=String(map[service]||"").trim();
+  if(!nom) return "";
+  const c=COMPTES.find(x=>x.actif!==false&&x.nom===nom&&droitsDe(x).indexOf("verifier")>=0);
+  return c?c.nom:"";
 }
 function ouvrirSession(c){
   SESSION={id:c.id, nom:c.nom, email:c.email, role:c.role, depuis:maintenant()};
@@ -1696,7 +1750,7 @@ function peindreVue(){
   m.scrollTop=defil;
   activerVirguleMobile();
   poserEcouteurs();
-  if(vue==="validation") chargerVisu();
+  if(vue==="validation"&&(surMobile()||validationOuverteId)) chargerVisu();
 }
 function refus(o){
   return '<div class="interdit"><div class="cad">🔒</div><b>Accès non accordé</b>'+
@@ -1709,6 +1763,7 @@ function toast(msg,estKo){
 }
 function aller(v){
   if(surMobile()&&v==="tableau") mobileAccueil=true;
+  if(v!=="validation") validationOuverteId="";
   vue=v; peindre(); const m=document.getElementById("vue"); if(m) m.focus({preventScroll:true});
 }
 function retourAccueilMobile(message){
@@ -1919,6 +1974,66 @@ function ligRap(nom,reel,theo){
 }
 
 function vueValidation(){
+  if(!surMobile()) return vueValidationDesktop();
+  return vueValidationClassique();
+}
+function vueValidationDesktop(){
+  if(validationOuverteId){
+    const tous=fileComptages("tous"), cible=tous.find(x=>x.c.id===validationOuverteId);
+    if(cible){
+      const l=fileComptages(cible.etape), ix=l.findIndex(x=>x.c.id===validationOuverteId);
+      filtreValid=cible.etape; indexValid=Math.max(0,ix);
+      return vueValidationDetailDesktop(cible);
+    }
+    validationOuverteId="";
+  }
+  const liste=fileComptages(filtreValid);
+  const onglets=[["saisi","À vérifier"],["verifie","À valider"],["renvoye","Renvoyés"],["valide","Validés"],["tous","Toutes"]];
+  const filtres='<div class="controle-filtres">'+onglets.map(([k,l])=>'<button data-filtre="'+k+'" aria-current="'+(filtreValid===k?'true':'false')+'">'+l+(compteurEtape(k)?' · '+compteurEtape(k):'')+'</button>').join('')+'</div>';
+  const lignes=liste.map(item=>{
+    const c=item.c,e=ecartComptage(c), resp=responsableService(c.service), net=arrondi(e.net);
+    const ecCl=Math.abs(net)<=0.004?'zero':(net<0?'neg':'pos');
+    const action=item.etape==='saisi'||item.etape==='renvoye'?'Vérifier':'Consulter';
+    return '<div class="controle-ligne">'+
+      '<div class="controle-identite"><b>'+ech(c.operateur||'Sans nom')+'</b><span>'+ech(c.caisse)+' · '+ech(c.service)+' · '+ech(c.h1||'—')+' → '+ech(c.h2||'—')+'</span></div>'+ 
+      '<div><b style="font-size:12.5px">'+courteDate(item.jour)+'</b><span class="controle-meta">'+(resp?'Responsable : '+ech(resp):'Responsable non affecté')+'</span></div>'+ 
+      '<div>'+pilEtape(item.etape)+'</div>'+ 
+      '<div><span class="controle-meta">Écart compensé</span><span class="controle-ecart '+ecCl+'">'+signe(net)+' €</span></div>'+ 
+      '<button class="btn mini controle-open" data-act="ouvrir-controle" data-id="'+c.id+'">'+action+'</button>'+ 
+    '</div>';
+  }).join('');
+  return '<div class="controle-desktop"><div class="controle-entete"><div><h2>Contrôle des encaissements</h2><p>La fenêtre de contrôle ne s’ouvre que lorsque vous choisissez une caisse.</p></div><div class="pil neu"><i></i>'+liste.length+' dossier'+(liste.length>1?'s':'')+'</div></div>'+filtres+
+    '<div class="controle-liste"><div class="controle-liste-head"><span>Caissier / service</span><span>Journée</span><span>Statut</span><span>Écart</span><span></span></div>'+ 
+    (lignes||'<div class="controle-vide"><b>Aucun encaissement dans cette file.</b><br><span class="aide">Changez de filtre pour consulter les autres caisses.</span></div>')+'</div></div>';
+}
+function ligneControlePaiement(lib,theo,reel){
+  const ec=arrondi(reel-theo), cl=Math.abs(ec)<=0.004?'ok':(ec<0?'neg':'pos');
+  return '<div class="cr-row"><b>'+lib+'</b><span class="n">'+eur(theo)+'</span><span class="n">'+eur(reel)+'</span><span class="ec '+cl+'">'+(Math.abs(ec)<=0.004?'OK':signe(ec)+' €')+'</span></div>';
+}
+function vueValidationDetailDesktop(item){
+  const {jour:iso,c,etape}=item, d=journee(iso), t=detailTR(c), cv=detailCV(c), e=ecartComptage(c), pieces=pointsControle(iso), resp=responsableService(c.service), cloture=!!d.cloture;
+  const pret=pretAVerifier(iso,c);
+  const rapproche='<div class="controle-mini-title">Rapprochement de la caisse</div><div class="controle-rappro"><div class="cr-head"><span>Moyen</span><span style="text-align:right">Théorique · Z</span><span style="text-align:right">Réel saisi</span><span style="text-align:right">Écart</span></div>'+ 
+    ligneControlePaiement('Titres-restaurant',t.z,t.physique)+ligneControlePaiement('Chèques-vacances',cv.z,cv.physique)+ligneControlePaiement('Carte bancaire',nb(c.cbZ),nb(c.cb))+'</div>'+ 
+    '<div class="controle-net"><span>Écart compensé TR + CV + CB</span><b style="color:'+(Math.abs(e.net)<=0.004?'var(--vert)':(e.net<0?'var(--rouge)':'var(--bleu)'))+'">'+signe(e.net)+' €</b></div>';
+  const pcs='<div class="controle-mini-title">Pièces de contrôle</div><div class="controle-pieces">'+pieces.map(p=>{
+    const actif=pieceActive===p.id;
+    return '<div class="controle-piece-row"><div><b>'+ech(p.libelle)+'</b><small>'+eur(p.montant)+' · '+(p.docs.length?(p.etat==='conforme'?'validée':(p.etat==='refuse'?'refusée':'à vérifier')):'sans pièce')+'</small></div><div class="controle-piece-actions">'+
+      (p.docs.length?'<button class="btn neutre mini" data-piece="'+ech(p.id)+'">'+(actif?'Affiché':'Voir')+'</button>':'')+
+      (!cloture&&p.docs.length&&estManager()?'<button class="btn vert mini" data-piece-ok="'+ech(p.id)+'">✓</button><button class="btn rouge mini" data-piece-ko="'+ech(p.id)+'">✕</button>':'')+'</div></div>';
+  }).join('')+'</div>';
+  const motif=String(c.motif||'').trim()?'<div class="controle-mini-title">Commentaire de saisie</div><div class="controle-comment">'+ech(String(c.motif).trim())+'</div>':'';
+  let pied='';
+  if(cloture) pied='<div class="controle-panneau-foot"><span class="aide">Journée clôturée.</span></div>';
+  else if(!estManager()) pied='<div class="controle-panneau-foot"><span class="aide">Accès de contrôle non accordé.</span></div>';
+  else if(etape==='valide') pied='<div class="controle-panneau-foot">'+(estAdmin()?'<button class="btn neutre" data-caisse="devalider">Annuler la validation</button>':'<span class="aide">Caisse validée et verrouillée.</span>')+'</div>';
+  else if(etape==='verifie') pied='<div class="controle-panneau-foot"><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button>'+(estAdmin()?'<button class="btn vert" data-caisse="valider">Valider la caisse</button>':'<span class="aide">En attente de validation administrateur.</span>')+'</div>';
+  else pied='<div class="controle-panneau-foot"><button class="btn neutre" data-act="controle-modifier" data-id="'+c.id+'">Modifier</button><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button><button class="btn vert" data-caisse="verifier"'+(pret?'':' disabled')+'>'+(estAdmin()?'Vérifier et valider':'Vérifier')+'</button></div>';
+  return '<div class="controle-detail"><div class="controle-piece"><div class="controle-piece-bar"><button class="btn-retour" data-act="fermer-controle">← Liste</button><span>'+ech(c.operateur||'—')+' · '+ech(c.caisse)+'</span><span class="esp"></span><button class="btn-ocr" data-act="ocr-piece">OCR · lire la pièce</button><button data-zoom="-1">−</button><button data-zoom="0">100 %</button><button data-zoom="1">+</button><button data-rot="1">⟳</button></div><div class="valid-vue" id="visu"><p class="rien">Chargement de la pièce…</p></div></div>'+ 
+    '<div class="controle-panneau"><div class="controle-panneau-head"><div class="ligne-haut"><div><h3>'+ech(c.operateur||'Sans nom')+'</h3><p><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(c.h1||'—')+' → '+ech(c.h2||'—')+'<br>'+jolieDate(iso)+(resp?'<br>Responsable de service : <b>'+ech(resp)+'</b>':'<br><span style="color:var(--ambre)">Aucun responsable de service affecté</span>')+'</p></div>'+pilEtape(etape)+'</div></div><div class="controle-panneau-body">'+rappro+pcs+motif+'</div>'+pied+'</div></div>';
+}
+
+function vueValidationClassique(){
   if(!fileComptages(filtreValid).length){
     const ordre=estAdmin()?["verifie","saisi","renvoye","valide"]:["saisi","renvoye","verifie","valide"];
     const alt=ordre.find(f=>fileComptages(f).length);
@@ -2037,7 +2152,7 @@ async function chargerVisu(force){
   const liste=fileComptages(filtreValid), item=liste[indexValid];
   const el=document.getElementById("visu"); if(!el||!item) return;
   const pieces=pointsControle(item.jour).filter(p=>p.docs.length);
-  if(!pieces.length){ el.innerHTML='<p class="rien">Aucune photo jointe à ce comptage. Renvoyez-le à l\'équipier.</p>'; return; }
+  if(!pieces.length){ el.innerHTML='<p class="rien">Aucune pièce disponible pour ce contrôle.</p>'; return; }
   const p=pieces.find(x=>x.id===pieceActive)||pieces[0];
   pieceActive=p.id;
   const doc=p.docs[0];
@@ -3128,6 +3243,10 @@ function vueReglages(){
     '<label class="champ"><span>Émetteurs de titres</span><textarea id="r-emet" style="min-height:90px">'+ech(P.emetteursTR.join("\n"))+'</textarea></label>'+
   '</div><div class="actions" style="margin-top:13px"><button class="btn" data-act="save-listes">Enregistrer les listes</button></div></div></div>'+
 
+  '<div class="carte"><header><h2>Responsables de service</h2><p>Choisissez le manager qui reçoit les caisses renvoyées pour correction.</p></header><div class="corps"><div class="grille g2">'+
+    P.services.map(s=>'<label class="champ"><span>'+ech(s)+'</span><select data-resp-service="'+ech(s)+'"><option value="">— non affecté —</option>'+managersNoms().map(n=>'<option value="'+ech(n)+'"'+(responsableService(s)===n?' selected':'')+'>'+ech(n)+'</option>').join('')+'</select></label>').join('')+
+  '</div><div class="actions" style="margin-top:13px"><button class="btn" data-act="save-responsables-services">Enregistrer les responsables</button></div></div></div>'+
+
   '<div class="carte"><header><h2>Stockage partagé</h2><p>'+(syncActif?"Connecté au serveur Google":"Fonctionnement local sur cet appareil")+'</p></header><div class="corps">'+
   '<div class="banniere '+(syncActif?(syncEtat==="ok"?"ok":"ko"):"info")+'"><span class="sym">'+(syncActif?(syncEtat==="ok"?"✓":"✕"):"i")+'</span><div>'+
   '<b>'+(syncActif?(syncEtat==="ok"?"Serveur connecté · version "+syncVersion:ech(syncErreur||"Connexion perdue")):"Mode local")+'</b></div></div>'+
@@ -3411,11 +3530,39 @@ function poserEcouteurs(){
 }
 function brancher(){
   poserEcouteurs();
-  if(vue==="validation") chargerVisu();
+  if(vue==="validation"&&(surMobile()||validationOuverteId)) chargerVisu();
 }
 
 function toastPeindre(m){ toast(m,true); peindre(); }
 function majBouton(){ const b=document.querySelector('[data-act="valider-comptage"]'); if(b) b.disabled=problemesComptage(brouillon).length>0; }
+
+let promesseTesseract=null;
+function chargerOCR(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  if(promesseTesseract) return promesseTesseract;
+  promesseTesseract=new Promise((resolve,reject)=>{
+    const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"; sc.async=true;
+    sc.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("OCR indisponible")); sc.onerror=()=>reject(new Error("Impossible de charger le module OCR")); document.head.appendChild(sc);
+  });
+  return promesseTesseract;
+}
+async function lancerOCRPiece(){
+  if(surMobile()) return toast("L’assistant OCR est réservé au contrôle sur ordinateur.",true);
+  const item=fileComptages(filtreValid)[indexValid]; if(!item) return toast("Ouvrez d’abord une caisse à vérifier.",true);
+  const pieces=pointsControle(item.jour).filter(p=>p.docs.length), p=pieces.find(x=>x.id===pieceActive)||pieces[0];
+  if(!p||!p.docs.length) return toast("Aucune image disponible pour l’OCR.",true);
+  const doc=p.docs[0]; if(doc.type==="application/pdf") return toast("OCR PDF non activé : ouvrez une photo JPG/PNG du ticket.",true);
+  let src=photosMem[doc.id]||doc._brut||lienDirect(doc,1800); if(!src) src=await ouvrirDoc(doc.id,doc);
+  if(!src) return toast("Impossible de lire cette pièce.",true);
+  toast("OCR en cours… la première lecture peut prendre quelques secondes.");
+  try{
+    const T=await chargerOCR();
+    const res=await T.recognize(src,"fra"); const texte=String(res&&res.data&&res.data.text||"");
+    const vals=[...texte.matchAll(/(?:^|\s)(\d{1,6}(?:[ .]\d{3})*[,.]\d{2})\s*€?/gm)].map(m=>m[1].replace(/\s/g,""));
+    const uniques=[...new Set(vals)].slice(0,24);
+    ouvrirModale('<div class="modale"><div class="boite"><header><h3>Assistant OCR</h3><p>'+ech(p.libelle)+' · aide à la lecture uniquement</p></header><div class="corps ocr-resultats"><div class="banniere info"><span class="sym">i</span><div><b>Contrôle humain obligatoire</b><p>L’OCR repère les montants mais ne valide jamais une caisse automatiquement.</p></div></div><div class="ocr-montants">'+(uniques.length?uniques.map(x=>'<span>'+ech(x)+' €</span>').join(''):'<span>Aucun montant fiable détecté</span>')+'</div><div class="ocr-brut">'+ech(texte||'Aucun texte reconnu.')+'</div></div><footer><button class="btn" id="ocr-fermer">Fermer</button></footer></div></div>',()=>{ const b=document.getElementById("ocr-fermer"); if(b) b.onclick=fermerModale; });
+  }catch(err){ toast("OCR indisponible : "+(err.message||"erreur de lecture"),true); }
+}
 
 async function pointerPiece(ptId,etat){
   if(!peut("pointer")) return toast("Droit « Pointer les photos » non accordé.",true);
@@ -3475,18 +3622,19 @@ function actionCaisse(quoi){
     sauver(); toast("Validation annulée."); return peindre();
   }
   if(quoi==="renvoyer"){
-    const cible=c.operateur||"";
-    const noms=nomsEquipe();
+    const noms=managersNoms();
+    if(!noms.length) return toast("Aucun manager disponible pour recevoir cette correction.",true);
+    const affecte=responsableService(c.service), cible=affecte||noms[0];
     ouvrirModale('<div class="modale"><div class="boite">'+
-      '<header><h3>Renvoyer la caisse</h3><p>'+ech(c.caisse)+' · '+ech(c.service)+' · '+courteDate(item.jour)+'</p></header>'+
+      '<header><h3>Renvoyer au responsable de service</h3><p>'+ech(c.caisse)+' · '+ech(c.service)+' · '+courteDate(item.jour)+'</p></header>'+
       '<div class="corps"><div class="grille" style="gap:13px">'+
-        '<label class="champ"><span>Destinataire</span><select id="m-pour">'+
-          noms.map(n=>'<option'+(n===cible?" selected":"")+'>'+ech(n)+'</option>').join("")+'</select></label>'+
-        '<label class="champ"><span>Ce qui doit être corrigé </span>'+
-        '<textarea id="m-texte" placeholder=""></textarea></label>'+
+        '<label class="champ"><span>Manager destinataire</span><select id="m-pour">'+
+          noms.map(n=>'<option'+(n===cible?" selected":"")+'>'+ech(n)+'</option>').join("")+'</select>'+(affecte?'<span class="aide">Responsable affecté au service '+ech(c.service)+'.</span>':'<span class="aide">Aucun responsable n’est encore affecté à ce service dans Paramètres.</span>')+'</label>'+
+        '<label class="champ"><span>Ce qui doit être corrigé</span>'+
+        '<textarea id="m-texte" placeholder="Indiquez précisément la correction à effectuer."></textarea></label>'+
       '</div></div>'+
       '<footer><button class="btn neutre" id="m-annuler">Annuler</button>'+
-      '<button class="btn rouge" id="m-envoyer">Renvoyer</button></footer></div></div>',
+      '<button class="btn rouge" id="m-envoyer">Renvoyer au manager</button></footer></div></div>',
     ()=>{
       const an=document.getElementById("m-annuler"), en=document.getElementById("m-envoyer");
       if(an) an.onclick=fermerModale;
@@ -3506,6 +3654,7 @@ function actionCaisse(quoi){
   }
 }
 function avancer(){
+  if(!surMobile()&&vue==="validation"){ validationOuverteId=""; zoomValid=1; rotValid=0; pieceActive=""; peindre(); return; }
   const l=fileComptages(filtreValid);
   indexValid=Math.min(indexValid, Math.max(0,l.length-1));
   zoomValid=1; rotValid=0; pieceActive=""; peindre();
@@ -3544,6 +3693,24 @@ async function retirerPreuve(id){
 
 async function agir(a,ds){
   const d=journeeEcr(jour);
+  if(a==="ouvrir-controle"){
+    const item=fileComptages("tous").find(x=>x.c.id===ds.id); if(!item) return toast("Caisse introuvable.",true);
+    validationOuverteId=item.c.id; filtreValid=item.etape; indexValid=Math.max(0,fileComptages(filtreValid).findIndex(x=>x.c.id===item.c.id)); zoomValid=1; rotValid=0; pieceActive=""; return peindre();
+  }
+  if(a==="fermer-controle"){ validationOuverteId=""; zoomValid=1; rotValid=0; pieceActive=""; return peindre(); }
+  if(a==="controle-modifier"){
+    if(syncActif){ try{ await tirerTout(); }catch(e){} }
+    const item=fileComptages("tous").find(x=>x.c.id===ds.id); if(!item) return toast("Caisse introuvable.",true);
+    const dd=journee(item.jour), c=(dd.comptages||[]).find(x=>x.id===ds.id); if(!c) return;
+    if(comptageVerrouille(c)&&!estAdministrateur()) return toast("Caisse déjà vérifiée : modification réservée à l’administrateur.",true);
+    jour=item.jour; brouillon=JSON.parse(JSON.stringify(c)); validationOuverteId=""; retourControleApresEdition=true; mobileRevueComptage=false; return aller("comptage");
+  }
+  if(a==="save-responsables-services"){
+    if(!peut("reglages")) return toast("Accès Paramètres non accordé.",true);
+    const map={}; document.querySelectorAll("[data-resp-service]").forEach(el=>{ const nom=String(el.value||"").trim(); if(nom) map[el.dataset.respService]=nom; });
+    P.responsablesService=map; await ecrire(CLES.p,P); tracer("Responsables de service modifiés",Object.keys(map).map(k=>k+" → "+map[k]).join(" · ")||"aucune affectation"); toast("Responsables de service enregistrés."); return peindre();
+  }
+  if(a==="ocr-piece") return lancerOCRPiece();
   if(a==="mobile-inventaire"){ mobileAccueil=false; mobileRevueInventaire=false; return peindre(); }
   if(a==="verifier-inventaire"){
     memoriserFormulaireAvantDepot();
@@ -3651,6 +3818,7 @@ async function agir(a,ds){
     if(surMobile()) return retourAccueilMobile(e.anormal===0?"Caisse enregistrée.":"Caisse enregistrée · manquant "+eur(e.anormal)+".");
     toast(e.anormal===0?"Enregistré.":"Enregistré avec "+eur(e.anormal)+" de manquant.");
     brouillon=null;
+    if(retourControleApresEdition){ retourControleApresEdition=false; filtreValid="saisi"; return aller("validation"); }
     return aller("tableau");
   }
   if(a==="voir-comptage"){
@@ -3659,7 +3827,7 @@ async function agir(a,ds){
     if(comptageVerrouille(c)&&!estAdministrateur()) return toast("Caisse vérifiée ou validée : modification réservée à l’administrateur.",true);
     brouillon=JSON.parse(JSON.stringify(c)); return aller("comptage");
   }
-  if(a==="annuler-comptage"){ mobileRevueComptage=false; brouillon=null; return surMobile()?retourAccueilMobile():aller("tableau"); }
+  if(a==="annuler-comptage"){ mobileRevueComptage=false; brouillon=null; if(!surMobile()&&retourControleApresEdition){ retourControleApresEdition=false; return aller("validation"); } return surMobile()?retourAccueilMobile():aller("tableau"); }
   if(a==="supprimer-comptage"){
     if(brouillon&&brouillon.id&&syncActif){ try{ await tirerTout(); }catch(e){} }
     const dd=journeeEcr(jour);
