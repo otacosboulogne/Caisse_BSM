@@ -3690,7 +3690,9 @@ document.getElementById("entree-fichier").addEventListener("change", async e=>{
     try{
       const meta=await rangerDoc(f,cibleDepot.cible,cibleDepot.libelle);
       if(cibleDepot.cible.indexOf("remise:")===0) brouillonRemise.justificatifs=(brouillonRemise.justificatifs||[]).concat([meta]);
-      else if(/^(z|tr|cv|cb):/.test(cibleDepot.cible)){
+      else if(/^(z-salarie|z|tr|cv|cb):/.test(cibleDepot.cible)){
+        /* Les pièces propres à une caisse, y compris le ticket Z salarié, restent
+           attachées au brouillon du comptage jusqu'à sa confirmation. */
         if(!brouillon){ toast("Ouvrez d'abord le comptage concerné.",true); return; }
         brouillon.justificatifs=(brouillon.justificatifs||[]).concat([meta]);
       } else { const d=journeeEcr(jour); d.justificatifs=d.justificatifs.concat([meta]); await sauver(); }
