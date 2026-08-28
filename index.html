@@ -1665,8 +1665,8 @@ function vueInventaireMobile(){
     '</div></div></div>';
   }
   return '<div class="mobile-form"><div class="mobile-sheet"><div class="mobile-sheet-body">'+
-    (veille!==null?'<div class="mobile-status">Montant repris automatiquement de la fermeture précédente : <b>'+eur(veille)+'</b></div>':"")+
-    '<label class="champ"><span>Montant du monnayeur</span><input type="text" inputmode="decimal" id="ouv-montant" value="'+ech(o.montant)+'"'+(veille!==null?' readonly':'')+' placeholder="0,00"></label>'+
+    (veille!==null?'<div class="mobile-status">Montant proposé depuis la fermeture précédente : <b>'+eur(veille)+'</b> · vous pouvez le modifier</div>':"")+
+    '<label class="champ"><span>Montant du monnayeur</span><input type="text" inputmode="decimal" id="ouv-montant" value="'+ech(o.montant)+'" placeholder="0,00"></label>'+
     '<label class="champ" style="margin-top:10px"><span>Inventaire fait par</span>'+selNoms("ouv-par",o.par)+'</label>'+
     zoneDepotMobile("inv-matin","Photo du monnayeur",d.justificatifs,true)+
     '<div class="mobile-actions-sticky"><button class="btn" data-act="verifier-inventaire">Vérifier ma saisie</button><button class="btn neutre" data-vue="tableau">Annuler</button></div>'+
@@ -1701,9 +1701,9 @@ function vueTableau(){
       (d.cloture||!peut("corriger")?"":'<button class="btn neutre mini" data-act="corriger-ouverture">Corriger</button>')+'</div>'+
       zoneDepot("inv-matin","Inventaire monnayeur — matin",d.justificatifs,true);
   } else {
-    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Repris de la fermeture de la veille : '+eur(veille)+'</p>':"")+
+    h+=(veille!==null?'<p class="aide" style="margin-bottom:12px">Proposé depuis la fermeture de la veille : '+eur(veille)+' · modifiable</p>':"")+
       '<div class="grille g3"><label class="champ"><span>Montant à l\'ouverture</span>'+
-      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"'+(veille!==null?" readonly":"")+'></label>'+
+      '<input type="number" step="0.01" id="ouv-montant" class="eur" value="'+(veille===null?"":veille)+'"></label>'+
       '<label class="champ"><span>Ouvert par</span>'+selNoms("ouv-par",SESSION.nom)+'</label>'+
       '<div style="display:flex;align-items:flex-end"><button class="btn" data-act="ouvrir">Ouvrir la journée</button></div></div>';
   }
