@@ -1411,8 +1411,20 @@ const ETAPES={
   verifie:{l:"Vérifié — à valider",p:"prim"}, valide:{l:"Validé",p:"ok"}
 };
 function pilEtape(e){ return '<span class="pil '+ETAPES[e].p+'"><i></i>'+ETAPES[e].l+'</span>'; }
+function cibleTicketZSalarie(c){ return "z-salarie:"+(c&&c.id?c.id:"nouveau"); }
+function pointTicketZSalarie(iso,c){
+  const d=journee(iso), id="z-salarie:"+(c&&c.id?c.id:"nouveau");
+  const docs=docsDe((c&&c.justificatifs)||[],id), ctrl=d.controles[id]||null;
+  let etat="manquant";
+  if(docs.length) etat=ctrl?(ctrl.etat==="conforme"?"conforme":"refuse"):"averifier";
+  const t=detailTR(c||{}), v=detailCV(c||{});
+  return {cible:id,id,libelle:"Ticket Z du salarié",zone:"Caisse",
+    aide:"Photo du rapport Z remis par le salarié pour cette caisse.",
+    montant:arrondi(t.z+v.z+nb(c&&c.cbZ)),oblige:true,docs,ctrl,etat,jour:iso};
+}
+function pointsControleCaisse(iso,c){ return [pointTicketZSalarie(iso,c)]; }
 function pretAVerifier(iso,c){
-  const ps=pointsControle(iso).filter(p=>p.oblige);
+  const ps=pointsControleCaisse(iso,c).filter(p=>p.oblige);
   return ps.length>0 && ps.every(p=>p.etat==="conforme");
 }
 const _f={};
@@ -2011,12 +2023,12 @@ function ligneControlePaiement(lib,theo,reel){
   return '<div class="cr-row"><b>'+lib+'</b><span class="n">'+eur(theo)+'</span><span class="n">'+eur(reel)+'</span><span class="ec '+cl+'">'+(Math.abs(ec)<=0.004?'OK':signe(ec)+' €')+'</span></div>';
 }
 function vueValidationDetailDesktop(item){
-  const {jour:iso,c,etape}=item, d=journee(iso), t=detailTR(c), cv=detailCV(c), e=ecartComptage(c), pieces=pointsControle(iso), resp=responsableService(c.service), cloture=!!d.cloture;
+  const {jour:iso,c,etape}=item, d=journee(iso), t=detailTR(c), cv=detailCV(c), e=ecartComptage(c), pieces=pointsControleCaisse(iso,c), resp=responsableService(c.service), cloture=!!d.cloture;
   const pret=pretAVerifier(iso,c);
   const rapproche='<div class="controle-mini-title">Rapprochement de la caisse</div><div class="controle-rappro"><div class="cr-head"><span>Moyen</span><span style="text-align:right">Théorique · Z</span><span style="text-align:right">Réel saisi</span><span style="text-align:right">Écart</span></div>'+ 
     ligneControlePaiement('Titres-restaurant',t.z,t.physique)+ligneControlePaiement('Chèques-vacances',cv.z,cv.physique)+ligneControlePaiement('Carte bancaire',nb(c.cbZ),nb(c.cb))+'</div>'+ 
     '<div class="controle-net"><span>Écart compensé TR + CV + CB</span><b style="color:'+(Math.abs(e.net)<=0.004?'var(--vert)':(e.net<0?'var(--rouge)':'var(--bleu)'))+'">'+signe(e.net)+' €</b></div>';
-  const pcs='<div class="controle-mini-title">Pièces de contrôle</div><div class="controle-pieces">'+pieces.map(p=>{
+  const pcs='<div class="controle-mini-title">Ticket Z à contrôler</div><div class="controle-pieces">'+pieces.map(p=>{
     const actif=pieceActive===p.id;
     return '<div class="controle-piece-row"><div><b>'+ech(p.libelle)+'</b><small>'+eur(p.montant)+' · '+(p.docs.length?(p.etat==='conforme'?'validée':(p.etat==='refuse'?'refusée':'à vérifier')):'sans pièce')+'</small></div><div class="controle-piece-actions">'+
       (p.docs.length?'<button class="btn neutre mini" data-piece="'+ech(p.id)+'">'+(actif?'Affiché':'Voir')+'</button>':'')+
@@ -2069,7 +2081,7 @@ function panneauCaisse(item){
   const {jour:iso,c,etape}=item;
   const d=journee(iso);
   const t=detailTR(c), v=detailCV(c), e=ecartComptage(c);
-  const pieces=pointsControle(iso);
+  const pieces=pointsControleCaisse(iso,c);
   const cloture=!!d.cloture;
 
   const tete='<div class="tete"><h3>'+ech(c.caisse)+' — '+ech(c.service)+'</h3>'+
@@ -2151,7 +2163,7 @@ let visuAffiche="";
 async function chargerVisu(force){
   const liste=fileComptages(filtreValid), item=liste[indexValid];
   const el=document.getElementById("visu"); if(!el||!item) return;
-  const pieces=pointsControle(item.jour).filter(p=>p.docs.length);
+  const pieces=pointsControleCaisse(item.jour,item.c).filter(p=>p.docs.length);
   if(!pieces.length){ el.innerHTML='<p class="rien">Aucune pièce disponible pour ce contrôle.</p>'; return; }
   const p=pieces.find(x=>x.id===pieceActive)||pieces[0];
   pieceActive=p.id;
@@ -2214,7 +2226,7 @@ function vueMessages(){
 function neufComptage(){
   return {id:"", caisse:P.caisses[0]||"Caisse 1", service:P.services[1]||"Midi",
     operateur:SESSION?SESSION.nom:"", h1:"", h2:"",
-    nbTR:"", montantTR:"", trZ:"", nbCV:"", montantCV:"", cvZ:"", cb:"", cbZ:"", motif:""};
+    nbTR:"", montantTR:"", trZ:"", nbCV:"", montantCV:"", cvZ:"", cb:"", cbZ:"", motif:"", justificatifs:[]};
 }
 function vueComptageMobile(){
   const d=journee(jour);
@@ -2256,6 +2268,7 @@ function vueComptageMobile(){
         ligneRevueMobile('Titres-restaurant',eur(t.physique)+' / Z '+eur(t.z)+(Math.abs(e.tr)>0.004?' · '+signe(e.tr)+' €':''),Math.abs(e.tr)>0.004?'warn':'')+
         ligneRevueMobile('Chèques-vacances',eur(cvd.physique)+' / Z '+eur(cvd.z)+(Math.abs(e.cv)>0.004?' · '+signe(e.cv)+' €':''),Math.abs(e.cv)>0.004?'warn':'')+
         ligneRevueMobile('Carte bancaire',eur(nb(c.cb))+' / Z '+eur(nb(c.cbZ))+(Math.abs(e.cb)>0.004?' · '+signe(e.cb)+' €':''),Math.abs(e.cb)>0.004?'warn':'')+
+        ligneRevueMobile('Photo ticket Z salarié',docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length?'Ajoutée ✓':'Manquante',docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length?'ok':'warn')+
         ligneRevueMobile('Encaissement total',eur(enc))+
         ligneRevueMobile('Total ticket Z',eur(ztot))+
         ligneRevueMobile('Écart net',signe(e.net)+' €',Math.abs(e.net)>0.004?'warn':'ok')+
@@ -2288,6 +2301,9 @@ function vueComptageMobile(){
     '<div class="mobile-divider"></div><div class="mobile-section-title">Carte bancaire</div><div class="mobile-paire">'+
       '<label class="champ"><span>Encaissé</span><input type="text" inputmode="decimal" id="c-cb" value="'+ech(c.cb)+'" placeholder="0,00"></label>'+ 
       '<label class="champ"><span>Rapport Z</span><input type="text" inputmode="decimal" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label></div>'+ 
+
+    '<div class="mobile-divider"></div><div class="mobile-section-title">Ticket Z du salarié</div>'+
+      zoneDepotMobile(cibleTicketZSalarie(c),"Photo du ticket Z du salarié",c.justificatifs||[],true)+
 
     '<div class="mobile-ecarts'+classeEcart+'" id="mobile-ecarts">'+
       '<div class="mobile-ecarts-head"><b>Suivi des écarts</b><span id="me-etat">'+etatEcart+'</span></div>'+ 
@@ -2332,6 +2348,7 @@ function vueComptage(){
         '<tr><td>Chèques-vacances</td><td class="n">'+eur(v.z)+'</td><td class="n">'+eur(v.physique)+'</td><td class="n">'+signe(e.cv)+' €</td></tr>'+
         '<tr><td>Carte bancaire</td><td class="n">'+eur(nb(c.cbZ))+'</td><td class="n">'+eur(nb(c.cb))+'</td><td class="n">'+signe(e.cb)+' €</td></tr>'+
       '</tbody></table></div>'+
+      '<div class="banniere '+(docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length?'ok':'ko')+'" style="margin-top:12px"><span class="sym">'+(docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length?'✓':'✕')+'</span><div><b>Ticket Z du salarié</b><p>'+(docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length?'Photo jointe au dossier.':'Photo obligatoire manquante.')+'</p></div></div>'+
       '<p class="aide" style="margin-top:12px"><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(c.operateur||"—")+' · '+ech(c.h1||"—")+' → '+ech(c.h2||"—")+'</p>'+
       (String(c.motif||"").trim()?'<div class="banniere info" style="margin-top:12px"><span class="sym">i</span><div><b>Commentaire</b><p>'+ech(String(c.motif).trim())+'</p></div></div>':'')+
       '<div class="actions" style="margin-top:16px"><button class="btn" data-act="valider-comptage">'+(existant?'Confirmer la modification':'Confirmer et enregistrer')+'</button>'+
@@ -2359,6 +2376,10 @@ function vueComptage(){
     '<label class="champ"><span>CB au rapport Z</span><input type="number" step="0.01" inputmode="decimal" class="eur" id="c-cbZ" value="'+ech(c.cbZ)+'" placeholder="0,00"></label>'+
     stat("Écart carte bancaire",signe(e.cb)+" €","",Math.abs(e.cb)>0.004?"ko":"ok")+
   '</div></div></div>'+
+
+  '<div class="carte"><header><h2>Ticket Z du salarié</h2><p>La photo est obligatoire pour enregistrer cette caisse et sera contrôlée avant validation.</p></header><div class="corps">'+
+    zoneDepot(cibleTicketZSalarie(c),"Ticket Z du salarié",c.justificatifs||[],true)+
+  '</div></div>'+
 
   '<div class="carte"><header><h2>Justification</h2></header><div class="corps">'+
   '<label class="champ'+(e.abs>0&&!c.motif?" invalide":"")+'"><span>Motif de l\'écart'+(e.abs>0?" — obligatoire":" — facultatif")+'</span>'+
@@ -2394,6 +2415,7 @@ function problemesComptage(c){
   const p=[], e=ecartComptage(c), t=detailTR(c), v=detailCV(c);
   if(!c.operateur) p.push("Indiquez qui a tenu la caisse.");
   if(!c.h1||!c.h2) p.push("Renseignez les horaires du service.");
+  if(!docsDe(c.justificatifs||[],cibleTicketZSalarie(c)).length) p.push("Ajoutez la photo du ticket Z du salarié.");
   if(t.nb>0&&!nb(c.montantTR)) p.push("Saisissez le montant total des titres-restaurant.");
   if(nb(c.montantTR)>0&&!t.nb) p.push("Saisissez le nombre de titres-restaurant.");
   if(v.nb>0&&!nb(c.montantCV)) p.push("Saisissez le montant total des chèques-vacances.");
@@ -3549,7 +3571,7 @@ function chargerOCR(){
 async function lancerOCRPiece(){
   if(surMobile()) return toast("L’assistant OCR est réservé au contrôle sur ordinateur.",true);
   const item=fileComptages(filtreValid)[indexValid]; if(!item) return toast("Ouvrez d’abord une caisse à vérifier.",true);
-  const pieces=pointsControle(item.jour).filter(p=>p.docs.length), p=pieces.find(x=>x.id===pieceActive)||pieces[0];
+  const pieces=pointsControleCaisse(item.jour,item.c).filter(p=>p.docs.length), p=pieces.find(x=>x.id===pieceActive)||pieces[0];
   if(!p||!p.docs.length) return toast("Aucune image disponible pour l’OCR.",true);
   const doc=p.docs[0]; if(doc.type==="application/pdf") return toast("OCR PDF non activé : ouvrez une photo JPG/PNG du ticket.",true);
   let src=photosMem[doc.id]||doc._brut||lienDirect(doc,1800); if(!src) src=await ouvrirDoc(doc.id,doc);
@@ -3804,6 +3826,7 @@ async function agir(a,ds){
         const m=MESSAGES.find(x=>x.comptageId===anc.id&&!x.resolu);
         if(m){ m.resolu=true; m.resoluLe=maintenant(); ecrire(CLES.m,MESSAGES); }
         pointsControle(jour).forEach(p=>{ if(dd.controles[p.id]&&dd.controles[p.id].etat==="refuse") delete dd.controles[p.id]; });
+        const zsid="z-salarie:"+anc.id; if(dd.controles[zsid]&&dd.controles[zsid].etat==="refuse") delete dd.controles[zsid];
       }
       dd.comptages[i]=maj;
       tracer(etaitVerrouille&&estAdministrateur()?"Correction administrateur après contrôle":"Comptage modifié",courteDate(jour)+" · "+brouillon.caisse+" · manquant "+eur(e.anormal)+
@@ -3842,6 +3865,7 @@ async function agir(a,ds){
     versions.forEach((vh,vi)=>dd.historiqueSupprimes.push(Object.assign({},vh,{supprime:vi===versions.length-1,archiveSupprime:true,supprimeAt,supprimePar:SESSION.nom})));
     if(dd.historiqueSupprimes.length>300) dd.historiqueSupprimes.splice(0,dd.historiqueSupprimes.length-300);
     dd.comptages=dd.comptages.filter(c=>c.id!==brouillon.id);
+    delete dd.controles["z-salarie:"+brouillon.id];
     tracer("Comptage supprimé",courteDate(jour)+" · "+brouillon.caisse+" · "+brouillon.operateur);
     mobileRevueComptage=false; brouillon=null; await sauver();
     if(surMobile()) return retourAccueilMobile("Saisie supprimée.");
