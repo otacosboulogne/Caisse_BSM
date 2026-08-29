@@ -744,6 +744,34 @@ table.journal .jc-rt small{display:block;color:var(--t3);font-size:8.5px;margin-
 .controle-identite .horaire-pro{display:inline-flex;gap:5px;align-items:center;font-variant-numeric:tabular-nums}
 .resp-badge{display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:3px 7px;border-radius:999px;background:#F2F4F7;color:var(--t2);font-size:10.5px;font-weight:650}
 
+
+/* V25 — contrôle desktop fiabilisé */
+@media(min-width:861px){
+  .controle-detail{grid-template-columns:minmax(0,1.45fr) 480px}
+  .controle-piece-bar{height:58px;padding:8px 14px}
+  .controle-detail .valid-vue{padding:16px}
+  .controle-detail .valid-vue img{max-width:100%;max-height:calc(100vh - 150px);object-fit:contain}
+  .controle-panneau-head{padding:15px 17px 13px}
+  .controle-panneau-body{padding:14px 17px 18px}
+  .controle-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+  .controle-overview .co-card{border:1px solid var(--bord);border-radius:10px;padding:10px;background:#fff}
+  .controle-overview .co-card span{display:block;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.055em;font-weight:800;margin-bottom:5px}
+  .controle-overview .co-card b{display:block;font-size:13px;line-height:1.25}
+  .controle-overview .co-card.ok{background:var(--vert-tint);border-color:var(--vert-bord)}
+  .controle-overview .co-card.ko{background:var(--rouge-tint);border-color:var(--rouge-bord)}
+  .controle-overview .co-card.att{background:var(--ambre-tint);border-color:var(--ambre-bord)}
+  .controle-pieces{margin-bottom:12px}
+  .controle-piece-row[aria-current="true"]{background:#FFF8F2}
+  .controle-blockage{margin:10px 0 2px;padding:9px 11px;border-radius:9px;background:var(--ambre-tint);border:1px solid var(--ambre-bord);font-size:11.5px;color:#7A4D00;line-height:1.4}
+  .controle-panneau-foot{flex-wrap:wrap}
+  .controle-panneau-foot .foot-aide{width:100%;font-size:11px;color:var(--t2);line-height:1.35}
+  .ocr-auto{margin-bottom:14px;border:1px solid var(--bord);border-radius:10px;padding:11px 12px;background:#F9FAFB}
+  .ocr-auto.en-cours{background:#EFF8FF;border-color:#B2DDFF}
+  .ocr-auto.erreur{background:var(--ambre-tint);border-color:var(--ambre-bord)}
+  .ocr-auto .titre{font-weight:750;font-size:12.5px}
+  .ocr-auto .sous{margin-top:3px;color:var(--t2);font-size:11px;line-height:1.4}
+}
+.photo-retry{display:inline-flex;margin-top:9px}
 </style>
 
 <div id="racine"><div class="demarrage"><div class="marque-logo"></div><p>Chargement…</p></div></div>
@@ -1290,6 +1318,39 @@ async function envoyerMessage(o){
 
 const LIMITE_DOC=4200000;
 const photosMem={};
+/* Cache local durable des photos. Le navigateur ne doit jamais dépendre uniquement
+   de la mémoire vive ou de Drive pendant la synchronisation. */
+let promessePhotoDB=null;
+function ouvrirPhotoDB(){
+  if(promessePhotoDB) return promessePhotoDB;
+  if(!window.indexedDB) return Promise.resolve(null);
+  promessePhotoDB=new Promise(resolve=>{
+    try{
+      const r=indexedDB.open("otacos-caisse-photos",1);
+      r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains("photos")) db.createObjectStore("photos",{keyPath:"id"}); };
+      r.onsuccess=()=>resolve(r.result); r.onerror=()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+  return promessePhotoDB;
+}
+async function photoDBEcrire(id,dataUrl,meta){
+  const db=await ouvrirPhotoDB(); if(!db||!id||!dataUrl) return false;
+  return new Promise(resolve=>{
+    try{ const tx=db.transaction("photos","readwrite"); tx.objectStore("photos").put({id,dataUrl,meta:meta||{},at:Date.now()}); tx.oncomplete=()=>resolve(true); tx.onerror=()=>resolve(false); }
+    catch(e){ resolve(false); }
+  });
+}
+async function photoDBLire(id){
+  const db=await ouvrirPhotoDB(); if(!db||!id) return null;
+  return new Promise(resolve=>{
+    try{ const tx=db.transaction("photos","readonly"), rq=tx.objectStore("photos").get(id); rq.onsuccess=()=>resolve(rq.result||null); rq.onerror=()=>resolve(null); }
+    catch(e){ resolve(null); }
+  });
+}
+async function photoDBSupprimer(id){
+  const db=await ouvrirPhotoDB(); if(!db||!id) return;
+  try{ const tx=db.transaction("photos","readwrite"); tx.objectStore("photos").delete(id); }catch(e){}
+}
 function lireFichier(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); }); }
 function chargerImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
 async function preparerFichier(f){
@@ -1320,6 +1381,9 @@ async function rangerDoc(f,cible,libelle){
     empreinte:sha256(p.dataUrl).slice(0,16), cible, libelle:libelle||cible, jour,
     par:SESSION?SESSION.nom:"—", at:maintenant()};
   photosMem[id]=p.dataUrl;
+  /* Écriture locale durable AVANT l'envoi réseau : la photo reste disponible même
+     si Drive ou le réseau met plusieurs secondes à répondre. */
+  await photoDBEcrire(id,p.dataUrl,meta);
   const ok=await ecrire("caisse:doc:"+id,{dataUrl:p.dataUrl, meta});
   if(!ok&&aStockage&&!syncActif) throw new Error("Enregistrement refusé : document trop volumineux.");
   meta._brut=(aStockage||syncActif)?null:p.dataUrl;
@@ -1331,14 +1395,18 @@ function lienDirect(meta,largeur){
 }
 async function ouvrirDoc(id,meta){
   if(photosMem[id]) return photosMem[id];
-  if(meta&&meta._brut) return meta._brut;
+  if(meta&&meta._brut){ photosMem[id]=meta._brut; await photoDBEcrire(id,meta._brut,meta); return meta._brut; }
+  const loc=await photoDBLire(id);
+  if(loc&&loc.dataUrl){ photosMem[id]=loc.dataUrl; return loc.dataUrl; }
   const r=await lire("caisse:doc:"+id,null);
-  if(r&&r.dataUrl){ photosMem[id]=r.dataUrl; return r.dataUrl; }
+  if(r&&r.dataUrl){ photosMem[id]=r.dataUrl; await photoDBEcrire(id,r.dataUrl,meta||r.meta); return r.dataUrl; }
   if(syncActif){ try{ const j=await appelServeur({action:"photoLire",id});
-    if(j.donnee){ photosMem[id]=j.donnee; return j.donnee; } }catch(e){} }
+    if(j.donnee){ photosMem[id]=j.donnee; await photoDBEcrire(id,j.donnee,meta); return j.donnee; } }catch(e){} }
   return null;
 }
 async function jeterDoc(id){
+  delete photosMem[id];
+  await photoDBSupprimer(id);
   await effacerCle("caisse:doc:"+id);
   if(syncActif){ try{ const r=await appelServeur({action:"photoSupprimer",id}); syncVersion=r.version; }catch(e){} }
 }
@@ -1760,7 +1828,7 @@ function peindre(){
     const syncLabel=syncActif?(syncEtat==="ok"?"Synchronisé":"Hors ligne"):(persistanceOK?"Enregistré localement":"Erreur d'enregistrement");
     if(sig===signatureCoque&&document.getElementById("vue")){
       peindreVue();
-      if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+      rendreModale();
       brancher();
       return;
     }
@@ -1773,7 +1841,7 @@ function peindre(){
       '<main class="contenu'+(plein?" plein":"")+'" id="vue" tabindex="-1"></main></div></div>';
     signatureCoque=sig;
     peindreVue();
-    if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+    rendreModale();
     brancher();
     return;
   }
@@ -1793,7 +1861,7 @@ function peindre(){
   if(sig===signatureCoque&&document.getElementById("vue")){
     document.querySelector(".contenu").className="contenu"+(plein?" plein":"");
     peindreVue();
-    if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+    rendreModale();
     brancher();
     return;
   }
@@ -1815,7 +1883,7 @@ function peindre(){
 
   signatureCoque=sig;
   peindreVue();
-  if(modale) rac.insertAdjacentHTML("beforeend",modale.html);
+  rendreModale();
   brancher();
 }
 let signatureCoque="";
@@ -2095,26 +2163,46 @@ function ligneControlePaiement(lib,theo,reel){
 }
 function vueValidationDetailDesktop(item){
   const {jour:iso,c,etape}=item, d=journee(iso), t=detailTR(c), cv=detailCV(c), e=ecartComptage(c), pieces=pointsControleCaisse(iso,c), resp=responsableComptage(c), cloture=!!d.cloture;
-  const pret=pretAVerifier(iso,c);
-  const rapproche='<div class="controle-mini-title">Rapprochement de la caisse</div><div class="controle-rappro"><div class="cr-head"><span>Moyen</span><span style="text-align:right">Théorique · Z</span><span style="text-align:right">Réel saisi</span><span style="text-align:right">Écart</span></div>'+ 
+  const pret=pretAVerifier(iso,c), blocages=raisonsBlocageControle(iso,c);
+  const photoOK=pieces.some(p=>p.docs.length), photoConforme=pieces.filter(p=>p.oblige).every(p=>p.etat==='conforme');
+  const ocrState=ocrEtatControle[c.id]||'';
+  const ocrDernier=c.ocrDernier||null;
+  const ocrClasse=ocrDernier?(ocrDernier.decision==='oui'?'ok':'ko'):(ocrState==='en-cours'?'att':(ocrState?'ko':'att'));
+  const ocrLabel=ocrDernier?(ocrDernier.decision==='oui'?'OCR : valider possible':'OCR : ne pas valider'):(ocrState==='en-cours'?'OCR en cours…':(ocrState?'OCR indisponible':'OCR à lancer'));
+  const overview='<div class="controle-overview">'+
+    '<div class="co-card '+(photoOK?(photoConforme?'ok':'att'):'ko')+'"><span>Ticket Z</span><b>'+(photoOK?(photoConforme?'Photo contrôlée':'Photo présente · à pointer'):'Photo manquante')+'</b></div>'+ 
+    '<div class="co-card '+(Math.abs(e.net)<=0.004?'ok':(e.net<0?'ko':'att'))+'"><span>Écart compensé</span><b>'+signe(e.net)+' €</b></div>'+ 
+    '<div class="co-card '+ocrClasse+'"><span>Avis OCR</span><b>'+ech(ocrLabel)+'</b></div>'+ 
+  '</div>';
+  const rapproche='<div class="controle-mini-title">Rapprochement</div><div class="controle-rappro"><div class="cr-head"><span>Moyen</span><span style="text-align:right">Théorique · Z</span><span style="text-align:right">Réel saisi</span><span style="text-align:right">Écart</span></div>'+ 
     ligneControlePaiement('Titres-restaurant',t.z,t.physique)+ligneControlePaiement('Chèques-vacances',cv.z,cv.physique)+ligneControlePaiement('Carte bancaire',nb(c.cbZ),nb(c.cb))+'</div>'+ 
     '<div class="controle-net"><span>Écart compensé TR + CV + CB</span><b style="color:'+(Math.abs(e.net)<=0.004?'var(--vert)':(e.net<0?'var(--rouge)':'var(--bleu)'))+'">'+signe(e.net)+' €</b></div>';
-  const pcs='<div class="controle-mini-title">Ticket Z à contrôler</div><div class="controle-pieces">'+pieces.map(p=>{
+  const pcs='<div class="controle-mini-title">Pièce à contrôler</div><div class="controle-pieces">'+pieces.map(p=>{
     const actif=pieceActive===p.id;
-    return '<div class="controle-piece-row"><div><b>'+ech(p.libelle)+'</b><small>'+eur(p.montant)+' · '+(p.docs.length?(p.etat==='conforme'?'validée':(p.etat==='refuse'?'refusée':'à vérifier')):'sans pièce')+'</small></div><div class="controle-piece-actions">'+
-      (p.docs.length?'<button class="btn neutre mini" data-piece="'+ech(p.id)+'">'+(actif?'Affiché':'Voir')+'</button>':'')+
-      (!cloture&&p.docs.length&&estManager()?'<button class="btn vert mini" data-piece-ok="'+ech(p.id)+'">✓</button><button class="btn rouge mini" data-piece-ko="'+ech(p.id)+'">✕</button>':'')+'</div></div>';
+    return '<div class="controle-piece-row" aria-current="'+(actif?'true':'false')+'"><div><b>'+ech(p.libelle)+'</b><small>'+(p.docs.length?(p.etat==='conforme'?'Photo pointée conforme':(p.etat==='refuse'?'Photo refusée':'Photo présente · contrôle requis')):'Aucune photo')+'</small></div><div class="controle-piece-actions">'+
+      (p.docs.length?'<button class="btn neutre mini" data-piece="'+ech(p.id)+'">'+(actif?'Affichée':'Afficher')+'</button>':'')+
+      (!cloture&&p.docs.length&&estManager()?'<button class="btn vert mini" title="Photo conforme" data-piece-ok="'+ech(p.id)+'">✓ Conforme</button><button class="btn rouge mini" title="Refuser la photo" data-piece-ko="'+ech(p.id)+'">✕</button>':'')+'</div></div>';
   }).join('')+'</div>';
-  const ocr=c.ocrDernier?'<div class="controle-mini-title">Dernier avis OCR</div><div class="ocr-decision '+ech(c.ocrDernier.decision==='oui'?'ok':(c.ocrDernier.decision==='non'?'ko':'att'))+'"><div class="titre">'+ech(c.ocrDernier.libelle||'Contrôle manuel nécessaire')+'</div><div class="sous">Confiance '+ech(c.ocrDernier.confiance||0)+' % · '+ech(c.ocrDernier.avis||'')+'</div></div>':'';
+  let ocr='';
+  if(ocrDernier){
+    ocr='<div class="controle-mini-title">Avis OCR automatique</div><div class="ocr-decision '+(ocrDernier.decision==='oui'?'ok':'ko')+'"><div class="titre">'+ech(ocrDernier.libelle||(ocrDernier.decision==='oui'?'Validation possible selon l\'OCR':'Je suggère de ne pas valider'))+'</div><div class="sous">'+ech(ocrDernier.avis||'')+' · confiance '+ech(ocrDernier.confiance||0)+' %</div><div style="margin-top:8px"><button class="btn neutre mini" data-act="ocr-piece">Voir / relancer l’analyse OCR</button></div></div>';
+  } else if(ocrState==='en-cours'){
+    ocr='<div class="ocr-auto en-cours"><div class="titre">Analyse OCR automatique en cours…</div><div class="sous">La photo reste visible et vous pouvez déjà la contrôler manuellement.</div></div>';
+  } else if(ocrState){
+    ocr='<div class="ocr-auto erreur"><div class="titre">OCR non disponible pour le moment</div><div class="sous">'+ech(ocrState)+' · <button class="btn neutre mini" data-act="ocr-piece">Réessayer</button></div></div>';
+  } else {
+    ocr='<div class="ocr-auto"><div class="titre">OCR prêt</div><div class="sous">L’analyse se lance automatiquement à l’ouverture de cette caisse. <button class="btn neutre mini" data-act="ocr-piece">Lancer maintenant</button></div></div>';
+  }
   const motif=String(c.motif||'').trim()?'<div class="controle-mini-title">Commentaire de saisie</div><div class="controle-comment">'+ech(String(c.motif).trim())+'</div>':'';
+  const bloc=blocages.length?'<div class="controle-blockage"><b>Avant vérification :</b> '+ech(blocages.join(' · '))+'. Cliquez sur « Vérifier » pour afficher le motif si vous essayez trop tôt.</div>':'';
   let pied='';
   if(cloture) pied='<div class="controle-panneau-foot"><span class="aide">Journée clôturée.</span></div>';
   else if(!estManager()) pied='<div class="controle-panneau-foot"><span class="aide">Accès de contrôle non accordé.</span></div>';
   else if(etape==='valide') pied='<div class="controle-panneau-foot">'+(estAdmin()?'<button class="btn neutre" data-caisse="devalider">Annuler la validation</button>':'<span class="aide">Caisse validée et verrouillée.</span>')+'</div>';
-  else if(etape==='verifie') pied='<div class="controle-panneau-foot"><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button>'+(estAdmin()?'<button class="btn vert" data-caisse="valider">Valider la caisse</button>':'<span class="aide">En attente de validation administrateur.</span>')+'</div>';
-  else pied='<div class="controle-panneau-foot"><button class="btn neutre" data-act="controle-modifier" data-id="'+c.id+'">Modifier</button><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button><button class="btn vert" data-caisse="verifier"'+(pret?'':' disabled')+'>'+(estAdmin()?'Vérifier et valider':'Vérifier')+'</button></div>';
-  return '<div class="controle-detail"><div class="controle-piece"><div class="controle-piece-bar"><button class="btn-retour" data-act="fermer-controle">← Liste</button><span>'+ech(c.operateur||'—')+' · '+ech(c.caisse)+'</span><span class="esp"></span><button class="btn-ocr" data-act="ocr-piece">OCR · lire la pièce</button><button data-zoom="-1">−</button><button data-zoom="0">100 %</button><button data-zoom="1">+</button><button data-rot="1">⟳</button></div><div class="valid-vue" id="visu"><p class="rien">Chargement de la pièce…</p></div></div>'+ 
-    '<div class="controle-panneau"><div class="controle-panneau-head"><div class="ligne-haut"><div><h3>'+ech(c.operateur||'Sans nom')+'</h3><p><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(plageHeure(c))+'<br>'+jolieDate(iso)+(resp?'<br>Responsable de service : <b>'+ech(resp)+'</b>':'<br><span style="color:var(--ambre)">Aucun responsable de service affecté</span>')+'</p></div>'+pilEtape(etape)+'</div></div><div class="controle-panneau-body">'+rapproche+pcs+ocr+motif+'</div>'+pied+'</div></div>';
+  else if(etape==='verifie') pied='<div class="controle-panneau-foot"><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button>'+(estAdmin()?'<button class="btn vert" data-caisse="valider">Valider la caisse</button>':'<span class="aide">En attente de validation administrateur.</span>')+(ocrDernier&&ocrDernier.decision==='non'?'<div class="foot-aide">⚠ L’OCR recommande de ne pas valider. L’administrateur garde la décision finale.</div>':'')+'</div>';
+  else pied='<div class="controle-panneau-foot"><button class="btn neutre" data-act="controle-modifier" data-id="'+c.id+'">Modifier</button><button class="btn rouge" data-caisse="renvoyer">Renvoyer au responsable</button><button class="btn vert" data-caisse="verifier">Vérifier la caisse</button>'+(blocages.length?'<div class="foot-aide">La vérification sera refusée tant que la pièce obligatoire n’est pas pointée conforme.</div>':'')+'</div>';
+  return '<div class="controle-detail"><div class="controle-piece"><div class="controle-piece-bar"><button class="btn-retour" data-act="fermer-controle">← Liste</button><span>'+ech(c.operateur||'—')+' · '+ech(c.caisse)+'</span><span class="esp"></span><button class="btn-ocr" data-act="ocr-piece">OCR · analyser</button><button data-zoom="-1">−</button><button data-zoom="0">100 %</button><button data-zoom="1">+</button><button data-rot="1">⟳</button></div><div class="valid-vue" id="visu"><p class="rien">Chargement de la pièce…</p></div></div>'+ 
+    '<div class="controle-panneau"><div class="controle-panneau-head"><div class="ligne-haut"><div><h3>'+ech(c.operateur||'Sans nom')+'</h3><p><b>'+ech(c.caisse)+' · '+ech(c.service)+'</b> · '+ech(plageHeure(c))+'<br>'+jolieDate(iso)+(resp?'<br>Responsable de service : <b>'+ech(resp)+'</b>':'<br><span style="color:var(--ambre)">Aucun responsable de service affecté</span>')+'</p></div>'+pilEtape(etape)+'</div></div><div class="controle-panneau-body">'+overview+rapproche+pcs+ocr+motif+bloc+'</div>'+pied+'</div></div>';
 }
 
 function vueValidationClassique(){
@@ -2232,6 +2320,17 @@ function ligneRap(nom,reel,theo){
 function paire(a,b,cl){ return '<div class="paire '+(cl||"")+'"><span>'+a+'</span><span>'+b+'</span></div>'; }
 
 let visuAffiche="";
+const ocrEtatControle={};
+const ocrAutoLances=new Set();
+function raisonsBlocageControle(iso,c){
+  const ps=pointsControleCaisse(iso,c).filter(p=>p.oblige), out=[];
+  ps.forEach(p=>{
+    if(!p.docs.length) out.push(p.libelle+" manquant");
+    else if(p.etat==="averifier") out.push(p.libelle+" non pointé");
+    else if(p.etat==="refuse") out.push(p.libelle+" refusé");
+  });
+  return out;
+}
 async function chargerVisu(force){
   const liste=fileComptages(filtreValid), item=liste[indexValid];
   const el=document.getElementById("visu"); if(!el||!item) return;
@@ -2243,22 +2342,25 @@ async function chargerVisu(force){
   const empreinteVue=doc.id+"|"+zoomValid+"|"+rotValid;
   if(!force&&visuAffiche===empreinteVue&&el.querySelector("img,iframe")) return;
   visuAffiche=empreinteVue;
+  el.innerHTML='<p class="rien">Chargement de la pièce…</p>';
   const style='transform:scale('+zoomValid+') rotate('+(rotValid*90)+'deg)';
-  const rapide=photosMem[doc.id]||doc._brut||(doc.type!=="application/pdf"?lienDirect(doc,1600):"");
-  if(rapide){
-    el.innerHTML='<img src="'+rapide+'" alt="'+ech(p.libelle)+'" style="'+style+'">';
-    const im=el.querySelector("img");
-    im.onerror=async()=>{
-      const d2=await ouvrirDoc(doc.id,doc);
-      if(d2) im.src=d2; else el.innerHTML='<p class="rien">Pièce introuvable.</p>';
-    };
+  /* Priorité au cache local / serveur qui renvoie un data URL. Le lien Drive direct
+     est seulement un dernier recours : il peut être temporairement non public. */
+  const data=await ouvrirDoc(doc.id,doc);
+  if(data){
+    el.innerHTML=(doc.type==="application/pdf"
+      ? '<iframe src="'+data+'" title="Justificatif"></iframe>'
+      : '<img src="'+data+'" alt="'+ech(p.libelle)+'" style="'+style+'">');
     return;
   }
-  const data=await ouvrirDoc(doc.id,doc);
-  if(!data){ el.innerHTML='<p class="rien">Pièce introuvable dans le stockage.</p>'; return; }
-  el.innerHTML=(doc.type==="application/pdf"
-    ? '<iframe src="'+data+'" title="Justificatif"></iframe>'
-    : '<img src="'+data+'" alt="'+ech(p.libelle)+'" style="'+style+'">');
+  const drive=(doc.type!=="application/pdf"?lienDirect(doc,1600):"");
+  if(drive){
+    el.innerHTML='<img src="'+drive+'" alt="'+ech(p.libelle)+'" style="'+style+'">';
+    const im=el.querySelector("img");
+    im.onerror=()=>{ el.innerHTML='<p class="rien">La photo existe mais n’est pas accessible pour le moment.<br><button class="btn neutre mini photo-retry" data-act="recharger-piece">Réessayer</button></p>'; };
+    return;
+  }
+  el.innerHTML='<p class="rien">Pièce introuvable dans le stockage.<br><button class="btn neutre mini photo-retry" data-act="recharger-piece">Réessayer</button></p>';
 }
 
 function vueMessages(){
@@ -3397,32 +3499,31 @@ async function visionner(id){
   v.onclick=e=>{ if(e.target===v) v.remove(); };
   document.addEventListener("keydown",function esc(e){ if(e.key==="Escape"){ v.remove(); document.removeEventListener("keydown",esc); } });
   const corps=v.querySelector(".voile-corps");
-  const direct=photosMem[id]||(meta&&meta._brut)||((meta&&meta.type!=="application/pdf")?lienDirect(meta,1600):"");
-  let data=direct;
-  if(direct){ corps.innerHTML='<img src="'+direct+'" alt="Justificatif">'; }
-  else {
-    data=await ouvrirDoc(id,meta);
-    if(!data){ corps.innerHTML='<span style="color:#98A2B3">Pièce introuvable.</span>'; return; }
-    corps.innerHTML=(meta&&meta.type==="application/pdf")?'<iframe src="'+data+'" title="Justificatif"></iframe>':'<img src="'+data+'" alt="Justificatif">';
-  }
+  let data=await ouvrirDoc(id,meta);
+  if(!data && meta&&meta.type!=="application/pdf") data=lienDirect(meta,1600);
+  if(!data){ corps.innerHTML='<span style="color:#98A2B3">Pièce introuvable.</span>'; return; }
+  corps.innerHTML=(meta&&meta.type==="application/pdf")?'<iframe src="'+data+'" title="Justificatif"></iframe>':'<img src="'+data+'" alt="Justificatif">';
   v.querySelector("#v-dl").onclick=()=>{
     const a=document.createElement("a"); a.href=data;
     a.download=(meta?meta.libelle.replace(/[^\w-]+/g,"_"):"justificatif")+(meta&&meta.type==="application/pdf"?".pdf":".jpg");
     document.body.appendChild(a); a.click(); a.remove();
   };
 }
+function rendreModale(){
+  const rac=document.getElementById("racine"); if(!rac) return;
+  rac.querySelectorAll(":scope > .modale").forEach(x=>x.remove());
+  if(modale&&modale.html) rac.insertAdjacentHTML("beforeend",modale.html);
+}
 function ouvrirModale(html,brancherFn){
   modale={html,brancherFn};
-  peindre();
-  /* Les anciennes modales stockaient une fonction de branchement sans jamais
-     l'exécuter. On la lance après insertion du HTML pour rendre les boutons actifs. */
+  /* La modale est rendue une seule fois. Les anciennes versions pouvaient en empiler
+     plusieurs après un rafraîchissement, ce qui donnait des boutons inactifs. */
+  rendreModale();
   if(brancherFn) requestAnimationFrame(()=>{ if(modale&&modale.brancherFn===brancherFn) brancherFn(); });
 }
 function fermerModale(){
   modale=null;
-  /* Fermer une modale ne doit pas reconstruire toute l'application ni faire
-     perdre la position du contrôle en cours. */
-  const el=document.querySelector(".modale"); if(el) el.remove();
+  document.querySelectorAll(".modale").forEach(el=>el.remove());
 }
 
 function v(id){ const e=document.getElementById(id); return e?e.value:""; }
@@ -3664,21 +3765,32 @@ function majBloc(bloc,calc){
 }
 
 let ecouteursPoses=false;
+function erreurInterface(err,contexte){
+  console.error("Erreur interface",contexte||"",err);
+  const msg=(err&&err.message)?err.message:String(err||"Erreur inconnue");
+  toast("Une action a échoué : "+msg,true);
+}
+function lancerActionSure(fn,contexte){
+  try{ const r=fn(); if(r&&typeof r.then==="function") r.catch(e=>erreurInterface(e,contexte)); }
+  catch(e){ erreurInterface(e,contexte); }
+}
 function poserEcouteurs(){
   if(ecouteursPoses) return;
   ecouteursPoses=true;
   const r=document.getElementById("racine");
-  r.addEventListener("click",surClic);
-  r.addEventListener("input",surSaisie);
-  r.addEventListener("change",surChangement);
-  r.addEventListener("blur",surSortie,true);
+  r.addEventListener("click",e=>lancerActionSure(()=>surClic(e),"clic"));
+  r.addEventListener("input",e=>lancerActionSure(()=>surSaisie(e),"saisie"));
+  r.addEventListener("change",e=>lancerActionSure(()=>surChangement(e),"changement"));
+  r.addEventListener("blur",e=>lancerActionSure(()=>surSortie(e),"sortie"),true);
   r.addEventListener("keydown",e=>{
     if(e.key==="Enter"&&e.target.id==="v-code"){ const b=document.getElementById("b-connexion"); if(b) b.click(); }
   });
+  window.addEventListener("unhandledrejection",e=>{ if(e&&e.reason) erreurInterface(e.reason,"promesse"); });
 }
 function brancher(){
   poserEcouteurs();
   if(vue==="validation"&&(surMobile()||validationOuverteId)) chargerVisu();
+  if(vue==="validation"&&!surMobile()&&validationOuverteId) planifierOCRControle();
 }
 
 function toastPeindre(m){ toast(m,true); peindre(); }
@@ -3698,10 +3810,17 @@ function normaliserLigneOCR(x){
   return String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[|]/g,"I").replace(/\s+/g," ").trim();
 }
 function montantFinLigneOCR(ligne){
-  const m=[...String(ligne||"").matchAll(/(\(?-?\d{1,7}[,.]\d{2}\)?)(?:\s*€)?/g)];
-  if(!m.length) return null;
-  const brut=m[m.length-1][1], neg=/^\(/.test(brut)||/^-/.test(brut);
-  const n=parseFloat(brut.replace(/[()\s]/g,"").replace(",","."));
+  const txt=String(ligne||"").replace(/\u00a0/g," ");
+  const candidats=[];
+  /* Formats classiques : 128.80 / 128,80 / (23.40). */
+  for(const m of txt.matchAll(/(\(?-?\d{1,7}(?:[ .]\d{3})*[,.]\s*\d{2}\)?)(?:\s*€)?/g)) candidats.push(m[1]);
+  /* Certains OCR séparent les décimales : "128 80". On ne prend que la fin de ligne. */
+  const sep=/\(?-?(\d{1,7})\s+(\d{2})\)?\s*(?:€)?\s*$/.exec(txt);
+  if(!candidats.length&&sep) candidats.push((/^\s*\(/.test(txt)?"(":"")+sep[1]+"."+sep[2]+(/\)\s*$/.test(txt)?")":""));
+  if(!candidats.length) return null;
+  const brut=candidats[candidats.length-1], neg=/^\(/.test(brut)||/^-/.test(brut);
+  const propre=brut.replace(/[()\s]/g,"").replace(/,(?=\d{2}$)/,".").replace(/\.(?=.*\.)/g,"");
+  const n=parseFloat(propre);
   return Number.isFinite(n)?arrondi(neg?-Math.abs(n):n):null;
 }
 function analyserTicketZOCR(texte,c,confiance){
@@ -3755,18 +3874,21 @@ function analyserTicketZOCR(texte,c,confiance){
   if(etrans.length>2) alertes.push("Plus de deux E-TRANSACTION différents détectés : C&C = plus petit montant, Borne = plus grand montant ; contrôlez les lignes intermédiaires.");
   if(nonLus.length) alertes.push("Montant(s) Z saisi(s) mais non lus sur la photo : "+nonLus.map(k=>({tr:"TR",cv:"CV",cb:"CB"}[k])).join(", ")+".");
   const conf=Number(confiance||0);
-  let decision="controle", decisionLib="Contrôle manuel nécessaire", decisionClasse="att", avis="";
+  const attendusNb=attendusPositifs.length, reconnusNb=attendusPositifs.filter(k=>!!lus[k]).length;
+  const couverture=attendusNb?Math.round(reconnusNb/attendusNb*100):(compares.length?100:0);
+  let decision="non", decisionLib="Je suggère de ne pas valider pour l’instant", decisionClasse="ko", avis="";
   if(divergences.length){
-    decision="non"; decisionLib="Je suggère de ne pas valider pour l’instant"; decisionClasse="ko";
-    avis="Je vois une différence entre la saisie et le ticket sur "+divergences.map(r=>r.lib+" ("+signe(r.ecart)+" €)").join(", ")+". Corrigez ou justifiez avant validation.";
-  } else if(nonLus.length || compares.length===0 || conf<45){
-    decision="controle"; decisionLib="Je ne peux pas recommander la validation"; decisionClasse="att";
-    avis="La lecture n’est pas assez complète ou assez fiable pour conclure. L’administrateur doit contrôler visuellement le ticket.";
+    avis="Je détecte une différence entre la saisie et le ticket sur "+divergences.map(r=>r.lib+" ("+signe(r.ecart)+" €)").join(", ")+". Corrigez ou justifiez avant validation.";
+  } else if(compares.length>0 && nonLus.length===0){
+    decision="oui"; decisionLib="Je suggère de valider après contrôle visuel"; decisionClasse="ok";
+    avis="Les montants Z attendus ont été retrouvés et correspondent à la saisie. Couverture "+couverture+" % ; confiance OCR globale "+Math.round(conf)+" %.";
+  } else if(compares.length>=2 && divergences.length===0){
+    decision="oui"; decisionLib="Validation possible, avec contrôle visuel renforcé"; decisionClasse="ok";
+    avis="Les lignes reconnues correspondent à la saisie, mais la lecture est incomplète (couverture "+couverture+" %). Vérifiez visuellement les moyens non lus avant validation.";
   } else {
-    decision="oui"; decisionLib="Validation possible selon l’OCR"; decisionClasse="ok";
-    avis="Les montants Z que j’ai pu lire correspondent à la saisie. Je suggère une validation uniquement après le contrôle visuel du ticket.";
+    avis="La lecture est trop incomplète pour constituer une preuve suffisante (couverture "+couverture+" %). Je conseille de ne pas valider tant que le ticket n’a pas été contrôlé visuellement.";
   }
-  return {rows,avis,alertes,etrans,decision,decisionLib,decisionClasse,confiance:conf};
+  return {rows,avis,alertes,etrans,decision,decisionLib,decisionClasse,confiance:conf,couverture};
 }
 function htmlAnalyseTicketOCR(analyse,confiance){
   const lignes=analyse.rows.map(r=>{
@@ -3781,30 +3903,81 @@ function htmlAnalyseTicketOCR(analyse,confiance){
       (analyse.alertes.length?'<div class="ocr-regle">⚠ '+analyse.alertes.map(ech).join('<br>⚠ ')+'</div>':'')+
       '<div class="ocr-regle">Règle de ce modèle : « =E-TRANSACTION » identifie la Borne. Sinon, parmi deux E-TRANSACTION distincts, le plus petit montant = Click & Collect et le plus grand = Borne.</div></div>';
 }
-async function lancerOCRPiece(){
-  if(surMobile()) return toast("L’assistant OCR est réservé au contrôle sur ordinateur.",true);
-  const item=fileComptages(filtreValid)[indexValid]; if(!item) return toast("Ouvrez d’abord une caisse à vérifier.",true);
+
+async function pretraiterImageOCR(src){
+  try{
+    const img=await chargerImage(src), max=2200, ratio=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(img.width*ratio)); c.height=Math.max(1,Math.round(img.height*ratio));
+    const ctx=c.getContext("2d",{willReadFrequently:true}); ctx.drawImage(img,0,0,c.width,c.height);
+    const im=ctx.getImageData(0,0,c.width,c.height), d=im.data;
+    for(let i=0;i<d.length;i+=4){
+      const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+      const v=Math.max(0,Math.min(255,(g-128)*1.55+128));
+      d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+    }
+    ctx.putImageData(im,0,0); return c.toDataURL("image/jpeg",.88);
+  }catch(e){ return src; }
+}
+function itemControleActuel(){ return fileComptages(filtreValid)[indexValid]||null; }
+async function lancerOCRPiece(options){
+  options=options||{};
+  if(surMobile()) return options.auto?null:toast("L’assistant OCR est réservé au contrôle sur ordinateur.",true);
+  const item=itemControleActuel(); if(!item) return options.auto?null:toast("Ouvrez d’abord une caisse à vérifier.",true);
   const pieces=pointsControleCaisse(item.jour,item.c).filter(p=>p.docs.length), p=pieces.find(x=>x.id===pieceActive)||pieces[0];
-  if(!p||!p.docs.length) return toast("Aucune image disponible pour l’OCR.",true);
-  const doc=p.docs[0]; if(doc.type==="application/pdf") return toast("OCR PDF non activé : ouvrez une photo JPG/PNG du ticket.",true);
-  let src=photosMem[doc.id]||doc._brut||lienDirect(doc,1800); if(!src) src=await ouvrirDoc(doc.id,doc);
-  if(!src) return toast("Impossible de lire cette pièce.",true);
-  toast("OCR en cours… la première lecture peut prendre quelques secondes.");
+  if(!p||!p.docs.length){ ocrEtatControle[item.c.id]="Aucune photo disponible"; if(!options.auto) toast("Aucune image disponible pour l’OCR.",true); return null; }
+  const doc=p.docs[0];
+  if(doc.type==="application/pdf"){ ocrEtatControle[item.c.id]="Le ticket est un PDF : OCR photo uniquement"; if(!options.auto) toast("OCR PDF non activé : ouvrez une photo JPG/PNG du ticket.",true); peindreVue(); return null; }
+  if(item.c.ocrDernier && item.c.ocrDernier.photoId===doc.id && !options.force){
+    if(options.ouvrir!==false) afficherOCRModalDepuisSauvegarde(item,p,item.c.ocrDernier);
+    return item.c.ocrDernier;
+  }
+  ocrEtatControle[item.c.id]="en-cours";
+  if(validationOuverteId===item.c.id) peindreVue();
+  let src=await ouvrirDoc(doc.id,doc);
+  if(!src){ ocrEtatControle[item.c.id]="Photo inaccessible dans le stockage"; if(validationOuverteId===item.c.id) peindreVue(); if(!options.auto) toast("Impossible de lire cette pièce.",true); return null; }
+  if(!options.auto) toast("OCR en cours…");
   try{
     const T=await chargerOCR();
-    const res=await T.recognize(src,"fra",{preserve_interword_spaces:"1"});
-    const texte=String(res&&res.data&&res.data.text||""), confiance=Number(res&&res.data&&res.data.confidence||0);
-    const analyse=analyserTicketZOCR(texte,item.c,confiance);
+    const prep=await pretraiterImageOCR(src);
+    let res=await T.recognize(prep,"fra",{preserve_interword_spaces:"1"});
+    let texte=String(res&&res.data&&res.data.text||""), confiance=Number(res&&res.data&&res.data.confidence||0);
+    let analyse=analyserTicketZOCR(texte,item.c,confiance);
+    /* Deuxième passage uniquement si le premier n'a presque rien compris. */
+    if(analyse.rows.length<2){
+      const r2=await T.recognize(src,"fra",{preserve_interword_spaces:"1"});
+      const t2=String(r2&&r2.data&&r2.data.text||""), c2=Number(r2&&r2.data&&r2.data.confidence||0), a2=analyserTicketZOCR(t2,item.c,c2);
+      if(a2.rows.length>analyse.rows.length || (a2.rows.length===analyse.rows.length&&c2>confiance)){ texte=t2; confiance=c2; analyse=a2; }
+    }
     const dc=journeeEcr(item.jour), cc=(dc.comptages||[]).find(x=>x.id===item.c.id);
-    if(cc){ cc.ocrDernier={at:maintenant(),par:SESSION.nom,decision:analyse.decision,libelle:analyse.decisionLib,confiance:Math.round(confiance||0),avis:analyse.avis,rows:analyse.rows.map(r=>({cle:r.cle,lib:r.lib,montant:r.montant,attendu:r.attendu,ecart:r.ecart}))}; await sauver(); }
-    const vals=[...texte.matchAll(/(?:^|\s)(\d{1,6}(?:[ .]\d{3})*[,.]\d{2})\s*€?/gm)].map(m=>m[1].replace(/\s/g,""));
-    const uniques=[...new Set(vals)].slice(0,24);
-    ouvrirModale('<div class="modale"><div class="boite ocr-boite"><header><h3>Assistant OCR</h3><p>'+ech(p.libelle)+' · lecture assistée du ticket Z</p></header><div class="corps ocr-resultats">'+
-      '<div class="banniere info"><span class="sym">i</span><div><b>Contrôle humain obligatoire</b><p>L’OCR propose une lecture et compare les lignes reconnues à la saisie. Il ne valide jamais la caisse automatiquement.</p></div></div>'+
-      htmlAnalyseTicketOCR(analyse,confiance)+
-      '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:650">Voir le texte OCR brut et tous les montants repérés</summary><div class="ocr-montants">'+(uniques.length?uniques.map(x=>'<span>'+ech(x)+' €</span>').join(''):'<span>Aucun montant fiable détecté</span>')+'</div><div class="ocr-brut">'+ech(texte||'Aucun texte reconnu.')+'</div></details></div>'+
-      '<footer><button class="btn" data-act="fermer-modale">Fermer</button></footer></div></div>');
-  }catch(err){ toast("OCR indisponible : "+(err.message||"erreur de lecture"),true); }
+    const sauvegarde={at:maintenant(),par:SESSION.nom,photoId:doc.id,decision:analyse.decision,libelle:analyse.decisionLib,confiance:Math.round(confiance||0),couverture:analyse.couverture||0,avis:analyse.avis,alertes:analyse.alertes||[],texte,rows:analyse.rows.map(r=>({cle:r.cle,lib:r.lib,montant:r.montant,attendu:r.attendu,ecart:r.ecart,source:r.source||""}))};
+    if(cc){ cc.ocrDernier=sauvegarde; await sauver(); }
+    ocrEtatControle[item.c.id]=""; ocrAutoLances.add(item.c.id+"|"+doc.id);
+    if(validationOuverteId===item.c.id) peindreVue();
+    if(options.ouvrir!==false) afficherOCRModalDepuisSauvegarde(item,p,sauvegarde);
+    return sauvegarde;
+  }catch(err){
+    ocrEtatControle[item.c.id]=err.message||"erreur de lecture OCR";
+    if(validationOuverteId===item.c.id) peindreVue();
+    if(!options.auto) toast("OCR indisponible : "+(err.message||"erreur de lecture"),true);
+    return null;
+  }
+}
+function afficherOCRModalDepuisSauvegarde(item,p,o){
+  const analyse={rows:o.rows||[],avis:o.avis||"",alertes:o.alertes||[],decision:o.decision||"non",decisionLib:o.libelle||"Je suggère de ne pas valider",decisionClasse:o.decision==='oui'?"ok":"ko",confiance:o.confiance||0,couverture:o.couverture||0};
+  const texte=String(o.texte||""), vals=[...texte.matchAll(/(?:^|\s)(\d{1,6}(?:[ .]\d{3})*[,.]\d{2})\s*€?/gm)].map(m=>m[1].replace(/\s/g,"")), uniques=[...new Set(vals)].slice(0,24);
+  ouvrirModale('<div class="modale"><div class="boite ocr-boite"><header><h3>Assistant OCR</h3><p>'+ech(p.libelle)+' · lecture assistée du ticket Z</p></header><div class="corps ocr-resultats">'+
+    '<div class="banniere info"><span class="sym">i</span><div><b>Décision finale humaine</b><p>L’OCR donne toujours une recommandation : valider ou ne pas valider. L’administrateur reste décisionnaire.</p></div></div>'+htmlAnalyseTicketOCR(analyse,o.confiance||0)+
+    '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:650">Voir le texte OCR brut</summary><div class="ocr-montants">'+(uniques.length?uniques.map(x=>'<span>'+ech(x)+' €</span>').join(''):'<span>Aucun montant fiable détecté</span>')+'</div><div class="ocr-brut">'+ech(texte||'Aucun texte reconnu.')+'</div></details></div>'+ 
+    '<footer><button class="btn neutre" data-act="ocr-reanalyser">Relancer l’OCR</button><button class="btn" data-act="fermer-modale">Fermer</button></footer></div></div>');
+}
+function planifierOCRControle(){
+  if(surMobile()||!validationOuverteId) return;
+  const item=itemControleActuel(); if(!item||item.c.id!==validationOuverteId) return;
+  const p=pointsControleCaisse(item.jour,item.c).find(x=>x.docs.length), doc=p&&p.docs[0]; if(!doc) return;
+  if(item.c.ocrDernier&&item.c.ocrDernier.photoId===doc.id) return;
+  const cle=item.c.id+"|"+doc.id; if(ocrAutoLances.has(cle)||ocrEtatControle[item.c.id]==="en-cours") return;
+  ocrAutoLances.add(cle);
+  setTimeout(()=>lancerOCRPiece({auto:true,ouvrir:false}),120);
 }
 
 async function pointerPiece(ptId,etat){
@@ -3849,6 +4022,7 @@ function actionCaisse(quoi){
     if(!peut("valider")) return toast("Droit « Valider après rapprochement » non accordé.",true);
     if(e.anormal>0&&!String(c.motif).trim())
       return toast("Manquant de "+eur(e.anormal)+" sans motif écrit.",true);
+    if(c.ocrDernier&&c.ocrDernier.decision==="non"&&!confirm("L’OCR recommande de NE PAS valider cette caisse.\n\n"+(c.ocrDernier.avis||"")+"\n\nValider malgré cette alerte ?")) return;
     assurerHistoriqueInitial(c);
     c.valid={par:SESSION.nom,at:maintenant()};
     ajouterHistoriqueComptage(c,"Caisse validée",SESSION.nom,c.valid.at);
@@ -3963,7 +4137,9 @@ async function agir(a,ds){
     const map={}; document.querySelectorAll("[data-resp-service]").forEach(el=>{ const nom=String(el.value||"").trim(); if(nom&&autorises.has(nom)) map[el.dataset.respService]=nom; });
     P.responsablesService=map; await ecrire(CLES.p,P); tracer("Responsables de service modifiés",Object.keys(map).map(k=>k+" → "+map[k]).join(" · ")||"aucune affectation"); toast("Responsables de service enregistrés."); return peindre();
   }
-  if(a==="ocr-piece") return lancerOCRPiece();
+  if(a==="ocr-piece") return lancerOCRPiece({ouvrir:true});
+  if(a==="ocr-reanalyser"){ fermerModale(); return lancerOCRPiece({ouvrir:true,force:true}); }
+  if(a==="recharger-piece") return chargerVisu(true);
   if(a==="mobile-inventaire"){ mobileAccueil=false; mobileRevueInventaire=false; return peindre(); }
   if(a==="verifier-inventaire"){
     memoriserFormulaireAvantDepot();
